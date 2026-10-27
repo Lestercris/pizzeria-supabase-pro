@@ -67,28 +67,6 @@
     .loader::after { content: ''; display: inline-block; width: 20px; height: 20px; border: 3px solid #ddd; border-top-color: #c0392b; border-radius: 50%; animation: spin 0.8s linear infinite; margin-left: 10px; vertical-align: middle; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Slider de portada */
-    .hero { max-width: 1200px; margin: 22px auto 0; padding: 0 20px; }
-    .hero[hidden] { display: none; }
-    .hero-track { position: relative; width: 100%; height: 340px; border-radius: 16px; overflow: hidden; background: #eee; box-shadow: 0 10px 28px rgba(0,0,0,0.16); touch-action: pan-y; }
-    .hero-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 0.7s ease; pointer-events: none; }
-    .hero-slide.on { opacity: 1; pointer-events: auto; }
-    .hero-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .hero-cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 46px 24px 18px; background: linear-gradient(to top, rgba(0,0,0,0.72), rgba(0,0,0,0)); color: #fff; font-size: 1.15rem; font-weight: 600; letter-spacing: 0.2px; text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
-    .hero-btn { position: absolute; top: 50%; transform: translateY(-50%); width: 42px; height: 42px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.9); color: #c0392b; font-size: 26px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(0,0,0,0.2); transition: background 0.2s, transform 0.15s; z-index: 2; }
-    .hero-btn:hover { background: #fff; transform: translateY(-50%) scale(1.06); }
-    .hero-btn.prev { left: 14px; }
-    .hero-btn.next { right: 14px; }
-    .hero-dots { display: flex; justify-content: center; gap: 8px; margin-top: 12px; }
-    .hero-dots button { width: 10px; height: 10px; padding: 0; border: 0; border-radius: 50%; background: #d8d8d8; cursor: pointer; transition: background 0.2s, transform 0.2s; }
-    .hero-dots button.on { background: #c0392b; transform: scale(1.25); }
-    @media (max-width: 700px) {
-      .hero { margin-top: 16px; padding: 0 12px; }
-      .hero-track { height: 215px; border-radius: 12px; }
-      .hero-btn { width: 34px; height: 34px; font-size: 21px; }
-      .hero-cap { font-size: 1rem; padding: 34px 16px 14px; }
-    }
-
     /* Footer (Pie de página) */
     footer { background: #2c3e50; color: #ecf0f1; padding: 40px 20px 20px; margin-top: auto; }
     .footer-container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-bottom: 30px; }
@@ -96,18 +74,7 @@
     .footer-col p { font-size: 0.95rem; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 8px; }
     .footer-col a { color: #f1c40f; text-decoration: none; }
     .footer-col a:hover { text-decoration: underline; }
-    
-    /* Mapa y botón GPS */
-    .mapa-container { margin-top: 15px; border-radius: 8px; overflow: hidden; border: 2px solid #34495e; display: none; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
-    .mapa-container iframe { display: block; width: 100%; height: 180px; border: 0; }
-    
-    .btn-gps { display: none; margin-top: 10px; background: #27ae60; color: white !important; text-align: center; padding: 8px 12px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; transition: background 0.2s; }
-    .btn-gps:hover { background: #219150; text-decoration: none !important; }
 
-    .resena { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid #f1c40f; }
-    .estrellas { color: #f1c40f; font-size: 1rem; margin-bottom: 5px; }
-    .resena p { font-size: 0.85rem; font-style: italic; margin: 0; color: #bdc3c7; }
-    
     .footer-bottom { text-align: center; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem; color: #95a5a6; }
 
     /* Botón flotante WhatsApp */
@@ -125,15 +92,6 @@
   <div id="promo-container"></div>
 
   <div class="main-content">
-    <section class="hero" id="hero" hidden>
-      <div class="hero-track" id="heroTrack">
-        <div id="heroSlides"></div>
-        <button class="hero-btn prev" type="button" aria-label="Imagen anterior" onclick="moverSlider(-1)">‹</button>
-        <button class="hero-btn next" type="button" aria-label="Imagen siguiente" onclick="moverSlider(1)">›</button>
-      </div>
-      <div class="hero-dots" id="heroDots"></div>
-    </section>
-
     <div class="container">
       <main>
         <div id="categorias-container" class="categorias"></div>
@@ -174,14 +132,8 @@
     <div class="footer-container">
       <div class="footer-col">
         <h3>📍 Dónde estamos</h3>
-        <p id="footer-direccion">Cargando dirección...</p>
+        <p id="footer-direccion">Próximamente dirección...</p>
         <p>📞 <a id="footer-telefono" href="#">Cargando...</a></p>
-        
-        <!-- MAPA Y BOTÓN GPS -->
-        <div id="mapa-container" class="mapa-container">
-          <iframe id="mapa-iframe" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-        </div>
-        <a id="btn-gps" href="#" target="_blank" class="btn-gps">🚗 Cómo llegar (Abrir GPS)</a>
       </div>
       
       <div class="footer-col">
@@ -192,22 +144,7 @@
       <div class="footer-col">
         <h3>⭐ Opiniones de clientes</h3>
         <div id="lista-resenas" style="margin-bottom: 15px; max-height: 250px; overflow-y: auto;">
-          <p style="color: #bdc3c7; font-size: 0.9rem;">Cargando reseñas...</p>
-        </div>
-        
-        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
-          <p style="font-size: 0.9rem; margin-bottom: 10px; font-weight: bold; color: #fff;">Déjanos tu opinión</p>
-          <input type="text" id="res-nombre" placeholder="Tu nombre" style="width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: none; font-family: inherit;">
-          <select id="res-estrellas" style="width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: none; font-family: inherit;">
-            <option value="5">★★★★★ (Excelente)</option>
-            <option value="4">★★★★☆ (Muy bueno)</option>
-            <option value="3">★★★☆☆ (Normal)</option>
-            <option value="2">★★☆☆☆ (Malo)</option>
-            <option value="1">★☆☆☆☆ (Muy malo)</option>
-          </select>
-          <textarea id="res-comentario" placeholder="¿Qué te pareció la pizza?" style="width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: none; resize: vertical; font-family: inherit;" rows="2"></textarea>
-          <button type="button" onclick="enviarResena()" style="background: #c0392b; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%;">Enviar Reseña</button>
-          <div id="res-msg" style="font-size: 0.8rem; margin-top: 8px; display: none; text-align: center;"></div>
+          <p style="color: #bdc3c7; font-size: 0.9rem;">Módulo de reseñas en construcción...</p>
         </div>
       </div>
     </div>
@@ -223,8 +160,10 @@
   </a>
 
   <script>
-  const SUPABASE_URL = 'https://afarkzyssgcpmnquqdp.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMzI2NTUsImV4cCI6MjEwODcwODY1NX0.J7gSycaeum0bUzx9tss5OM4WfPUt5BswqxnSEI0RgiY';
+    // === CONFIGURACIÓN SUPABASE ===
+    const SUPABASE_URL = 'https://afarkzyssgcpmnquqdp.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMzI2NTUsImV4cCI6MjEwODcwODY1NX0.J7gSycaeum0bUzx9tss5OM4WfPUt5BswqxnSEI0RgiY';
+    
     const MONEDA = '€';
     const IMG_PLACEHOLDER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="160"><rect width="100%" height="100%" fill="#f1f1f1"/><text x="150" y="86" text-anchor="middle" font-family="sans-serif" font-size="16" fill="#b0b0b0">Sin imagen</text></svg>');
 
@@ -234,9 +173,6 @@
     const productosPorPagina = 6; 
 
     function moneda(n) { return MONEDA + (Number(n) || 0).toFixed(2); }
-    let contadorCb = 0;
-    function nombreCb(prefijo) { contadorCb += 1; return prefijo + '_' + Date.now() + '_' + contadorCb; }
-
     function esc(txt) { return String(txt == null ? '' : txt).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
     function precioNum(valor) {
@@ -257,7 +193,8 @@
 
     function imagenesDe(p) { const raw = p.ImagenURL || p.Imagen || ''; return String(raw).split(',').map(function (u) { return u.trim(); }).filter(function (u) { return u !== ''; }); }
 
-        async function cargarProductos() {
+    // === CARGAR PRODUCTOS DESDE SUPABASE ===
+    async function cargarProductos() {
       try {
         const response = await fetch(SUPABASE_URL + '/rest/v1/productos?select=*&disponible=eq.true', {
           headers: {
@@ -268,7 +205,7 @@
         
         const data = await response.json();
         
-        // Adaptamos los datos de Supabase
+        // Adaptamos los datos
         productos = data.map(p => ({
           ID: p.id,
           Categoria: p.categoria,
@@ -288,7 +225,8 @@
       }
     }
     
-        async function cargarConfig() {
+    // === CARGAR CONFIGURACIÓN DESDE SUPABASE ===
+    async function cargarConfig() {
       try {
         const response = await fetch(SUPABASE_URL + '/rest/v1/configuracion?select=*', {
           headers: {
@@ -298,15 +236,11 @@
         });
         
         const data = await response.json();
-        
-        // Convertimos el array de configuración a un objeto fácil de usar
         let config = {};
         data.forEach(item => { config[item.clave] = item.valor; });
 
-        // Lógica del interruptor de Stripe
         stripeHabilitado = !!(config.stripe_habilitado === 'true' || config.stripe_habilitado === 'TRUE');
 
-        // Leemos el nombre del negocio y la promoción (si existen en Supabase)
         if (config.promocion && config.promocion.trim() !== '') {
           const banner = document.createElement('div');
           banner.className = 'promo-banner';
@@ -326,101 +260,18 @@
       } catch (error) {
         console.error("Error cargando configuración:", error);
       }
-    }    function cargarResenasPublicas() {
-      jsonp('getReviews', function(data) {
-        const cont = document.getElementById('lista-resenas');
-        if (!cont) return;
-        if (!data || !data.length) {
-          cont.innerHTML = '<p style="color: #bdc3c7; font-size: 0.9rem;">Aún no hay reseñas. ¡Sé el primero!</p>';
-          return;
-        }
-        
-        cont.innerHTML = data.map(r => {
-          const estrellas = '★'.repeat(r.Estrellas) + '☆'.repeat(5 - r.Estrellas);
-          return `
-            <div class="resena">
-              <div class="estrellas">${estrellas}</div>
-              <p>"${esc(r.Comentario)}"</p>
-              <small style="color: #95a5a6; font-size: 0.75rem;">- ${esc(r.Nombre)} (${r.Fecha})</small>
-            </div>
-          `;
-        }).join('');
-      }, function() {});
     }
 
-    function enviarResena() {
-      const nombre = document.getElementById('res-nombre').value.trim();
-      const estrellas = document.getElementById('res-estrellas').value;
-      const comentario = document.getElementById('res-comentario').value.trim();
-      const msgDiv = document.getElementById('res-msg');
-      const btn = event.target;
-
-      if (!nombre || !comentario) {
-        msgDiv.textContent = 'Por favor, rellena tu nombre y comentario.';
-        msgDiv.style.color = '#ff6b6b';
-        msgDiv.style.display = 'block';
-        return;
-      }
-
-      btn.disabled = true;
-      btn.textContent = 'Enviando...';
-
-      jsonp('saveReview', function(res) {
-        btn.disabled = false;
-        btn.textContent = 'Enviar Reseña';
-        if (res && res.success) {
-          msgDiv.textContent = '✅ ¡Gracias! Tu reseña será revisada y publicada pronto.';
-          msgDiv.style.color = '#2ecc71';
-          msgDiv.style.display = 'block';
-          document.getElementById('res-nombre').value = '';
-          document.getElementById('res-comentario').value = '';
-        } else {
-          msgDiv.textContent = 'Error: ' + (res.error || 'No se pudo enviar.');
-          msgDiv.style.color = '#ff6b6b';
-          msgDiv.style.display = 'block';
-        }
-      }, function() {
-        btn.disabled = false;
-        btn.textContent = 'Enviar Reseña';
-        msgDiv.textContent = 'Error de conexión.';
-        msgDiv.style.color = '#ff6b6b';
-        msgDiv.style.display = 'block';
-      }, { nombre: nombre, estrellas: estrellas, comentario: comentario });
-    }
-
-    let slides = [], slideActual = 0, slideTimer = null;
-    function cargarSlider() { jsonp('getSlider', function (data) { mostrarSlider(Array.isArray(data) ? data : []); }, function () {}); }
-    function mostrarSlider(lista) {
-      const hero = document.getElementById('hero'), cont = document.getElementById('heroSlides'), dots = document.getElementById('heroDots');
-      slides = lista.filter(function (s) { return s && s.URL; });
-      if (!slides.length) { hero.hidden = true; return; }
-      cont.innerHTML = slides.map(function (s, i) {
-        return '<div class="hero-slide' + (i === 0 ? ' on' : '') + '"><img src="' + esc(s.URL) + '" alt="' + esc(s.Titulo || '') + '" ' + (i === 0 ? '' : 'loading="lazy" ') + 'onerror="this.onerror=null;this.src=\'' + IMG_PLACEHOLDER + '\'">' + (s.Titulo ? '<div class="hero-cap">' + esc(s.Titulo) + '</div>' : '') + '</div>';
-      }).join('');
-      dots.innerHTML = slides.map(function (_, i) { return '<button type="button" aria-label="Ir a la imagen ' + (i + 1) + '" onclick="irASlide(' + i + ')"></button>'; }).join('');
-      hero.hidden = false; slideActual = 0; pintarSlide(); iniciarAuto(); prepararSwipe();
-    }
-    function pintarSlide() {
-      const imgs = document.querySelectorAll('#heroSlides .hero-slide'), puntos = document.querySelectorAll('#heroDots button');
-      for (let i = 0; i < imgs.length; i++) imgs[i].classList.toggle('on', i === slideActual);
-      for (let i = 0; i < puntos.length; i++) puntos[i].classList.toggle('on', i === slideActual);
-    }
-    function irASlide(i) { if (!slides.length) return; slideActual = (i + slides.length) % slides.length; pintarSlide(); iniciarAuto(); }
-    function moverSlider(dir) { irASlide(slideActual + dir); }
-    function iniciarAuto() { detenerAuto(); if (slides.length < 2) return; slideTimer = setInterval(function () { moverSlider(1); }, 5000); }
-    function detenerAuto() { if (slideTimer) { clearInterval(slideTimer); slideTimer = null; } }
-    function prepararSwipe() {
-      const track = document.getElementById('heroTrack'); if (!track || track.dataset.swipe) return; track.dataset.swipe = '1';
-      let x0 = null;
-      track.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; detenerAuto(); }, { passive: true });
-      track.addEventListener('touchend', function (e) { if (x0 === null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null; if (Math.abs(dx) > 40) moverSlider(dx < 0 ? 1 : -1); }, { passive: true });
-      track.addEventListener('mouseenter', detenerAuto); track.addEventListener('mouseleave', iniciarAuto);
-    }
-
+    // === RENDERIZADO DE PRODUCTOS ===
     function mostrarProductos(lista) {
-      if (!Array.isArray(lista)) { document.getElementById('catalogo').innerHTML = '<p style="color:#c0392b">El servidor devolvió una respuesta no válida.</p>'; return; }
+      if (!Array.isArray(lista)) { document.getElementById('catalogo').innerHTML = '<p style="color:#c0392b">Error de respuesta.</p>'; return; }
       productos = lista.filter(function (p) { return esVisible(p) && precioNum(p.Precio) > 0; });
-      if (!productos.length) { document.getElementById('catalogo').innerHTML = '<p style="color:#999">No hay productos disponibles ahora mismo.</p>'; document.getElementById('paginacion').style.display = 'none'; return; }
+      
+      if (!productos.length) { 
+        document.getElementById('catalogo').innerHTML = '<p style="color:#999">No hay productos disponibles ahora mismo.</p>'; 
+        document.getElementById('paginacion').style.display = 'none'; 
+        return; 
+      }
       
       const categorias = ['Todas'];
       productos.forEach(p => {
@@ -499,6 +350,7 @@
       }
     }
 
+    // === LÓGICA DEL CARRITO ===
     function agregarAlCarrito(id) {
       const p = productos.find(function (x) { return String(x.ID) === String(id); });
       if (!p) return;
@@ -532,124 +384,93 @@
       document.getElementById('btn-pagar').disabled = false;
     }
 
-    function procesarPedido() {
+    // === PROCESAR PEDIDO (GUARDAR EN SUPABASE) ===
+    async function procesarPedido() {
       const nombre = document.getElementById('nombre').value.trim();
       const email = document.getElementById('email').value.trim();
       const telefono = document.getElementById('telefono').value.trim();
       const direccion = document.getElementById('direccion').value.trim();
+      const btn = document.getElementById('btn-pagar');
 
       if (!nombre || !email) { mostrarMensaje('Por favor, completa tu nombre y email.', 'error'); return; }
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { mostrarMensaje('El email no tiene un formato válido.', 'error'); return; }
       
       const items = Object.keys(carrito).map(function (id) { return { id: id, cantidad: carrito[id].cantidad }; });
       if (items.length === 0) { mostrarMensaje('Tu carrito está vacío.', 'error'); return; }
       
-      const btn = document.getElementById('btn-pagar'); 
       btn.disabled = true; 
       btn.textContent = 'Procesando...';
-      
-      const callbackName = nombreCb('callbackPedido'), script = document.createElement('script');
-      
-      function restaurarBoton() { 
-        btn.disabled = Object.keys(carrito).length === 0; 
-        btn.textContent = 'Pagar y Enviar Pedido'; 
-      }
-      
-      function cleanup() { 
-        try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; } 
-        if (script.parentNode) script.parentNode.removeChild(script); 
-      }
-      
-      window[callbackName] = function (respuesta) {
-        cleanup();
-        if (!respuesta || typeof respuesta !== 'object') { 
-          restaurarBoton(); 
-          mostrarMensaje('Error: respuesta no válida del servidor.', 'error'); 
-          return; 
-        }
-        
-        if (respuesta.success) {
-          if (respuesta.paymentUrl) { 
-            mostrarMensaje('¡Pedido registrado! Redirigiendo al pago con tarjeta...', 'ok'); 
-            window.location.href = respuesta.paymentUrl; 
-            return; 
-          }
 
-          if (!respuesta.paymentUrl) {
-            let resumenWsp = '';
-            Object.keys(carrito).forEach(id => {
-              const item = carrito[id];
-              resumenWsp += `- ${item.cantidad}x ${item.producto.Nombre}\n`;
-            });
-            
-            const totalPedido = document.getElementById('total').textContent;
-            const msg = encodeURIComponent(
-              `Hola, acabo de hacer el pedido *#${respuesta.orderId}* en la web.\n\n` +
-              `*Mi pedido:*\n${resumenWsp}\n` +
-              `*Total:* ${totalPedido}\n\n` +
-              `*Nombre:* ${nombre}\n` +
-              `*Dirección:* ${direccion || 'Recogida en tienda'}\n\n` +
-              `Os escribo para coordinar el pago.`
-            );
-
-            const numLimpio = telefonoNegocio.replace(/\D/g, ''); 
-            const urlWhatsApp = `https://wa.me/${numLimpio}?text=${msg}`;
-
-            mostrarMensaje('¡Pedido registrado! Abriendo WhatsApp para enviar los detalles...', 'ok');
-            
-            carrito = {}; 
-            renderCarrito(); 
-            restaurarBoton(); 
-
-            setTimeout(() => { window.open(urlWhatsApp, '_blank'); }, 1000);
-            return;
-          }
-        }
-
-        if (!respuesta.success && respuesta.error && respuesta.error.indexOf('ya se ha registrado') !== -1) {
-          mostrarMensaje(respuesta.error, 'ok'); 
-          carrito = {}; 
-          renderCarrito(); 
-          restaurarBoton(); 
-          return;
-        }
-
-        restaurarBoton(); 
-        mostrarMensaje('Error: ' + (respuesta.error || 'No se pudo procesar el pedido.'), 'error');
-      };
-      
-      script.onerror = function () { cleanup(); restaurarBoton(); mostrarMensaje('Error de conexión. Inténtalo de nuevo.', 'error'); };
-      
-      const params = new URLSearchParams({ 
-        action: 'processOrder', 
-        callback: callbackName, 
-        items: JSON.stringify(items), 
-        nombre: nombre, 
-        email: email, 
-        telefono: telefono, 
-        direccion: direccion, 
-        skipStripe: stripeHabilitado ? 'false' : 'true' 
+      let total = 0;
+      let detalle = [];
+      Object.keys(carrito).forEach(id => {
+        const item = carrito[id];
+        const subtotal = precioNum(item.producto.Precio) * item.cantidad;
+        total += subtotal;
+        detalle.push(`${item.cantidad}x ${item.producto.Nombre}`);
       });
-      
-      script.src = APPS_SCRIPT_URL + '?' + params.toString(); 
-      document.body.appendChild(script);
+
+      try {
+        // Insertar pedido en la tabla de Supabase
+        const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos', {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+          },
+          body: JSON.stringify({
+            order_id: 'PED-' + Date.now(),
+            nombre_cliente: nombre,
+            email_cliente: email,
+            telefono: telefono,
+            direccion: direccion,
+            detalle: detalle.join(', '),
+            total: total,
+            estado: 'Pendiente'
+          })
+        });
+
+        if (!response.ok) throw new Error('Error al guardar el pedido');
+
+        const data = await response.json();
+        const orderId = data[0].order_id;
+
+        // Generar resumen para WhatsApp
+        let resumenWsp = detalle.map(d => `- ${d}`).join('\n');
+        const msg = encodeURIComponent(
+          `Hola, acabo de hacer el pedido *#${orderId}* en la web.\n\n` +
+          `*Mi pedido:*\n${resumenWsp}\n` +
+          `*Total:* ${moneda(total)}\n\n` +
+          `*Nombre:* ${nombre}\n` +
+          `*Dirección:* ${direccion || 'Recogida en tienda'}\n\n` +
+          `Os escribo para coordinar el pago.`
+        );
+        const numLimpio = telefonoNegocio.replace(/\D/g, ''); 
+        const urlWhatsApp = `https://wa.me/${numLimpio}?text=${msg}`;
+
+        mostrarMensaje('¡Pedido registrado! Abriendo WhatsApp para enviar los detalles...', 'ok');
+        carrito = {}; 
+        renderCarrito(); 
+        btn.textContent = 'Pagar y Enviar Pedido';
+        btn.disabled = true; 
+
+        setTimeout(() => { window.open(urlWhatsApp, '_blank'); }, 1000);
+
+      } catch (error) {
+        console.error(error);
+        mostrarMensaje('Error de conexión al procesar el pedido.', 'error');
+        btn.textContent = 'Pagar y Enviar Pedido';
+        btn.disabled = false; 
+      }
     }
 
     function mostrarMensaje(texto, tipo) { const msg = document.getElementById('mensaje'); msg.textContent = texto; msg.className = 'mensaje ' + tipo; }
 
-    function revisarResultadoPago() {
-      const estado = new URLSearchParams(window.location.search).get('pago');
-      if (estado === 'exitoso') { mostrarMensaje('¡Pago completado! Gracias por tu pedido. Te avisamos cuando esté listo.', 'ok'); }
-      else if (estado === 'cancelado') { mostrarMensaje('El pago se canceló y no se te ha cobrado. Puedes intentarlo de nuevo.', 'error'); }
-    }
-
     window.addEventListener('DOMContentLoaded', function () { 
       document.getElementById('year').textContent = new Date().getFullYear();
-      revisarResultadoPago(); 
       cargarConfig(); 
-      cargarSlider(); 
       cargarProductos(); 
-      cargarResenasPublicas();
     });
   </script>
 </body>
