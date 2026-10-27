@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🍕 Cargando...</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #fef8f2; color: #333; line-height: 1.6; display: flex; flex-direction: column; min-height: 100vh; }
+    
+    header { background: linear-gradient(135deg, #c0392b, #e74c3c); color: white; padding: 25px 20px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    header h1 { font-size: 2rem; }
+    header p { font-size: 1rem; opacity: 0.9; margin-top: 5px; }
+
+    /* Promoción del día */
+    .promo-banner { background: #f1c40f; color: #7d6608; text-align: center; padding: 12px; font-weight: 700; font-size: 1.1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1); letter-spacing: 0.5px; }
+    .promo-banner span { background: #c0392b; color: white; padding: 2px 8px; border-radius: 4px; margin-right: 8px; font-size: 0.9rem; }
+
+    .main-content { flex: 1; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; display: grid; grid-template-columns: 2fr 1fr; gap: 25px; }
+    @media (max-width: 850px) { .container { grid-template-columns: 1fr; } }
+
+    /* Categorías */
+    .categorias { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+    .categorias button { background: white; border: 1px solid #ccc; color: #555; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: all 0.2s; }
+    .categorias button:hover { border-color: #c0392b; color: #c0392b; }
+    .categorias button.activa { background: #c0392b; border-color: #c0392b; color: white; }
+
+    /* Catálogo */
+    .catalogo { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; }
+    .producto { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; }
+    .producto:hover { transform: translateY(-4px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+    .producto img { width: 100%; height: 160px; object-fit: cover; background: #eee; }
+    .producto-body { padding: 15px; flex: 1; display: flex; flex-direction: column; }
+    .producto h3 { font-size: 1.15rem; color: #c0392b; margin-bottom: 6px; }
+    .producto .desc { font-size: 0.85rem; color: #666; margin-bottom: 8px; flex: 1; }
+    .producto .ingredientes { font-size: 0.78rem; color: #888; font-style: italic; margin-bottom: 10px; }
+    .producto .precio { font-size: 1.25rem; font-weight: bold; color: #27ae60; margin-bottom: 10px; }
+    .producto button { background: #c0392b; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: background 0.2s; }
+    .producto button:hover { background: #a93226; }
+
+    /* Paginación */
+    .paginacion { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 30px; margin-bottom: 20px; }
+    .paginacion button { background: white; border: 2px solid #c0392b; color: #c0392b; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
+    .paginacion button:hover:not(:disabled) { background: #c0392b; color: white; }
+    .paginacion button:disabled { border-color: #ccc; color: #ccc; cursor: not-allowed; }
+    .paginacion span { font-weight: bold; color: #333; }
+
+    /* Carrito */
+    .carrito { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); height: fit-content; position: sticky; top: 20px; }
+    .carrito h2 { color: #c0392b; margin-bottom: 15px; font-size: 1.3rem; }
+    .carrito-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+    .carrito-item .controles { display: flex; align-items: center; gap: 6px; }
+    .carrito-item button { background: #eee; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-weight: bold; color: #c0392b; }
+    .carrito-item button:hover { background: #ddd; }
+    .carrito-vacio { color: #999; font-style: italic; text-align: center; padding: 15px 0; }
+    .total { display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: bold; margin-top: 15px; padding-top: 15px; border-top: 2px solid #c0392b; color: #c0392b; }
+    .carrito input { width: 100%; padding: 9px; margin-top: 8px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; }
+    .btn-pagar { width: 100%; background: #27ae60; color: white; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: bold; margin-top: 12px; transition: background 0.2s; }
+    .btn-pagar:hover { background: #229954; }
+    .btn-pagar:disabled { background: #aaa; cursor: not-allowed; }
+    .mensaje { padding: 12px; border-radius: 8px; margin-top: 10px; font-size: 0.9rem; display: none; }
+    .mensaje.ok { background: #d4edda; color: #155724; display: block; }
+    .mensaje.error { background: #f8d7da; color: #721c24; display: block; }
+
+    .loader { text-align: center; padding: 40px; color: #999; }
+    .loader::after { content: ''; display: inline-block; width: 20px; height: 20px; border: 3px solid #ddd; border-top-color: #c0392b; border-radius: 50%; animation: spin 0.8s linear infinite; margin-left: 10px; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Slider de portada */
+    .hero { max-width: 1200px; margin: 22px auto 0; padding: 0 20px; }
+    .hero[hidden] { display: none; }
+    .hero-track { position: relative; width: 100%; height: 340px; border-radius: 16px; overflow: hidden; background: #eee; box-shadow: 0 10px 28px rgba(0,0,0,0.16); touch-action: pan-y; }
+    .hero-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 0.7s ease; pointer-events: none; }
+    .hero-slide.on { opacity: 1; pointer-events: auto; }
+    .hero-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .hero-cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 46px 24px 18px; background: linear-gradient(to top, rgba(0,0,0,0.72), rgba(0,0,0,0)); color: #fff; font-size: 1.15rem; font-weight: 600; letter-spacing: 0.2px; text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
+    .hero-btn { position: absolute; top: 50%; transform: translateY(-50%); width: 42px; height: 42px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.9); color: #c0392b; font-size: 26px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(0,0,0,0.2); transition: background 0.2s, transform 0.15s; z-index: 2; }
+    .hero-btn:hover { background: #fff; transform: translateY(-50%) scale(1.06); }
+    .hero-btn.prev { left: 14px; }
+    .hero-btn.next { right: 14px; }
+    .hero-dots { display: flex; justify-content: center; gap: 8px; margin-top: 12px; }
+    .hero-dots button { width: 10px; height: 10px; padding: 0; border: 0; border-radius: 50%; background: #d8d8d8; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+    .hero-dots button.on { background: #c0392b; transform: scale(1.25); }
+    @media (max-width: 700px) {
+      .hero { margin-top: 16px; padding: 0 12px; }
+      .hero-track { height: 215px; border-radius: 12px; }
+      .hero-btn { width: 34px; height: 34px; font-size: 21px; }
+      .hero-cap { font-size: 1rem; padding: 34px 16px 14px; }
+    }
+
+    /* Footer (Pie de página) */
+    footer { background: #2c3e50; color: #ecf0f1; padding: 40px 20px 20px; margin-top: auto; }
+    .footer-container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-bottom: 30px; }
+    .footer-col h3 { color: #e74c3c; margin-bottom: 15px; font-size: 1.2rem; }
+    .footer-col p { font-size: 0.95rem; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 8px; }
+    .footer-col a { color: #f1c40f; text-decoration: none; }
+    .footer-col a:hover { text-decoration: underline; }
+    
+    /* Mapa y botón GPS */
+    .mapa-container { margin-top: 15px; border-radius: 8px; overflow: hidden; border: 2px solid #34495e; display: none; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+    .mapa-container iframe { display: block; width: 100%; height: 180px; border: 0; }
+    
+    .btn-gps { display: none; margin-top: 10px; background: #27ae60; color: white !important; text-align: center; padding: 8px 12px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; transition: background 0.2s; }
+    .btn-gps:hover { background: #219150; text-decoration: none !important; }
+
+    .resena { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid #f1c40f; }
+    .estrellas { color: #f1c40f; font-size: 1rem; margin-bottom: 5px; }
+    .resena p { font-size: 0.85rem; font-style: italic; margin: 0; color: #bdc3c7; }
+    
+    .footer-bottom { text-align: center; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem; color: #95a5a6; }
+
+    /* Botón flotante WhatsApp */
+    .wa-float { position: fixed; bottom: 20px; right: 20px; background: #25D366; color: white; border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1000; text-decoration: none; transition: transform 0.2s, box-shadow 0.2s; }
+    .wa-float:hover { transform: scale(1.08); box-shadow: 0 6px 16px rgba(0,0,0,0.35); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1 id="header-titulo">🍕 Cargando...</h1>
+    <p id="header-subtitulo">Auténtica pizza, hecha con amor</p>
+  </header>
+
+  <div id="promo-container"></div>
+
+  <div class="main-content">
+    <section class="hero" id="hero" hidden>
+      <div class="hero-track" id="heroTrack">
+        <div id="heroSlides"></div>
+        <button class="hero-btn prev" type="button" aria-label="Imagen anterior" onclick="moverSlider(-1)">‹</button>
+        <button class="hero-btn next" type="button" aria-label="Imagen siguiente" onclick="moverSlider(1)">›</button>
+      </div>
+      <div class="hero-dots" id="heroDots"></div>
+    </section>
+
+    <div class="container">
+      <main>
+        <div id="categorias-container" class="categorias"></div>
+        <div id="catalogo" class="catalogo">
+          <div class="loader">Cargando el menú...</div>
+        </div>
+        <div class="paginacion" id="paginacion" style="display: none;">
+          <button id="btn-prev" onclick="cambiarPagina(-1)">« Anterior</button>
+          <span id="info-pagina">Página 1</span>
+          <button id="btn-next" onclick="cambiarPagina(1)">Siguiente »</button>
+        </div>
+      </main>
+
+      <aside>
+        <div class="carrito">
+          <h2>🛒 Tu Pedido</h2>
+          <div id="carrito-items">
+            <p class="carrito-vacio">El carrito está vacío</p>
+          </div>
+          <div class="total">
+            <span>Total:</span>
+            <span id="total">€0.00</span>
+          </div>
+          <input type="text" id="nombre" placeholder="Tu nombre" required>
+          <input type="email" id="email" placeholder="Tu email" required>
+          <input type="tel" id="telefono" placeholder="Teléfono (opcional)">
+          <input type="text" id="direccion" placeholder="Dirección de entrega">
+          <button class="btn-pagar" id="btn-pagar" type="button" onclick="procesarPedido()" disabled>
+            Pagar y Enviar Pedido
+          </button>
+          <div id="mensaje" class="mensaje"></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-container">
+      <div class="footer-col">
+        <h3>📍 Dónde estamos</h3>
+        <p id="footer-direccion">Cargando dirección...</p>
+        <p>📞 <a id="footer-telefono" href="#">Cargando...</a></p>
+        
+        <!-- MAPA Y BOTÓN GPS -->
+        <div id="mapa-container" class="mapa-container">
+          <iframe id="mapa-iframe" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+        <a id="btn-gps" href="#" target="_blank" class="btn-gps">🚗 Cómo llegar (Abrir GPS)</a>
+      </div>
+      
+      <div class="footer-col">
+        <h3>🕒 Horario</h3>
+        <p id="footer-horario">Cargando horario...</p>
+      </div>
+
+      <div class="footer-col">
+        <h3>⭐ Opiniones de clientes</h3>
+        <div id="lista-resenas" style="margin-bottom: 15px; max-height: 250px; overflow-y: auto;">
+          <p style="color: #bdc3c7; font-size: 0.9rem;">Cargando reseñas...</p>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+          <p style="font-size: 0.9rem; margin-bottom: 10px; font-weight: bold; color: #fff;">Déjanos tu opinión</p>
+          <input type="text" id="res-nombre" placeholder="Tu nombre" style="width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: none; font-family: inherit;">
+          <select id="res-estrellas" style="width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: none; font-family: inherit;">
+            <option value="5">★★★★★ (Excelente)</option>
+            <option value="4">★★★★☆ (Muy bueno)</option>
+            <option value="3">★★★☆☆ (Normal)</option>
+            <option value="2">★★☆☆☆ (Malo)</option>
+            <option value="1">★☆☆☆☆ (Muy malo)</option>
+          </select>
+          <textarea id="res-comentario" placeholder="¿Qué te pareció la pizza?" style="width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: none; resize: vertical; font-family: inherit;" rows="2"></textarea>
+          <button type="button" onclick="enviarResena()" style="background: #c0392b; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%;">Enviar Reseña</button>
+          <div id="res-msg" style="font-size: 0.8rem; margin-top: 8px; display: none; text-align: center;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      &copy; <span id="year"></span> <span id="footer-nombre">Pizzería Hermanos Rivas</span>. Todos los derechos reservados.
+    </div>
+  </footer>
+
+  <a id="wa-float-btn" href="#" target="_blank" rel="noopener noreferrer" aria-label="Contactar por WhatsApp" class="wa-float">
+    <svg viewBox="0 0 24 24" width="35" height="35" fill="currentColor" aria-hidden="true">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+    </svg>
+  </a>
+
+  <script>
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbydeHZ6LbFZliq-Gz1u0Vn2E-fScXY0xJ1DxysH6OhQh6VtyWUOIvpONgy73u1Q0Ffi2g/exec';
+    const MONEDA = '€';
+    const IMG_PLACEHOLDER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="160"><rect width="100%" height="100%" fill="#f1f1f1"/><text x="150" y="86" text-anchor="middle" font-family="sans-serif" font-size="16" fill="#b0b0b0">Sin imagen</text></svg>');
+
+    let productos = [], productosFiltrados = [], carrito = {}, stripeHabilitado = false;
+    let telefonoNegocio = '+34601860462';
+    let categoriaActual = 'Todas', paginaActual = 1;
+    const productosPorPagina = 6; 
+
+    function moneda(n) { return MONEDA + (Number(n) || 0).toFixed(2); }
+    let contadorCb = 0;
+    function nombreCb(prefijo) { contadorCb += 1; return prefijo + '_' + Date.now() + '_' + contadorCb; }
+
+    function jsonp(action, onData, onError, extraParams) {
+      const cb = nombreCb('cb_' + action);
+      const script = document.createElement('script');
+      function cleanup() { try { delete window[cb]; } catch (e) { window[cb] = undefined; } if (script.parentNode) script.parentNode.removeChild(script); }
+      window[cb] = function (data) { cleanup(); if (typeof onData === 'function') onData(data); };
+      script.onerror = function () { cleanup(); if (typeof onError === 'function') onError(); };
+      
+      const query = new URLSearchParams(Object.assign({ action: action, callback: cb }, extraParams || {})).toString();
+      script.src = APPS_SCRIPT_URL + '?' + query;
+      document.body.appendChild(script);
+    }
+
+    function esc(txt) { return String(txt == null ? '' : txt).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+    function precioNum(valor) {
+      if (typeof valor === 'number') return isFinite(valor) ? valor : 0;
+      let s = String(valor == null ? '' : valor).replace(/[^\d.,-]/g, '');
+      if (!s) return 0;
+      if (s.indexOf(',') > -1 && s.indexOf('.') > -1) { s = s.lastIndexOf(',') > s.lastIndexOf('.') ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, ''); } else { s = s.replace(',', '.'); }
+      const n = parseFloat(s); return isNaN(n) ? 0 : n;
+    }
+
+    function esVisible(p) {
+      const d = p.Disponible;
+      if (d === undefined || d === null || d === '') return true;
+      if (typeof d === 'boolean') return d;
+      const t = String(d).trim().toLowerCase();
+      return t === 'si' || t === 'sí' || t === 'true' || t === 'verdadero' || t === '1';
+    }
+
+    function imagenesDe(p) { const raw = p.ImagenURL || p.Imagen || ''; return String(raw).split(',').map(function (u) { return u.trim(); }).filter(function (u) { return u !== ''; }); }
+
+    function cargarProductos() { jsonp('getProducts', function (data) { mostrarProductos(data); }, function () { document.getElementById('catalogo').innerHTML = '<p style="color:red">Error al cargar el menú. Verifica tu conexión.</p>'; }); }
+    
+    function cargarConfig() {
+      jsonp('getConfig', function (data) {
+        if (!data) return;
+        stripeHabilitado = !!(data.StripeHabilitado === true || String(data.StripeHabilitado).toLowerCase() === 'true');
+
+        if (data.Promocion && data.Promocion.trim() !== '') {
+          const banner = document.createElement('div');
+          banner.className = 'promo-banner';
+          banner.innerHTML = '<span>¡HOY!</span> ' + esc(data.Promocion);
+          document.getElementById('promo-container').appendChild(banner);
+        }
+
+        if (data.NombreNegocio) {
+          document.getElementById('header-titulo').textContent = '🍕 ' + data.NombreNegocio;
+          document.getElementById('footer-nombre').textContent = data.NombreNegocio;
+          document.title = '🍕 ' + data.NombreNegocio;
+        }
+
+        if (data.Direccion) {
+          document.getElementById('footer-direccion').innerHTML = data.Direccion;
+          
+          const dirCodificada = encodeURIComponent(data.Direccion);
+          
+          // Generar mapa
+          const mapaIframe = document.getElementById('mapa-iframe');
+          const mapaContainer = document.getElementById('mapa-container');
+          mapaIframe.src = `https://maps.google.com/maps?q=${dirCodificada}&t=&z=16&ie=UTF8&iwloc=&output=embed`;
+          mapaContainer.style.display = 'block';
+          
+          // Generar enlace de GPS
+          const btnGps = document.getElementById('btn-gps');
+          btnGps.href = `https://www.google.com/maps/search/?api=1&query=${dirCodificada}`;
+          btnGps.style.display = 'block';
+        }
+
+        if (data.Horario) document.getElementById('footer-horario').innerHTML = data.Horario;
+        
+        if (data.Telefono) {
+          telefonoNegocio = data.Telefono;
+          const telLink = document.getElementById('footer-telefono');
+          telLink.innerHTML = data.Telefono;
+          telLink.href = 'tel:' + data.Telefono.replace(/[^\d+]/g, '');
+          const waBtn = document.getElementById('wa-float-btn');
+          const numLimpio = data.Telefono.replace(/\D/g, ''); 
+          const msg = encodeURIComponent('Hola, quiero hacer un pedido en ' + (data.NombreNegocio || 'la pizzería'));
+          waBtn.href = `https://wa.me/${numLimpio}?text=${msg}`;
+        }
+      }, function () {});
+    }
+
+    function cargarResenasPublicas() {
+      jsonp('getReviews', function(data) {
+        const cont = document.getElementById('lista-resenas');
+        if (!cont) return;
+        if (!data || !data.length) {
+          cont.innerHTML = '<p style="color: #bdc3c7; font-size: 0.9rem;">Aún no hay reseñas. ¡Sé el primero!</p>';
+          return;
+        }
+        
+        cont.innerHTML = data.map(r => {
+          const estrellas = '★'.repeat(r.Estrellas) + '☆'.repeat(5 - r.Estrellas);
+          return `
+            <div class="resena">
+              <div class="estrellas">${estrellas}</div>
+              <p>"${esc(r.Comentario)}"</p>
+              <small style="color: #95a5a6; font-size: 0.75rem;">- ${esc(r.Nombre)} (${r.Fecha})</small>
+            </div>
+          `;
+        }).join('');
+      }, function() {});
+    }
+
+    function enviarResena() {
+      const nombre = document.getElementById('res-nombre').value.trim();
+      const estrellas = document.getElementById('res-estrellas').value;
+      const comentario = document.getElementById('res-comentario').value.trim();
+      const msgDiv = document.getElementById('res-msg');
+      const btn = event.target;
+
+      if (!nombre || !comentario) {
+        msgDiv.textContent = 'Por favor, rellena tu nombre y comentario.';
+        msgDiv.style.color = '#ff6b6b';
+        msgDiv.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+
+      jsonp('saveReview', function(res) {
+        btn.disabled = false;
+        btn.textContent = 'Enviar Reseña';
+        if (res && res.success) {
+          msgDiv.textContent = '✅ ¡Gracias! Tu reseña será revisada y publicada pronto.';
+          msgDiv.style.color = '#2ecc71';
+          msgDiv.style.display = 'block';
+          document.getElementById('res-nombre').value = '';
+          document.getElementById('res-comentario').value = '';
+        } else {
+          msgDiv.textContent = 'Error: ' + (res.error || 'No se pudo enviar.');
+          msgDiv.style.color = '#ff6b6b';
+          msgDiv.style.display = 'block';
+        }
+      }, function() {
+        btn.disabled = false;
+        btn.textContent = 'Enviar Reseña';
+        msgDiv.textContent = 'Error de conexión.';
+        msgDiv.style.color = '#ff6b6b';
+        msgDiv.style.display = 'block';
+      }, { nombre: nombre, estrellas: estrellas, comentario: comentario });
+    }
+
+    let slides = [], slideActual = 0, slideTimer = null;
+    function cargarSlider() { jsonp('getSlider', function (data) { mostrarSlider(Array.isArray(data) ? data : []); }, function () {}); }
+    function mostrarSlider(lista) {
+      const hero = document.getElementById('hero'), cont = document.getElementById('heroSlides'), dots = document.getElementById('heroDots');
+      slides = lista.filter(function (s) { return s && s.URL; });
+      if (!slides.length) { hero.hidden = true; return; }
+      cont.innerHTML = slides.map(function (s, i) {
+        return '<div class="hero-slide' + (i === 0 ? ' on' : '') + '"><img src="' + esc(s.URL) + '" alt="' + esc(s.Titulo || '') + '" ' + (i === 0 ? '' : 'loading="lazy" ') + 'onerror="this.onerror=null;this.src=\'' + IMG_PLACEHOLDER + '\'">' + (s.Titulo ? '<div class="hero-cap">' + esc(s.Titulo) + '</div>' : '') + '</div>';
+      }).join('');
+      dots.innerHTML = slides.map(function (_, i) { return '<button type="button" aria-label="Ir a la imagen ' + (i + 1) + '" onclick="irASlide(' + i + ')"></button>'; }).join('');
+      hero.hidden = false; slideActual = 0; pintarSlide(); iniciarAuto(); prepararSwipe();
+    }
+    function pintarSlide() {
+      const imgs = document.querySelectorAll('#heroSlides .hero-slide'), puntos = document.querySelectorAll('#heroDots button');
+      for (let i = 0; i < imgs.length; i++) imgs[i].classList.toggle('on', i === slideActual);
+      for (let i = 0; i < puntos.length; i++) puntos[i].classList.toggle('on', i === slideActual);
+    }
+    function irASlide(i) { if (!slides.length) return; slideActual = (i + slides.length) % slides.length; pintarSlide(); iniciarAuto(); }
+    function moverSlider(dir) { irASlide(slideActual + dir); }
+    function iniciarAuto() { detenerAuto(); if (slides.length < 2) return; slideTimer = setInterval(function () { moverSlider(1); }, 5000); }
+    function detenerAuto() { if (slideTimer) { clearInterval(slideTimer); slideTimer = null; } }
+    function prepararSwipe() {
+      const track = document.getElementById('heroTrack'); if (!track || track.dataset.swipe) return; track.dataset.swipe = '1';
+      let x0 = null;
+      track.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; detenerAuto(); }, { passive: true });
+      track.addEventListener('touchend', function (e) { if (x0 === null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null; if (Math.abs(dx) > 40) moverSlider(dx < 0 ? 1 : -1); }, { passive: true });
+      track.addEventListener('mouseenter', detenerAuto); track.addEventListener('mouseleave', iniciarAuto);
+    }
+
+    function mostrarProductos(lista) {
+      if (!Array.isArray(lista)) { document.getElementById('catalogo').innerHTML = '<p style="color:#c0392b">El servidor devolvió una respuesta no válida.</p>'; return; }
+      productos = lista.filter(function (p) { return esVisible(p) && precioNum(p.Precio) > 0; });
+      if (!productos.length) { document.getElementById('catalogo').innerHTML = '<p style="color:#999">No hay productos disponibles ahora mismo.</p>'; document.getElementById('paginacion').style.display = 'none'; return; }
+      
+      const categorias = ['Todas'];
+      productos.forEach(p => {
+        const cat = p.Categoria ? p.Categoria.trim() : 'Otros';
+        if (!categorias.includes(cat)) categorias.push(cat);
+      });
+
+      const contCategorias = document.getElementById('categorias-container');
+      contCategorias.innerHTML = categorias.map(cat => 
+        `<button type="button" class="${cat === categoriaActual ? 'activa' : ''}" onclick="cambiarCategoria('${esc(cat)}', this)">${esc(cat)}</button>`
+      ).join('');
+
+      filtrarYRenderizar();
+    }
+
+    function cambiarCategoria(cat, btn) {
+      categoriaActual = cat;
+      paginaActual = 1;
+      document.querySelectorAll('#categorias-container button').forEach(b => b.classList.remove('activa'));
+      btn.classList.add('activa');
+      filtrarYRenderizar();
+    }
+
+    function filtrarYRenderizar() {
+      productosFiltrados = categoriaActual === 'Todas' 
+        ? productos 
+        : productos.filter(p => (p.Categoria || 'Otros').trim() === categoriaActual);
+      renderizarPagina();
+    }
+
+    function renderizarPagina() {
+      const cont = document.getElementById('catalogo');
+      const inicio = (paginaActual - 1) * productosPorPagina;
+      const fin = inicio + productosPorPagina;
+      const productosPagina = productosFiltrados.slice(inicio, fin);
+      const totalPaginas = Math.ceil(productosFiltrados.length / productosPorPagina);
+
+      if (productosPagina.length === 0) {
+        cont.innerHTML = '<p style="color:#999">No hay productos en esta categoría.</p>';
+        document.getElementById('paginacion').style.display = 'none';
+        return;
+      }
+
+      cont.innerHTML = productosPagina.map(function (p) {
+        const urls = imagenesDe(p), placeholder = IMG_PLACEHOLDER;
+        let imagenes;
+        if (urls.length > 1) {
+          imagenes = '<div style="display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:5px;padding-bottom:5px;scrollbar-width:none;">' + urls.map(function (url) {
+            return '<img src="' + esc(url) + '" loading="lazy" style="min-width:100%;height:160px;object-fit:cover;scroll-snap-align:start;border-radius:8px;" onerror="this.onerror=null;this.src=\'' + placeholder + '\'">';
+          }).join('') + '</div>';
+        } else {
+          const img = urls[0] || placeholder;
+          imagenes = '<img src="' + esc(img) + '" loading="lazy" style="width:100%;height:160px;object-fit:cover;" onerror="this.onerror=null;this.src=\'' + placeholder + '\'">';
+        }
+        return '<article class="producto">' + imagenes + '<div class="producto-body"><h3>' + esc(p.Nombre) + '</h3><p class="desc">' + esc(p.Descripcion) + '</p><p class="ingredientes">' + esc(p.Ingredientes) + '</p><p class="precio">' + moneda(precioNum(p.Precio)) + '</p><button type="button" onclick="agregarAlCarrito(\'' + esc(p.ID) + '\')">Añadir al carrito</button></div></article>';
+      }).join('');
+
+      const paginacionDiv = document.getElementById('paginacion');
+      if (totalPaginas > 1) {
+        paginacionDiv.style.display = 'flex';
+        document.getElementById('info-pagina').textContent = 'Página ' + paginaActual + ' de ' + totalPaginas;
+        document.getElementById('btn-prev').disabled = (paginaActual === 1);
+        document.getElementById('btn-next').disabled = (paginaActual === totalPaginas);
+      } else {
+        paginacionDiv.style.display = 'none';
+      }
+    }
+
+    function cambiarPagina(direccion) {
+      const totalPaginas = Math.ceil(productosFiltrados.length / productosPorPagina);
+      const nuevaPagina = paginaActual + direccion;
+      if (nuevaPagina >= 1 && nuevaPagina <= totalPaginas) {
+        paginaActual = nuevaPagina;
+        renderizarPagina();
+        document.querySelector('main').scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    function agregarAlCarrito(id) {
+      const p = productos.find(function (x) { return String(x.ID) === String(id); });
+      if (!p) return;
+      if (carrito[id]) { carrito[id].cantidad++; } else { carrito[id] = { producto: p, cantidad: 1 }; }
+      renderCarrito();
+    }
+    
+    function cambiarCantidad(id, delta) {
+      if (!carrito[id]) return;
+      carrito[id].cantidad += delta;
+      if (carrito[id].cantidad <= 0) delete carrito[id];
+      renderCarrito();
+    }
+    
+    function renderCarrito() {
+      const cont = document.getElementById('carrito-items'), ids = Object.keys(carrito);
+      if (ids.length === 0) { 
+        cont.innerHTML = '<p class="carrito-vacio">El carrito está vacío</p>'; 
+        document.getElementById('total').textContent = moneda(0); 
+        document.getElementById('btn-pagar').disabled = true; 
+        return; 
+      }
+      let total = 0, html = '';
+      ids.forEach(function (id) {
+        const item = carrito[id], subtotal = precioNum(item.producto.Precio) * item.cantidad; 
+        total += subtotal;
+        html += '<div class="carrito-item"><div><strong>' + esc(item.producto.Nombre) + '</strong><br><small>' + moneda(precioNum(item.producto.Precio)) + ' c/u</small></div><div class="controles"><button type="button" onclick="cambiarCantidad(\'' + esc(id) + '\', -1)">−</button><span>' + item.cantidad + '</span><button type="button" onclick="cambiarCantidad(\'' + esc(id) + '\', 1)">+</button></div></div>';
+      });
+      cont.innerHTML = html; 
+      document.getElementById('total').textContent = moneda(total); 
+      document.getElementById('btn-pagar').disabled = false;
+    }
+
+    function procesarPedido() {
+      const nombre = document.getElementById('nombre').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const telefono = document.getElementById('telefono').value.trim();
+      const direccion = document.getElementById('direccion').value.trim();
+
+      if (!nombre || !email) { mostrarMensaje('Por favor, completa tu nombre y email.', 'error'); return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { mostrarMensaje('El email no tiene un formato válido.', 'error'); return; }
+      
+      const items = Object.keys(carrito).map(function (id) { return { id: id, cantidad: carrito[id].cantidad }; });
+      if (items.length === 0) { mostrarMensaje('Tu carrito está vacío.', 'error'); return; }
+      
+      const btn = document.getElementById('btn-pagar'); 
+      btn.disabled = true; 
+      btn.textContent = 'Procesando...';
+      
+      const callbackName = nombreCb('callbackPedido'), script = document.createElement('script');
+      
+      function restaurarBoton() { 
+        btn.disabled = Object.keys(carrito).length === 0; 
+        btn.textContent = 'Pagar y Enviar Pedido'; 
+      }
+      
+      function cleanup() { 
+        try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; } 
+        if (script.parentNode) script.parentNode.removeChild(script); 
+      }
+      
+      window[callbackName] = function (respuesta) {
+        cleanup();
+        if (!respuesta || typeof respuesta !== 'object') { 
+          restaurarBoton(); 
+          mostrarMensaje('Error: respuesta no válida del servidor.', 'error'); 
+          return; 
+        }
+        
+        if (respuesta.success) {
+          if (respuesta.paymentUrl) { 
+            mostrarMensaje('¡Pedido registrado! Redirigiendo al pago con tarjeta...', 'ok'); 
+            window.location.href = respuesta.paymentUrl; 
+            return; 
+          }
+
+          if (!respuesta.paymentUrl) {
+            let resumenWsp = '';
+            Object.keys(carrito).forEach(id => {
+              const item = carrito[id];
+              resumenWsp += `- ${item.cantidad}x ${item.producto.Nombre}\n`;
+            });
+            
+            const totalPedido = document.getElementById('total').textContent;
+            const msg = encodeURIComponent(
+              `Hola, acabo de hacer el pedido *#${respuesta.orderId}* en la web.\n\n` +
+              `*Mi pedido:*\n${resumenWsp}\n` +
+              `*Total:* ${totalPedido}\n\n` +
+              `*Nombre:* ${nombre}\n` +
+              `*Dirección:* ${direccion || 'Recogida en tienda'}\n\n` +
+              `Os escribo para coordinar el pago.`
+            );
+
+            const numLimpio = telefonoNegocio.replace(/\D/g, ''); 
+            const urlWhatsApp = `https://wa.me/${numLimpio}?text=${msg}`;
+
+            mostrarMensaje('¡Pedido registrado! Abriendo WhatsApp para enviar los detalles...', 'ok');
+            
+            carrito = {}; 
+            renderCarrito(); 
+            restaurarBoton(); 
+
+            setTimeout(() => { window.open(urlWhatsApp, '_blank'); }, 1000);
+            return;
+          }
+        }
+
+        if (!respuesta.success && respuesta.error && respuesta.error.indexOf('ya se ha registrado') !== -1) {
+          mostrarMensaje(respuesta.error, 'ok'); 
+          carrito = {}; 
+          renderCarrito(); 
+          restaurarBoton(); 
+          return;
+        }
+
+        restaurarBoton(); 
+        mostrarMensaje('Error: ' + (respuesta.error || 'No se pudo procesar el pedido.'), 'error');
+      };
+      
+      script.onerror = function () { cleanup(); restaurarBoton(); mostrarMensaje('Error de conexión. Inténtalo de nuevo.', 'error'); };
+      
+      const params = new URLSearchParams({ 
+        action: 'processOrder', 
+        callback: callbackName, 
+        items: JSON.stringify(items), 
+        nombre: nombre, 
+        email: email, 
+        telefono: telefono, 
+        direccion: direccion, 
+        skipStripe: stripeHabilitado ? 'false' : 'true' 
+      });
+      
+      script.src = APPS_SCRIPT_URL + '?' + params.toString(); 
+      document.body.appendChild(script);
+    }
+
+    function mostrarMensaje(texto, tipo) { const msg = document.getElementById('mensaje'); msg.textContent = texto; msg.className = 'mensaje ' + tipo; }
+
+    function revisarResultadoPago() {
+      const estado = new URLSearchParams(window.location.search).get('pago');
+      if (estado === 'exitoso') { mostrarMensaje('¡Pago completado! Gracias por tu pedido. Te avisamos cuando esté listo.', 'ok'); }
+      else if (estado === 'cancelado') { mostrarMensaje('El pago se canceló y no se te ha cobrado. Puedes intentarlo de nuevo.', 'error'); }
+    }
+
+    window.addEventListener('DOMContentLoaded', function () { 
+      document.getElementById('year').textContent = new Date().getFullYear();
+      revisarResultadoPago(); 
+      cargarConfig(); 
+      cargarSlider(); 
+      cargarProductos(); 
+      cargarResenasPublicas();
+    });
+  </script>
+</body>
+</html>
