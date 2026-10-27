@@ -224,7 +224,7 @@
 
   <script>
   const SUPABASE_URL = 'https://afarkzyssgcpmnquqdp.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_BAMJdd8Fq8Amq_Ze_opm7A_HkLDbW6h';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMzI2NTUsImV4cCI6MjEwODcwODY1NX0.J7gSycaeum0bUzx9tss5OM4WfPUt5BswqxnSEI0RgiY';
     const MONEDA = '€';
     const IMG_PLACEHOLDER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="160"><rect width="100%" height="100%" fill="#f1f1f1"/><text x="150" y="86" text-anchor="middle" font-family="sans-serif" font-size="16" fill="#b0b0b0">Sin imagen</text></svg>');
 
@@ -236,18 +236,6 @@
     function moneda(n) { return MONEDA + (Number(n) || 0).toFixed(2); }
     let contadorCb = 0;
     function nombreCb(prefijo) { contadorCb += 1; return prefijo + '_' + Date.now() + '_' + contadorCb; }
-
-    function jsonp(action, onData, onError, extraParams) {
-      const cb = nombreCb('cb_' + action);
-      const script = document.createElement('script');
-      function cleanup() { try { delete window[cb]; } catch (e) { window[cb] = undefined; } if (script.parentNode) script.parentNode.removeChild(script); }
-      window[cb] = function (data) { cleanup(); if (typeof onData === 'function') onData(data); };
-      script.onerror = function () { cleanup(); if (typeof onError === 'function') onError(); };
-      
-      const query = new URLSearchParams(Object.assign({ action: action, callback: cb }, extraParams || {})).toString();
-      script.src = APPS_SCRIPT_URL + '?' + query;
-      document.body.appendChild(script);
-    }
 
     function esc(txt) { return String(txt == null ? '' : txt).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
 
