@@ -3,711 +3,388 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="robots" content="noindex, nofollow">
-  <title>🍕 Panel de Control</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <title>🍕 Panel de Control - Bella Napoli</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    :root { --primary: #c0392b; --secondary: #27ae60; --bg: #f4f7f6; --text: #333; }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-    body { background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 100%; max-width: 500px; position: relative; overflow: hidden; }
-    .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: linear-gradient(90deg, #c0392b, #e74c3c); }
-    h2 { color: #2c3e50; font-size: 24px; margin-bottom: 10px; text-align: center; }
-    .subtitle { color: #7f8c8d; font-size: 14px; text-align: center; margin-bottom: 30px; line-height: 1.5; }
-    label { display: block; font-size: 13px; color: #34495e; font-weight: 600; margin-bottom: 8px; }
-    input, select, textarea { width: 100%; padding: 14px; margin-bottom: 20px; border: 2px solid #ecf0f1; border-radius: 10px; font-size: 15px; transition: all 0.3s ease; background: #f8f9fa; font-family: inherit; }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: #c0392b; background: white; box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.1); }
-    input:disabled { opacity: .6; cursor: not-allowed; }
-    button { background: #c0392b; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: 600; transition: background 0.3s, transform 0.1s; }
-    button:hover { background: #a93226; }
-    button:active { transform: scale(0.98); }
-    button:disabled { background: #bdc3c7; cursor: not-allowed; }
-    .hidden { display: none !important; }
-    .msg { margin-top: 15px; padding: 12px; border-radius: 8px; font-size: 14px; display: none; text-align: center; font-weight: 500; }
-    .msg.ok { background: #d4edda; color: #155724; display: block; }
-    .msg.error { background: #f8d7da; color: #721c24; display: block; }
-    .galeria-admin { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
-    .img-item { position: relative; width: 80px; height: 80px; border-radius: 8px; overflow: hidden; border: 2px solid #ecf0f1; }
-    .img-item img { width: 100%; height: 100%; object-fit: cover; }
-    .img-item button { position: absolute; top: 4px; right: 4px; background: rgba(231, 76, 60, 0.9); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; padding: 0; font-weight: bold; font-size: 12px; line-height: 1; }
-    .input-group { display: flex; gap: 10px; }
-    .input-group input { margin-bottom: 0; }
-    .btn-small { width: auto; padding: 0 15px; background: #27ae60; white-space: nowrap; }
-    .btn-small:hover { background: #219150; }
-    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
-    .topbar h2 { text-align: left; margin: 0; font-size: 20px; }
-    .btn-salir { width: auto; padding: 9px 14px; background: #ecf0f1; color: #34495e; font-size: 13px; border-radius: 8px; }
-    .btn-salir:hover { background: #dfe6e9; }
-    .aviso { background: #fff9e6; border-left: 4px solid #f1c40f; padding: 12px 14px; border-radius: 6px; font-size: 12.5px; color: #7d6608; margin-bottom: 20px; line-height: 1.5; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
     
-    .tabla-container { width: 100%; overflow-x: auto; margin-bottom: 30px; }
-    table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 5px rgba(0,0,0,0.05); }
-    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
-    th { background: #f8f9fa; color: #34495e; font-weight: 600; }
-    tr:hover { background: #fdfdfd; }
-    .badge { padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
-    .badge.si { background: #d4edda; color: #155724; }
-    .badge.no { background: #f8d7da; color: #721c24; }
-    .acciones-td { display: flex; gap: 5px; }
-    .btn-action { background: #3498db; border: none; padding: 5px 8px; border-radius: 4px; color: white; cursor: pointer; font-size: 11px; }
-    .btn-action.delete { background: #e74c3c; }
-    .btn-action.toggle { background: #f39c12; }
+    .sidebar { width: 260px; background: #2c3e50; color: white; padding: 20px; display: flex; flex-direction: column; }
+    .sidebar h2 { text-align: center; margin-bottom: 30px; font-size: 1.5rem; color: #f1c40f; }
+    .sidebar button { background: none; border: none; color: white; padding: 12px 15px; text-align: left; font-size: 1rem; cursor: pointer; border-radius: 8px; transition: 0.3s; margin-bottom: 5px; }
+    .sidebar button:hover, .sidebar button.active { background: var(--primary); }
+    .sidebar .logout { margin-top: auto; color: #e74c3c; }
+    .admin-only { display: none; }
 
-    .slide-item { display: flex; gap: 10px; align-items: center; background: #fff; border: 1px solid #e6e6e6; border-radius: 10px; padding: 8px; }
-    .slide-item img { width: 84px; height: 56px; object-fit: cover; border-radius: 6px; background: #eee; flex: 0 0 auto; }
-    .slide-item .campos { display: flex; flex-direction: column; gap: 4px; flex: 1 1 auto; min-width: 0; }
-    .slide-item .campos input { margin: 0; padding: 6px 8px; font-size: 12px; }
-    .slide-item .chk { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #7f8c8d; font-weight: normal; cursor: pointer; }
-    .slide-item .chk input { width: 14px; height: 14px; margin: 0; }
-    .slide-item .acciones { display: flex; flex-direction: column; gap: 3px; flex: 0 0 auto; }
-    .slide-item .acciones button { width: 28px; height: 24px; padding: 0; margin: 0; font-size: 12px; line-height: 1; background: #ecf0f1; color: #2c3e50; border: 0; border-radius: 5px; cursor: pointer; }
-    .slide-item .acciones button:hover { background: #dfe6e8; }
-    .slide-item .acciones button.del { background: #fdecea; color: #c0392b; }
-    .slide-item .acciones button:disabled { opacity: 0.35; cursor: default; }
-    .upload-progress { display: none; margin-top: 10px; padding: 10px; background: #e8f4f8; border-radius: 8px; font-size: 12.5px; color: #2980b9; text-align: center; }
-    .upload-progress.on { display: block; }
-    .upload-progress::before { content: ''; display: inline-block; width: 12px; height: 12px; border: 2px solid #ddd; border-top-color: #3498db; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+    
+    #login-screen { position: fixed; inset: 0; background: rgba(44, 62, 80, 0.95); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+    .login-box { background: white; padding: 40px; border-radius: 15px; width: 100%; max-width: 400px; text-align: center; }
+    .login-box h2 { color: var(--primary); margin-bottom: 20px; }
+    
+    input, select, textarea { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.95rem; outline: none; }
+    input:focus, select:focus { border-color: var(--primary); }
+    label { display: block; font-weight: 500; margin-bottom: 5px; font-size: 0.9rem; color: #555; }
+    button.btn { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; transition: 0.3s; }
+    button.btn:hover { background: #a93226; }
+    button.btn-success { background: var(--secondary); }
+
+    .grid-productos { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
+    .card img { width: 100%; height: 150px; object-fit: cover; background: #eee; }
+    .card-body { padding: 15px; flex: 1; display: flex; flex-direction: column; }
+    .card-body h3 { font-size: 1.1rem; margin-bottom: 5px; color: var(--primary); }
+    .card-body .price { font-size: 1.2rem; font-weight: bold; color: var(--secondary); margin-bottom: 10px; }
+    .card-actions { display: flex; gap: 10px; margin-top: auto; }
+    .card-actions button { flex: 1; padding: 8px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; color: white; }
+    .btn-edit { background: #3498db; }
+    .btn-delete { background: #e74c3c; }
+
+    .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+    .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: var(--secondary); }
+    input:checked + .slider:before { transform: translateX(26px); }
+
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-content { background: white; padding: 30px; border-radius: 12px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+    .alert { padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none; font-weight: 500; }
+    .alert-success { background: #d4edda; color: #155724; }
+    .alert-error { background: #f8d7da; color: #721c24; }
   </style>
 </head>
 <body>
 
-<div class="card" id="login-section">
-  <h2>🍕 Acceso Restringido</h2>
-  <p class="subtitle">Bienvenido al centro de control.<br>Gestiona tu menú, precios y configuración de pagos.</p>
-  <label for="admin-pass">Contraseña de Administrador</label>
-  <input type="password" id="admin-pass" placeholder="Ingresa tu contraseña segura" autocomplete="current-password" onkeydown="if(event.key==='Enter') login()">
-  <button id="btn-login" type="button" onclick="login()">Acceder al Panel</button>
-  <div id="login-msg" class="msg"></div>
-</div>
-
-<div class="card hidden" id="panel-section" style="max-width: 900px;">
-  <div class="topbar">
-    <h2>⚙️ Gestión</h2>
-    <button class="btn-salir" type="button" onclick="salir()">Cerrar sesión</button>
+  <div id="login-screen">
+    <div class="login-box">
+      <h2>🍕 Bella Napoli</h2>
+      <p style="margin-bottom: 20px; color: #666; font-size: 0.9rem;">Ingresa tus credenciales de empleado.</p>
+      <input type="email" id="login-email" placeholder="Correo electrónico">
+      <input type="password" id="login-pass" placeholder="Contraseña">
+      <button class="btn" onclick="login()">Entrar al Panel</button>
+      <div id="login-msg" class="alert alert-error" style="margin-top: 15px;"></div>
+    </div>
   </div>
-  <p class="subtitle">Actualiza la información y las fotos de tu catálogo en tiempo real.</p>
-  <div class="aviso">La sesión caduca tras 2 horas de inactividad.</div>
 
-  <div style="margin-bottom: 25px; padding: 20px; background: #fff3cd; border-left: 5px solid #ffc107; border-radius: 8px;">
-    <h3 style="margin-top:0; font-size: 16px; color: #856404;">Ajustes de la Web (Públicos)</h3>
+  <div class="sidebar">
+    <h2>🍕 Bella Napoli</h2>
+    <button class="active" onclick="mostrarSeccion('productos', event)">📦 Productos</button>
+    <button onclick="mostrarSeccion('configuracion', event)">⚙️ Configuración</button>
+    <button class="admin-only" onclick="mostrarSeccion('usuarios', event)">👥 Usuarios y Roles</button>
+    <button class="logout" onclick="logout()">🚪 Cerrar Sesión</button>
+  </div>
+
+  <div class="main-content">
+    <div id="alert-box" class="alert"></div>
+
+    <div id="seccion-productos">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1>Gestión de Productos</h1>
+        <button class="btn btn-success" style="width: auto;" onclick="abrirModalNuevo()">+ Nuevo Producto</button>
+      </div>
+      <div class="grid-productos" id="lista-productos"></div>
+    </div>
+
+    <div id="seccion-configuracion" style="display: none;">
+      <h1>Configuración de la Web</h1>
+      <div style="background: white; padding: 25px; border-radius: 12px; max-width: 600px; margin-top: 20px;">
+        <label>Nombre del Negocio</label>
+        <input type="text" id="cfg-nombre">
+        <label>Promoción del Día</label>
+        <input type="text" id="cfg-promo">
+        <label>Habilitar Pago con Tarjeta (Stripe)</label>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+          <label class="switch"><input type="checkbox" id="cfg-stripe"><span class="slider"></span></label>
+          <span id="stripe-status-text">Desactivado</span>
+        </div>
+        <button class="btn" onclick="guardarConfiguracion()">Guardar Configuración</button>
+      </div>
+    </div>
+
+    <div id="seccion-usuarios" style="display: none;">
+      <h1>Usuarios y Roles</h1>
+      <div style="background: white; padding: 25px; border-radius: 12px; max-width: 600px; margin-top: 20px;">
+        <h3>Crear Nuevo Empleado</h3>
+        <input type="text" id="new-user-name" placeholder="Nombre del empleado">
+        <input type="email" id="new-user-email" placeholder="Correo electrónico">
+        <input type="password" id="new-user-pass" placeholder="Contraseña temporal">
+        <select id="new-user-role">
+          <option value="empleado">Empleado (Solo ver y editar productos)</option>
+          <option value="admin">Administrador (Control total)</option>
+        </select>
+        <button class="btn btn-success" onclick="crearEmpleado()">Crear Usuario</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-producto">
+    <div class="modal-content">
+      <h2 id="modal-title" style="margin-bottom: 20px; color: var(--primary);">Nuevo Producto</h2>
+      <input type="hidden" id="prod-id-original">
+      <label>ID del Producto (Ej. P01)</label>
+      <input type="text" id="prod-id" required>
+      <label>Nombre</label>
+      <input type="text" id="prod-nombre" required>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div><label>Precio (€)</label><input type="number" id="prod-precio" step="0.01" required></div>
+        <div><label>Categoría</label><input type="text" id="prod-categoria" placeholder="Ej. Pizzas"></div>
+      </div>
+      <label>Descripción</label>
+      <textarea id="prod-desc" rows="2"></textarea>
+      <label>Ingredientes</label>
+      <textarea id="prod-ingredientes" rows="2"></textarea>
+      <label>URL de la Imagen</label>
+      <input type="url" id="prod-imagen">
+      <label>Disponible en la Web</label>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+        <label class="switch"><input type="checkbox" id="prod-disponible" checked><span class="slider"></span></label>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn btn-success" onclick="guardarProducto()">Guardar</button>
+        <button class="btn" style="background: #95a5a6;" onclick="cerrarModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // === CONFIGURACIÓN SUPABASE ===
+    const SUPABASE_URL = 'https://afarkzyxssgcpmnquqdp.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMzI2NTUsImV4cCI6MjEwODcwODY1NX0.J7gSycaeum0bUzx9tss5OM4WfPUt5BswqxnSEI0RgiY';
     
-    <label style="margin-top: 10px; display: block; font-size: 13px; font-weight: 600;">Nombre del Negocio</label>
-    <input type="text" id="config-nombre" placeholder="Ej: Pizzería Hermanos Rivas" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc;">
-    
-    <label style="display: block; font-size: 13px; font-weight: 600;">Promoción del día (Dejar vacío para ocultar)</label>
-    <input type="text" id="config-promo" placeholder="Ej: ¡Hoy 2x1 en pizzas familiares!" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc;">
-    
-    <label style="display: block; font-size: 13px; font-weight: 600;">Dirección</label>
-    <input type="text" id="config-direccion" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc;">
-    
-    <label style="display: block; font-size: 13px; font-weight: 600;">Teléfono (ej: +34601860462)</label>
-    <input type="text" id="config-telefono" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc;">
-    
-    <label style="display: block; font-size: 13px; font-weight: 600;">Horario</label>
-    <input type="text" id="config-horario" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc;">
+    // ⚠️ PEGA AQUÍ TU SERVICE_ROLE_KEY (Settings -> API -> Legacy anon, service_role API keys)
+    const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MzEzMjY1NSwiZXhwIjoyMTA4NzA4NjU1fQ.HmXW8r7uo9b5hohYLmi3koHLKHX-G9WTKBaSakKUO-w'; 
 
-    <button type="button" onclick="guardarAjustesWeb()" style="background: #f39c12; width: auto; padding: 10px 20px; color: white; font-weight: bold; border-radius: 5px; cursor: pointer;">Guardar Ajustes de la Web</button>
-    <div id="config-msg" class="msg" style="margin-top: 10px;"></div>
-  </div>
+    let productosGlobal = [];
+    let userRole = 'empleado';
 
-  <div style="margin-bottom: 25px; padding: 20px; background: #e8f4f8; border-left: 5px solid #3498db; border-radius: 8px;">
-    <h3 style="margin-top:0; font-size: 16px; color: #2980b9;">Configuración de Pagos</h3>
-    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-bottom: 5px; font-weight: normal;">
-      <input type="checkbox" id="config-stripe" onchange="toggleStripe()" style="width: 20px; height: 20px; margin: 0;">
-      <span style="font-weight: 600; color: #2c3e50;">Habilitar Pago con Tarjeta (Stripe)</span>
-    </label>
-    <p style="font-size: 12px; color: #7f8c8d; margin-left: 30px;">Si está desactivado, los clientes coordinarán el pago por WhatsApp.</p>
-    <div id="stripe-msg" class="msg"></div>
-  </div>
-
-  <div style="margin-bottom: 25px; padding: 20px; background: #fdf6ec; border-left: 5px solid #e67e22; border-radius: 8px;">
-    <h3 style="margin-top:0; font-size: 16px; color: #d35400;">🖼️ Imágenes de Portada (Slider)</h3>
-    <p style="font-size: 12px; color: #7f8c8d; margin-top: 0; margin-bottom: 14px;">Se muestran justo debajo del título. Máximo 10.</p>
-    <div id="slider-lista" style="display: flex; flex-direction: column; gap: 10px;"></div>
-    <div style="display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap;">
-      <button id="btn-add-slide" class="btn-small" type="button" onclick="agregarSlide()">+ Añadir imagen</button>
-      <button class="btn-small" type="button" onclick="pedirFoto('slider')" style="background: #3498db;">📷 Subir fotos</button>
-      <button id="btn-slider" class="btn-small" type="button" onclick="guardarSlider()" style="background: #e67e22;">Guardar slider</button>
-    </div>
-    <div id="slider-msg" class="msg"></div>
-    <div id="slider-progress" class="upload-progress"></div>
-  </div>
-
-  <div style="margin-bottom: 25px; padding: 20px; background: #e8f4f8; border-left: 5px solid #3498db; border-radius: 8px;">
-    <h3 style="margin-top:0; font-size: 16px; color: #2c3e50;">⭐ Moderación de Reseñas</h3>
-    <p style="font-size: 12px; color: #7f8c8d; margin-bottom: 10px;">Aprueba o elimina las reseñas de los clientes.</p>
-    <div class="tabla-container">
-      <table id="tabla-resenas" style="width: 100%; border-collapse: collapse;">
-        <thead>
-          <tr>
-            <th>Fecha</th>
-            <th>Cliente</th>
-            <th>Estrellas</th>
-            <th>Comentario</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="tbody-resenas"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div style="margin-bottom: 25px; padding: 20px; background: #f4f6f7; border-left: 5px solid #7f8c8d; border-radius: 8px;">
-    <h3 style="margin-top:0; font-size: 16px; color: #2c3e50;">📋 Lista de Productos</h3>
-    <div class="tabla-container">
-      <table id="tabla-productos">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Categoría</th>
-            <th>Precio</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="tbody-productos"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <h3 style="margin-top:0; font-size: 16px; color: #2c3e50; margin-bottom: 15px;">➕ Añadir / Editar Producto</h3>
-  
-  <label for="select-product">Seleccionar Producto Rápido:</label>
-  <select id="select-product" onchange="cargarProducto()">
-    <option value="">-- Crear Nuevo Producto --</option>
-  </select>
-
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-    <div>
-      <label for="p-id">ID del Producto (Único)</label>
-      <input type="text" id="p-id" placeholder="Ej. P07" maxlength="20" required>
-    </div>
-    <div>
-      <label for="p-precio">Precio (€)</label>
-      <input type="text" id="p-precio" placeholder="Ej. 12.50" inputmode="decimal" maxlength="12" required>
-    </div>
-  </div>
-
-  <label for="p-nombre">Nombre del Producto</label>
-  <input type="text" id="p-nombre" placeholder="Ej. Coca-Cola 33cl" maxlength="80" required>
-
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-    <div>
-      <label for="p-categoria">Categoría (Bebidas, Postres, Pizzas...)</label>
-      <select id="p-categoria">
-        <option value="Pizzas">Pizzas</option>
-        <option value="Entrantes">Entrantes</option>
-        <option value="Bebidas">Bebidas</option>
-        <option value="Postres">Postres</option>
-        <option value="Otros">Otros</option>
-      </select>
-    </div>
-    <div>
-      <label for="p-disponible">Disponible en la Web</label>
-      <select id="p-disponible">
-        <option value="si">Sí, mostrar</option>
-        <option value="no">No, ocultar</option>
-      </select>
-    </div>
-  </div>
-
-  <label for="p-desc">Descripción corta</label>
-  <input type="text" id="p-desc" placeholder="Ej. Refresco de 33cl" maxlength="300">
-
-  <label for="p-ingredientes">Detalles / Ingredientes</label>
-  <input type="text" id="p-ingredientes" placeholder="Ej. Frío, con hielo y limón" maxlength="300">
-
-  <div style="border: 2px dashed #bdc3c7; padding: 20px; border-radius: 12px; background: #f8f9fa; margin-bottom: 25px;">
-    <h3 style="margin-top:0; font-size: 15px; color: #2c3e50; margin-bottom: 15px;">📸 Galería de Imágenes</h3>
-    <div class="galeria-admin" id="galeria-imagenes"></div>
-    <div class="input-group">
-      <input type="url" id="nueva-imagen-url" placeholder="https://ejemplo.com/foto.jpg" maxlength="500">
-      <button class="btn-small" type="button" onclick="agregarImagen()">Añadir Foto</button>
-      <button class="btn-small" type="button" onclick="pedirFoto('producto')" style="background: #3498db;" title="Subir desde el móvil">📷</button>
-    </div>
-    <div id="producto-progress" class="upload-progress"></div>
-  </div>
-
-  <button id="btn-guardar" type="button" onclick="guardarProducto()" style="background: #27ae60;">Guardar Cambios del Producto</button>
-  <div id="panel-msg" class="msg"></div>
-</div>
-
-<input type="file" id="subida-archivo" accept="image/*" style="display: none;" onchange="procesarFotos(this)">
-
-<script>
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbydeHZ6LbFZliq-Gz1u0Vn2E-fScXY0xJ1DxysH6OhQh6VtyWUOIvpONgy73u1Q0Ffi2g/exec';
-  const CLAVE_TOKEN = 'hr_adm_token';
-  const TIMEOUT_JSONP = 30000;
-
-  let productosGlobal = [], resenasGlobal = [], tokenAdmin = '', imagenesActuales = [], sliderItems = [], destinoSubida = 'slider';
-
-  function mostrarMsg(id, texto, tipo) { const el = document.getElementById(id); if (!el) return; el.textContent = texto; el.className = 'msg ' + tipo; }
-  function ocultarMsg(id) { const el = document.getElementById(id); if (!el) return; el.textContent = ''; el.className = 'msg'; }
-  function mostrarProgreso(id, texto) { const el = document.getElementById(id); if (!el) return; if (texto) { el.textContent = texto; el.classList.add('on'); } else { el.textContent = ''; el.classList.remove('on'); } }
-
-  function jsonpRequest(params) {
-    return new Promise(function (resolve, reject) {
-      const cb = 'cb_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
-      let script = null, terminado = false, timerId = null;
-      function limpiar() { if (terminado) return; terminado = true; if (timerId) { clearTimeout(timerId); timerId = null; } try { delete window[cb]; } catch (e) { window[cb] = undefined; } if (script && script.parentNode) script.parentNode.removeChild(script); }
-      window[cb] = function (data) { limpiar(); resolve(data); };
-      const query = new URLSearchParams(Object.assign({}, params, { callback: cb })).toString();
-      script = document.createElement('script');
-      script.src = APPS_SCRIPT_URL + '?' + query;
-      script.onerror = function () { limpiar(); reject(new Error('No se pudo conectar con el servidor.')); };
-      document.body.appendChild(script);
-      timerId = setTimeout(function () { if (!terminado) { limpiar(); reject(new Error('El servidor tardó demasiado.')); } }, TIMEOUT_JSONP);
-    });
-  }
-
-  function guardarToken(t) { tokenAdmin = t || ''; try { if (tokenAdmin) sessionStorage.setItem(CLAVE_TOKEN, tokenAdmin); else sessionStorage.removeItem(CLAVE_TOKEN); } catch (e) {} }
-  function leerToken() { try { return sessionStorage.getItem(CLAVE_TOKEN) || ''; } catch (e) { return ''; } }
-  function sesionInvalida(res) { return !!(res && res.success === false && /sesi[oó]n/i.test(res.error || '')); }
-  function volverAlLogin(mensaje) { guardarToken(''); document.getElementById('panel-section').classList.add('hidden'); document.getElementById('login-section').classList.remove('hidden'); ocultarMsg('panel-msg'); ocultarMsg('slider-msg'); ocultarMsg('stripe-msg'); if (mensaje) mostrarMsg('login-msg', mensaje, 'error'); }
-
-  function precioNum(valor) {
-    let s = String(valor === null || valor === undefined ? '' : valor).replace(/[^\d.,-]/g, '');
-    if (!s) return NaN;
-    if (s.indexOf(',') > -1 && s.indexOf('.') > -1) { s = s.lastIndexOf(',') > s.lastIndexOf('.') ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, ''); } else { s = s.replace(',', '.'); }
-    const n = parseFloat(s); return isNaN(n) ? NaN : n;
-  }
-
-  async function sha256Hex(texto) {
-    if (!window.crypto || !window.crypto.subtle || typeof TextEncoder === 'undefined') throw new Error('Tu navegador bloquea el acceso seguro. Abre la página con https://');
-    const datos = new TextEncoder().encode(String(texto));
-    const hash = await window.crypto.subtle.digest('SHA-256', datos);
-    return Array.prototype.map.call(new Uint8Array(hash), function (b) { return b.toString(16).padStart(2, '0'); }).join('');
-  }
-
-  function uuidV4() { if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID(); return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16); }); }
-  function urlValida(url) { return /^(https?:\/\/|\/)\S+$/i.test(String(url || '').trim()); }
-  function normalizarUrlImagen(url) { const u = String(url || '').trim(); const m = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=|uc\?id=)([\w-]{10,})/); if (m) return 'https://lh3.googleusercontent.com/d/' + m[1] + '=w1600'; return u; }
-
-  async function login() {
-    const pass = document.getElementById('admin-pass').value;
-    const btn = document.getElementById('btn-login');
-    if (!pass) { mostrarMsg('login-msg', 'Escribe tu contraseña.', 'error'); return; }
-    btn.disabled = true; btn.textContent = 'Conectando...'; ocultarMsg('login-msg');
-    try {
-      const desafio = await jsonpRequest({ action: 'challenge' });
-      if (!desafio || !desafio.success || !desafio.nonce) throw new Error((desafio && desafio.error) || 'No se pudo iniciar el acceso.');
-      const huella = await sha256Hex(pass);
-      const respuesta = await sha256Hex(desafio.nonce + ':' + huella);
-      const res = await jsonpRequest({ action: 'login', nonce: desafio.nonce, respuesta: respuesta });
-      document.getElementById('admin-pass').value = '';
-      if (!res || !res.success || !res.token) { mostrarMsg('login-msg', (res && res.error) || 'No se pudo iniciar sesión.', 'error'); return; }
-      guardarToken(res.token);
-      await entrarAlPanel();
-    } catch (e) {
-      document.getElementById('admin-pass').value = '';
-      mostrarMsg('login-msg', e.message || 'Error de conexión.', 'error');
-    } finally { btn.disabled = false; btn.textContent = 'Acceder al Panel'; }
-  }
-
-  async function entrarAlPanel() {
-    const res = await jsonpRequest({ action: 'getAdminData', token: tokenAdmin });
-    if (!res || !res.success) { guardarToken(''); throw new Error((res && res.error) || 'Sesión no válida.'); }
-    productosGlobal = res.products || [];
-    document.getElementById('login-section').classList.add('hidden');
-    document.getElementById('panel-section').classList.remove('hidden');
-    
-    if (res.config) { 
-      const val = res.config.StripeHabilitado; 
-      document.getElementById('config-stripe').checked = val === true || String(val).toLowerCase() === 'true'; 
-      
-      document.getElementById('config-nombre').value = res.config.NombreNegocio || '';
-      document.getElementById('config-promo').value = res.config.Promocion || '';
-      document.getElementById('config-direccion').value = res.config.Direccion || '';
-      document.getElementById('config-telefono').value = res.config.Telefono || '';
-      document.getElementById('config-horario').value = res.config.Horario || '';
-    }
-
-    sliderItems = Array.isArray(res.slider) ? res.slider : [];
-    renderizarSlider();
-    renderTablaProductos();
-    await cargarResenasAdmin();
-    ocultarMsg('panel-msg'); ocultarMsg('slider-msg'); ocultarMsg('stripe-msg'); ocultarMsg('config-msg');
-  }
-
-  async function salir() { const t = tokenAdmin; volverAlLogin(); sliderItems = []; imagenesActuales = []; if (t) { try { await jsonpRequest({ action: 'logout', token: t }); } catch (e) {} } }
-
-  async function cargarResenasAdmin() {
-    try {
-      const res = await jsonpRequest({ action: 'getAdminReviews', token: tokenAdmin });
-      if (res && Array.isArray(res)) {
-        resenasGlobal = res;
-        renderTablaResenas();
+    async function fetchSupabase(endpoint, options = {}, useServiceKey = false) {
+      const key = useServiceKey ? SUPABASE_SERVICE_KEY : SUPABASE_ANON_KEY;
+      const headers = {
+        'apikey': key,
+        'Authorization': 'Bearer ' + key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation',
+        ...options.headers
+      };
+      const res = await fetch(SUPABASE_URL + endpoint, { ...options, headers });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Error en la petición');
       }
-    } catch (e) { console.error(e); }
-  }
-
-  function renderTablaResenas() {
-    const tbody = document.getElementById('tbody-resenas');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-
-    if (resenasGlobal.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay reseñas aún.</td></tr>';
-      return;
+      return res.json();
     }
 
-    resenasGlobal.forEach(r => {
-      const tr = document.createElement('tr');
-      const estrellas = '★'.repeat(r.Estrellas) + '☆'.repeat(5 - r.Estrellas);
-      const badgeClass = r.Aprobada ? 'badge si' : 'badge no';
-      const badgeText = r.Aprobada ? 'Visible' : 'Pendiente';
-
-      tr.innerHTML = `
-        <td>${r.Fecha}</td>
-        <td><strong>${r.Nombre}</strong></td>
-        <td style="color: #f1c40f; font-size: 16px;">${estrellas}</td>
-        <td style="max-width: 200px;">${r.Comentario}</td>
-        <td><span class="${badgeClass}">${badgeText}</span></td>
-        <td class="acciones-td">
-          <button class="btn-action toggle" onclick="toggleResena('${r.ID}')">${r.Aprobada ? 'Ocultar' : 'Aprobar'}</button>
-          <button class="btn-action delete" onclick="borrarResena('${r.ID}')">🗑️</button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  async function toggleResena(id) {
-    try {
-      const res = await jsonpRequest({ action: 'toggleReview', id: id, token: tokenAdmin });
-      if (res && res.success) await cargarResenasAdmin();
-    } catch (e) { alert('Error al cambiar estado.'); }
-  }
-
-  async function borrarResena(id) {
-    if (!confirm('¿Eliminar esta reseña permanentemente?')) return;
-    try {
-      const res = await jsonpRequest({ action: 'deleteReview', id: id, token: tokenAdmin });
-      if (res && res.success) await cargarResenasAdmin();
-    } catch (e) { alert('Error al borrar.'); }
-  }
-
-  function renderTablaProductos() {
-    const tbody = document.getElementById('tbody-productos');
-    tbody.innerHTML = '';
-    
-    const select = document.getElementById('select-product');
-    select.innerHTML = '<option value="">-- Crear Nuevo Producto --</option>';
-    
-    if (!productosGlobal.length) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#999;">No hay productos aún.</td></tr>';
-      return;
+    function mostrarAlerta(mensaje, tipo = 'success') {
+      const box = document.getElementById('alert-box');
+      box.textContent = mensaje;
+      box.className = `alert alert-${tipo}`;
+      box.style.display = 'block';
+      setTimeout(() => { box.style.display = 'none'; }, 4000);
     }
 
-    productosGlobal.forEach(function(p) {
-      const tr = document.createElement('tr');
-      const disponible = String(p.Disponible).toLowerCase() === 'si' || p.Disponible === true;
-      const badgeClass = disponible ? 'badge si' : 'badge no';
-      const badgeText = disponible ? 'Visible' : 'Oculto';
+    async function login() {
+      const email = document.getElementById('login-email').value.trim();
+      const pass = document.getElementById('login-pass').value;
+      const btn = document.querySelector('#login-screen button');
+      btn.textContent = 'Verificando...';
 
-      tr.innerHTML = `
-        <td><strong>${p.ID}</strong></td>
-        <td>${p.Nombre}</td>
-        <td>${p.Categoria || 'Otros'}</td>
-        <td>${Number(p.Precio).toFixed(2)}€</td>
-        <td><span class="${badgeClass}">${badgeText}</span></td>
-        <td class="acciones-td">
-          <button class="btn-action toggle" onclick="toggleDisponibilidad('${p.ID}', '${disponible ? 'si' : 'no'}')">👁️</button>
-          <button class="btn-action" onclick="editarProductoDesdeTabla('${p.ID}')">✏️</button>
-          <button class="btn-action delete" onclick="eliminarProducto('${p.ID}')">🗑️</button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-
-      const opt = document.createElement('option');
-      opt.value = p.ID;
-      opt.textContent = p.ID + ' - ' + p.Nombre;
-      select.appendChild(opt);
-    });
-  }
-
-  function editarProductoDesdeTabla(id) {
-    document.getElementById('select-product').value = id;
-    cargarProducto();
-    document.getElementById('select-product').scrollIntoView({ behavior: 'smooth' });
-  }
-
-  async function toggleDisponibilidad(id, estadoActual) {
-    const p = productosGlobal.find(x => String(x.ID) === String(id));
-    if (!p) return;
-    const copia = Object.assign({}, p);
-    copia.Disponible = estadoActual === 'si' ? 'no' : 'si';
-    
-    try {
-      const res = await jsonpRequest({ action: 'saveProduct', token: tokenAdmin, productData: JSON.stringify(copia) });
-      if (res && res.success) await entrarAlPanel();
-      else alert('Error al cambiar el estado: ' + res.error);
-    } catch (e) { alert('Error de conexión.'); }
-  }
-
-  async function eliminarProducto(id) {
-    if (!confirm('¿Estás seguro de que deseas eliminar el producto ' + id + '?')) return;
-    try {
-      const res = await jsonpRequest({ action: 'deleteProduct', id: id, token: tokenAdmin });
-      if (res && res.success) {
-        await entrarAlPanel();
-        mostrarMsg('panel-msg', 'Producto eliminado correctamente.', 'ok');
-      } else alert('Error al eliminar: ' + res.error);
-    } catch (e) { alert('Error de conexión.'); }
-  }
-
-  function renderizarSlider() {
-    const cont = document.getElementById('slider-lista');
-    if (!cont) return;
-    cont.innerHTML = '';
-    document.getElementById('btn-add-slide').disabled = sliderItems.length >= 10;
-    if (!sliderItems.length) { cont.innerHTML = '<p style="font-size:12px;color:#95a5a6;margin:0;">No hay imágenes. La sección no aparecerá en la web.</p>'; return; }
-    sliderItems.forEach(function (item, i) {
-      const fila = document.createElement('div'); fila.className = 'slide-item';
-      const img = document.createElement('img'); img.alt = ''; miniatura(img, item.URL); fila.appendChild(img);
-      const campos = document.createElement('div'); campos.className = 'campos';
-      const url = document.createElement('input'); url.type = 'text'; url.placeholder = 'https://... o img/foto.jpg'; url.maxLength = 500; url.value = item.URL || ''; url.onchange = function () { item.URL = url.value.trim(); miniatura(img, item.URL); }; campos.appendChild(url);
-      const titulo = document.createElement('input'); titulo.type = 'text'; titulo.placeholder = 'Título (opcional)'; titulo.maxLength = 80; titulo.value = item.Titulo || ''; titulo.oninput = function () { item.Titulo = titulo.value; }; campos.appendChild(titulo);
-      const chk = document.createElement('label'); chk.className = 'chk'; const box = document.createElement('input'); box.type = 'checkbox'; box.checked = item.Activo !== false; box.onchange = function () { item.Activo = box.checked; }; chk.appendChild(box); chk.appendChild(document.createTextNode('Visible en la web')); campos.appendChild(chk);
-      fila.appendChild(campos);
-      const acciones = document.createElement('div'); acciones.className = 'acciones';
-      const arriba = document.createElement('button'); arriba.type = 'button'; arriba.textContent = '↑'; arriba.disabled = i === 0; arriba.onclick = function () { moverSlide(i, -1); };
-      const abajo = document.createElement('button'); abajo.type = 'button'; abajo.textContent = '↓'; abajo.disabled = i === sliderItems.length - 1; abajo.onclick = function () { moverSlide(i, 1); };
-      const borrar = document.createElement('button'); borrar.type = 'button'; borrar.className = 'del'; borrar.textContent = '✕'; borrar.onclick = function () { eliminarSlide(i); };
-      acciones.appendChild(arriba); acciones.appendChild(abajo); acciones.appendChild(borrar); fila.appendChild(acciones);
-      cont.appendChild(fila);
-    });
-  }
-
-  function agregarSlide() { if (sliderItems.length >= 10) { mostrarMsg('slider-msg', 'Máximo 10 imágenes.', 'error'); return; } sliderItems.push({ ID: '', URL: '', Titulo: '', Activo: true }); renderizarSlider(); const filas = document.querySelectorAll('#slider-lista .slide-item'); if (filas.length) { const input = filas[filas.length - 1].querySelector('.campos input[type="text"]'); if (input) input.focus(); } }
-  function moverSlide(i, dir) { const j = i + dir; if (j < 0 || j >= sliderItems.length) return; const tmp = sliderItems[i]; sliderItems[i] = sliderItems[j]; sliderItems[j] = tmp; renderizarSlider(); }
-  function eliminarSlide(i) { sliderItems.splice(i, 1); renderizarSlider(); ocultarMsg('slider-msg'); }
-
-  async function guardarSlider() {
-    ocultarMsg('slider-msg');
-    for (let i = 0; i < sliderItems.length; i++) {
-      sliderItems[i].URL = normalizarUrlImagen(sliderItems[i].URL);
-      if (!sliderItems[i].URL) { mostrarMsg('slider-msg', 'La imagen ' + (i + 1) + ' no tiene URL.', 'error'); return; }
-      if (!urlValida(sliderItems[i].URL)) { mostrarMsg('slider-msg', 'La imagen ' + (i + 1) + ' tiene una URL no válida.', 'error'); return; }
-    }
-    const btn = document.getElementById('btn-slider'); btn.disabled = true; btn.textContent = 'Guardando...';
-    try {
-      const res = await jsonpRequest({ action: 'saveSlider', token: tokenAdmin, sliderData: JSON.stringify(sliderItems) });
-      if (sesionInvalida(res)) { volverAlLogin('Tu sesión caducó. Vuelve a entrar.'); return; }
-      if (!res || !res.success) throw new Error((res && res.error) || 'No se pudo guardar el slider.');
-      sliderItems = Array.isArray(res.slider) ? res.slider : [];
-      renderizarSlider();
-      mostrarMsg('slider-msg', '✅ Slider guardado. Recarga la web para verlo.', 'ok');
-    } catch (e) { mostrarMsg('slider-msg', e.message || 'Error de conexión.', 'error'); } finally { btn.disabled = false; btn.textContent = 'Guardar slider'; }
-  }
-
-  const IMG_VACIA = 'data:image/svg+xml;charset=utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="84" height="56"><rect width="84" height="56" fill="#e9e9e9"/><text x="42" y="32" font-size="9" fill="#aaa" text-anchor="middle">sin imagen</text></svg>');
-  function miniatura(img, url) { if (!url) { img.src = IMG_VACIA; return; } img.onerror = function () { this.onerror = null; this.src = IMG_VACIA; }; img.src = url; }
-
-  function pedirFoto(destino) { destinoSubida = destino; const input = document.getElementById('subida-archivo'); input.value = ''; input.click(); }
-
-  async function comprimirImagen(archivo, maxLado, calidad) {
-    maxLado = maxLado || 1200; calidad = calidad || 0.8;
-    if (!/^image\//.test(archivo.type || '')) throw new Error('Ese archivo no es una imagen.');
-    if (archivo.type === 'image/gif') return archivo;
-    const url = URL.createObjectURL(archivo);
-    try {
-      const img = new Image();
-      await new Promise(function (res, rej) { img.onload = res; img.onerror = rej; img.src = url; });
-      const escala = Math.min(1, maxLado / Math.max(img.width, img.height));
-      const ancho = Math.max(1, Math.round(img.width * escala)), alto = Math.max(1, Math.round(img.height * escala));
-      const lienzo = document.createElement('canvas'); lienzo.width = ancho; lienzo.height = alto;
-      lienzo.getContext('2d').drawImage(img, 0, 0, ancho, alto);
-      const reducida = await new Promise(function (res) { lienzo.toBlob(res, 'image/jpeg', calidad); });
-      if (!reducida) return archivo;
-      const nombre = (archivo.name || 'foto').replace(/\.[^.]+$/, '') + '.jpg';
-      return new File([reducida], nombre, { type: 'image/jpeg' });
-    } catch (e) { return archivo; } finally { URL.revokeObjectURL(url); }
-  }
-
-  function fileToBase64(archivo) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result.split(',')[1]);
-      reader.onerror = error => reject(error);
-      reader.readAsDataURL(archivo);
-    });
-  }
-
-  async function subirFotoAlServidor(base64, mimeType) {
-    const id = uuidV4();
-    const formData = new URLSearchParams();
-    formData.append('action', 'uploadImageBase64');
-    formData.append('token', tokenAdmin);
-    formData.append('id', id);
-    formData.append('fileData', base64);
-    formData.append('mimeType', mimeType);
-
-    const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: formData });
-    if (!response.ok) throw new Error('Error de red al subir la foto.');
-    const text = await response.text();
-    let res;
-    try { res = JSON.parse(text); } catch(e) { throw new Error('El servidor devolvió un formato inesperado.'); }
-    if (!res || !res.success || !res.url) throw new Error((res && res.error) || 'No se pudo subir la foto.');
-    return res.url;
-  }
-
-  async function procesarFotos(input) {
-    const archivos = Array.prototype.slice.call(input.files || []);
-    input.value = '';
-    if (!archivos.length) return;
-    const esSlider = destinoSubida === 'slider';
-    const msgId = esSlider ? 'slider-msg' : 'panel-msg';
-    const progId = esSlider ? 'slider-progress' : 'producto-progress';
-    const limite = esSlider ? 10 : 8;
-    
-    for (let i = 0; i < archivos.length; i++) {
-      const cuantas = esSlider ? sliderItems.length : imagenesActuales.length;
-      if (cuantas >= limite) { mostrarMsg(msgId, 'Máximo ' + limite + ' fotos.', 'error'); break; }
       try {
-        mostrarProgreso(progId, '⏳ Procesando y subiendo ' + (i + 1) + ' de ' + archivos.length + '...');
-        mostrarMsg(msgId, '', 'ok');
-        const reducida = await comprimirImagen(archivos[i]);
-        const base64 = await fileToBase64(reducida);
-        const url = await subirFotoAlServidor(base64, reducida.type || 'image/jpeg');
-        if (esSlider) { 
-          sliderItems.push({ ID: '', URL: url, Titulo: '', Activo: true }); 
-          renderizarSlider(); 
-          mostrarMsg(msgId, '✅ Foto subida. Pulsa "Guardar slider" para publicarla.', 'ok'); 
-        } else { 
-          imagenesActuales.push(url); 
-          renderizarGaleria(); 
-          mostrarMsg(msgId, '✅ Foto subida. Pulsa "Guardar Cambios del Producto" para publicarla.', 'ok'); 
+        const response = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+          method: 'POST',
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email, password: pass })
+        });
+
+        if (!response.ok) throw new Error('Credenciales incorrectas');
+        
+        const perfiles = await fetchSupabase(`/rest/v1/perfiles?email=eq.${email}`);
+        if (perfiles.length > 0) {
+          userRole = perfiles[0].rol;
+        } else if (email === 'isahyles123@gmail.com') {
+          userRole = 'admin'; 
         }
-      } catch (e) { 
-        mostrarMsg(msgId, e.message || 'No se pudo subir la foto.', 'error'); 
-      } finally { 
-        mostrarProgreso(progId, ''); 
+
+        document.getElementById('login-screen').style.display = 'none';
+        
+        if (userRole === 'admin') {
+          document.querySelector('.admin-only').style.display = 'block';
+        }
+
+        cargarProductos();
+        cargarConfiguracion();
+        
+      } catch (error) {
+        document.getElementById('login-msg').textContent = error.message;
+        document.getElementById('login-msg').style.display = 'block';
+        btn.textContent = 'Entrar al Panel';
       }
     }
-  }
 
-  function cargarProducto() {
-    const id = document.getElementById('select-product').value;
-    if (!id) { 
-      document.getElementById('p-id').value = ''; 
-      document.getElementById('p-nombre').value = ''; 
-      document.getElementById('p-precio').value = ''; 
-      document.getElementById('p-desc').value = ''; 
-      document.getElementById('p-ingredientes').value = ''; 
-      document.getElementById('p-categoria').value = 'Pizzas'; 
-      document.getElementById('p-disponible').value = 'si'; 
-      imagenesActuales = []; 
-      renderizarGaleria(); 
-      return; 
+    function logout() { location.reload(); }
+
+    function mostrarSeccion(id, event) {
+      ['productos', 'configuracion', 'usuarios'].forEach(sec => {
+        document.getElementById(`seccion-${sec}`).style.display = sec === id ? 'block' : 'none';
+      });
+      document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active'));
+      if(event) event.target.classList.add('active');
     }
-    const p = productosGlobal.find(function (x) { return String(x.ID) === String(id); });
-    if (!p) return;
-    document.getElementById('p-id').value = p.ID || ''; 
-    document.getElementById('p-nombre').value = p.Nombre || ''; 
-    document.getElementById('p-categoria').value = p.Categoria || 'Pizzas'; 
-    document.getElementById('p-precio').value = p.Precio != null ? p.Precio : ''; 
-    document.getElementById('p-desc').value = p.Descripcion || ''; 
-    document.getElementById('p-ingredientes').value = p.Ingredientes || '';
-    
-    const disp = String(p.Disponible).trim().toLowerCase();
-    document.getElementById('p-disponible').value = (disp === 'si' || disp === 'true' || p.Disponible === true) ? 'si' : 'no';
-    const raw = p.ImagenURL || p.Imagen || '';
-    imagenesActuales = String(raw).split(',').map(function (u) { return u.trim(); }).filter(Boolean);
-    renderizarGaleria();
-  }
 
-  function renderizarGaleria() {
-    const galeria = document.getElementById('galeria-imagenes');
-    galeria.innerHTML = '';
-    if (imagenesActuales.length === 0) { galeria.innerHTML = '<p style="font-size:12px; color:#95a5a6; width:100%;">Aún no hay imágenes en el carrusel.</p>'; return; }
-    imagenesActuales.forEach(function (url, index) {
-      const div = document.createElement('div'); div.className = 'img-item';
-      const img = document.createElement('img'); img.src = url; img.alt = ''; img.onerror = function () { img.style.background = '#eee'; };
-      const btn = document.createElement('button'); btn.textContent = 'X'; btn.type = 'button'; btn.title = 'Eliminar'; btn.onclick = function () { eliminarImagen(index); };
-      div.appendChild(img); div.appendChild(btn); galeria.appendChild(div);
+    async function cargarProductos() {
+      const productos = await fetchSupabase('/rest/v1/productos?select=*&order=id');
+      productosGlobal = productos;
+      document.getElementById('lista-productos').innerHTML = productos.map(p => `
+        <div class="card">
+          <img src="${p.imagen_url || 'https://via.placeholder.com/300x150?text=Sin+Imagen'}">
+          <div class="card-body">
+            <h3>${p.nombre} ${!p.disponible ? '(Oculto)' : ''}</h3>
+            <p style="font-size: 0.85rem; color: #666;">${p.categoria || ''}</p>
+            <div class="price">${Number(p.precio).toFixed(2)} €</div>
+            <div class="card-actions">
+              <button class="btn-edit" onclick="abrirModalEditar('${p.id}')">✏️ Editar</button>
+              <button class="btn-delete" onclick="eliminarProducto('${p.id}')">🗑️ Borrar</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function abrirModalNuevo() {
+      document.getElementById('modal-title').textContent = 'Nuevo Producto';
+      document.getElementById('prod-id-original').value = '';
+      document.getElementById('prod-id').value = '';
+      document.getElementById('prod-nombre').value = '';
+      document.getElementById('prod-precio').value = '';
+      document.getElementById('prod-categoria').value = 'Pizzas';
+      document.getElementById('prod-desc').value = '';
+      document.getElementById('prod-ingredientes').value = '';
+      document.getElementById('prod-imagen').value = '';
+      document.getElementById('prod-disponible').checked = true;
+      document.getElementById('modal-producto').style.display = 'flex';
+    }
+
+    function abrirModalEditar(id) {
+      const p = productosGlobal.find(x => String(x.id) === String(id));
+      if (!p) return;
+      document.getElementById('modal-title').textContent = 'Editar Producto';
+      document.getElementById('prod-id-original').value = p.id;
+      document.getElementById('prod-id').value = p.id;
+      document.getElementById('prod-nombre').value = p.nombre;
+      document.getElementById('prod-precio').value = p.precio;
+      document.getElementById('prod-categoria').value = p.categoria || '';
+      document.getElementById('prod-desc').value = p.descripcion || '';
+      document.getElementById('prod-ingredientes').value = p.ingredientes || '';
+      document.getElementById('prod-imagen').value = p.imagen_url || '';
+      document.getElementById('prod-disponible').checked = p.disponible;
+      document.getElementById('modal-producto').style.display = 'flex';
+    }
+
+    function cerrarModal() { document.getElementById('modal-producto').style.display = 'none'; }
+
+    async function guardarProducto() {
+      const idOriginal = document.getElementById('prod-id-original').value;
+      const data = {
+        id: document.getElementById('prod-id').value.trim(),
+        nombre: document.getElementById('prod-nombre').value.trim(),
+        categoria: document.getElementById('prod-categoria').value.trim(),
+        precio: parseFloat(document.getElementById('prod-precio').value),
+        descripcion: document.getElementById('prod-desc').value.trim(),
+        ingredientes: document.getElementById('prod-ingredientes').value.trim(),
+        imagen_url: document.getElementById('prod-imagen').value.trim(),
+        disponible: document.getElementById('prod-disponible').checked
+      };
+
+      try {
+        if (idOriginal) {
+          await fetchSupabase(`/rest/v1/productos?id=eq.${idOriginal}`, { method: 'PATCH', body: JSON.stringify(data) });
+        } else {
+          await fetchSupabase('/rest/v1/productos', { method: 'POST', body: JSON.stringify(data) });
+        }
+        cerrarModal();
+        cargarProductos();
+        mostrarAlerta('Producto guardado.');
+      } catch (error) {
+        mostrarAlerta('Error: ' + error.message, 'error');
+      }
+    }
+
+    async function eliminarProducto(id) {
+      if (!confirm('¿Eliminar producto?')) return;
+      await fetchSupabase(`/rest/v1/productos?id=eq.${id}`, { method: 'DELETE' });
+      cargarProductos();
+      mostrarAlerta('Producto eliminado.');
+    }
+
+    async function cargarConfiguracion() {
+      const data = await fetchSupabase('/rest/v1/configuracion?select=*');
+      const config = {};
+      data.forEach(item => config[item.clave] = item.valor);
+      document.getElementById('cfg-nombre').value = config.nombre_negocio || '';
+      document.getElementById('cfg-promo').value = config.promocion || '';
+      document.getElementById('cfg-stripe').checked = (config.stripe_habilitado === 'true');
+    }
+
+    document.getElementById('cfg-stripe')?.addEventListener('change', (e) => {
+      document.getElementById('stripe-status-text').textContent = e.target.checked ? 'Activado' : 'Desactivado';
     });
-  }
 
-  function agregarImagen() {
-    const input = document.getElementById('nueva-imagen-url'); const url = input.value.trim();
-    if (!url) return;
-    if (!/^https?:\/\/\S+$/i.test(url)) { alert('La imagen debe ser una URL que empiece por http:// o https://'); return; }
-    if (imagenesActuales.length >= 8) { alert('Máximo 8 imágenes por producto.'); return; }
-    imagenesActuales.push(url); input.value = ''; renderizarGaleria();
-  }
-
-  function eliminarImagen(index) { imagenesActuales.splice(index, 1); renderizarGaleria(); }
-
-  async function guardarProducto() {
-    const btn = document.getElementById('btn-guardar'); const original = btn.textContent;
-    const precio = precioNum(document.getElementById('p-precio').value);
-    const prod = { ID: document.getElementById('p-id').value.trim().toUpperCase(), Nombre: document.getElementById('p-nombre').value.trim(), Categoria: document.getElementById('p-categoria').value, Precio: precio, Descripcion: document.getElementById('p-desc').value.trim(), Ingredientes: document.getElementById('p-ingredientes').value.trim(), ImagenURL: imagenesActuales.join(','), Disponible: document.getElementById('p-disponible').value };
-    if (!prod.ID) { mostrarMsg('panel-msg', 'El ID es obligatorio.', 'error'); return; }
-    if (!/^[A-Za-z0-9_-]{1,20}$/.test(prod.ID)) { mostrarMsg('panel-msg', 'El ID solo admite letras, números, guion y guion bajo.', 'error'); return; }
-    if (!prod.Nombre) { mostrarMsg('panel-msg', 'El nombre es obligatorio.', 'error'); return; }
-    if (isNaN(precio) || precio < 0) { mostrarMsg('panel-msg', 'El precio no es válido.', 'error'); return; }
-    document.getElementById('p-id').value = prod.ID;
-    btn.disabled = true; btn.textContent = 'Guardando...'; ocultarMsg('panel-msg');
-    try {
-      const res = await jsonpRequest({ action: 'saveProduct', token: tokenAdmin, productData: JSON.stringify(prod) });
-      if (sesionInvalida(res)) { volverAlLogin('Tu sesión caducó. Vuelve a entrar.'); return; }
-      if (res && res.success) { 
-        await entrarAlPanel(); 
-        document.getElementById('select-product').value = prod.ID; 
-        cargarProducto(); 
-        mostrarMsg('panel-msg', res.message || 'Guardado.', 'ok'); 
+    async function guardarConfiguracion() {
+      const configs = [
+        { clave: 'nombre_negocio', valor: document.getElementById('cfg-nombre').value.trim() },
+        { clave: 'promocion', valor: document.getElementById('cfg-promo').value.trim() },
+        { clave: 'stripe_habilitado', valor: document.getElementById('cfg-stripe').checked ? 'true' : 'false' }
+      ];
+      for (const c of configs) {
+        await fetchSupabase('/rest/v1/configuracion', {
+          method: 'POST',
+          headers: { 'Prefer': 'resolution=merge-duplicates' },
+          body: JSON.stringify(c)
+        });
       }
-      else { mostrarMsg('panel-msg', 'Error: ' + ((res && res.error) || 'no se pudo guardar.'), 'error'); }
-    } catch (e) { mostrarMsg('panel-msg', 'Error de conexión: ' + (e.message || ''), 'error'); } finally { btn.disabled = false; btn.textContent = original; }
-  }
-
-  async function toggleStripe() {
-    const check = document.getElementById('config-stripe'); const isChecked = check.checked; check.disabled = true; ocultarMsg('stripe-msg');
-    try {
-      const res = await jsonpRequest({ action: 'saveConfig', token: tokenAdmin, configData: JSON.stringify({ StripeHabilitado: isChecked }) });
-      if (sesionInvalida(res)) { volverAlLogin('Tu sesión caducó. Vuelve a entrar.'); check.checked = !isChecked; return; }
-      if (res && res.success) { mostrarMsg('stripe-msg', isChecked ? '✅ Pago con tarjeta ACTIVADO en la web.' : '⚠️ Pago con tarjeta DESACTIVADO. Se coordinará por WhatsApp.', 'ok'); }
-      else { mostrarMsg('stripe-msg', 'Error: ' + ((res && res.error) || 'no se pudo guardar.'), 'error'); check.checked = !isChecked; }
-    } catch (e) { mostrarMsg('stripe-msg', 'Error de conexión: ' + (e.message || ''), 'error'); check.checked = !isChecked; }
-    finally { check.disabled = false; }
-  }
-
-  async function guardarAjustesWeb() {
-    const btn = event.target;
-    btn.disabled = true;
-    btn.textContent = 'Guardando...';
-    ocultarMsg('config-msg');
-
-    const configData = {
-      NombreNegocio: document.getElementById('config-nombre').value.trim(),
-      Promocion: document.getElementById('config-promo').value.trim(),
-      Direccion: document.getElementById('config-direccion').value.trim(),
-      Telefono: document.getElementById('config-telefono').value.trim(),
-      Horario: document.getElementById('config-horario').value.trim()
-    };
-
-    try {
-      const res = await jsonpRequest({ action: 'saveConfig', token: tokenAdmin, configData: JSON.stringify(configData) });
-      if (res && res.success) {
-        mostrarMsg('config-msg', '✅ Ajustes guardados. Se verán en la web pública.', 'ok');
-      } else {
-        mostrarMsg('config-msg', 'Error: ' + (res.error || 'No se pudo guardar.'), 'error');
-      }
-    } catch (e) {
-      mostrarMsg('config-msg', 'Error de conexión.', 'error');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Guardar Ajustes de la Web';
+      mostrarAlerta('Configuración guardada.');
     }
-  }
 
-  window.addEventListener('DOMContentLoaded', async function () {
-    const guardado = leerToken(); if (!guardado) return; tokenAdmin = guardado;
-    try { await entrarAlPanel(); } catch (e) { guardarToken(''); }
-  });
-</script>
+    async function crearEmpleado() {
+      if (userRole !== 'admin') return mostrarAlerta('No tienes permisos', 'error');
+
+      const nombre = document.getElementById('new-user-name').value.trim();
+      const email = document.getElementById('new-user-email').value.trim();
+      const pass = document.getElementById('new-user-pass').value;
+      const rol = document.getElementById('new-user-role').value;
+
+      if (!email || !pass) return mostrarAlerta('Email y contraseña requeridos', 'error');
+
+      try {
+        const authRes = await fetch(SUPABASE_URL + '/auth/v1/admin/users', {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_SERVICE_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email, password: pass, email_confirm: true })
+        });
+
+        if (!authRes.ok) throw new Error('Error al crear el usuario en Auth');
+        const userData = await authRes.json();
+
+        await fetchSupabase('/rest/v1/perfiles', {
+          method: 'POST',
+          headers: { 'Prefer': 'resolution=merge-duplicates' },
+          body: JSON.stringify({ id: userData.id, email: email, rol: rol, nombre: nombre })
+        }, true);
+
+        mostrarAlerta(`Empleado ${nombre} creado con éxito.`);
+        document.getElementById('new-user-name').value = '';
+        document.getElementById('new-user-email').value = '';
+        document.getElementById('new-user-pass').value = '';
+
+      } catch (error) {
+        mostrarAlerta('Error al crear empleado: ' + error.message, 'error');
+      }
+    }
+  </script>
 </body>
 </html>
