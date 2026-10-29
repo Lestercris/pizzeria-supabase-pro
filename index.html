@@ -108,27 +108,17 @@
     /* Botón flotante WhatsApp */
     .wa-float { position: fixed; bottom: 20px; right: 20px; background: #25D366; color: white; border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1000; text-decoration: none; transition: transform 0.2s, box-shadow 0.2s; }
     .wa-float:hover { transform: scale(1.08); box-shadow: 0 6px 16px rgba(0,0,0,0.35); }
-      /* Slider de portada */
-    .hero { max-width: 1200px; margin: 22px auto 0; padding: 0 20px; }
-    .hero[hidden] { display: none; }
-    .hero-track { position: relative; width: 100%; height: 340px; border-radius: 16px; overflow: hidden; background: #eee; box-shadow: 0 10px 28px rgba(0,0,0,0.16); touch-action: pan-y; }
-    .hero-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 0.7s ease; pointer-events: none; }
-    .hero-slide.on { opacity: 1; pointer-events: auto; }
-    .hero-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .hero-cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 46px 24px 18px; background: linear-gradient(to top, rgba(0,0,0,0.72), rgba(0,0,0,0)); color: #fff; font-size: 1.15rem; font-weight: 600; letter-spacing: 0.2px; text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
-    .hero-btn { position: absolute; top: 50%; transform: translateY(-50%); width: 42px; height: 42px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.9); color: #c0392b; font-size: 26px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(0,0,0,0.2); transition: background 0.2s, transform 0.15s; z-index: 2; }
-    .hero-btn:hover { background: #fff; transform: translateY(-50%) scale(1.06); }
-    .hero-btn.prev { left: 14px; }
-    .hero-btn.next { right: 14px; }
-    .hero-dots { display: flex; justify-content: center; gap: 8px; margin-top: 12px; }
-    .hero-dots button { width: 10px; height: 10px; padding: 0; border: 0; border-radius: 50%; background: #d8d8d8; cursor: pointer; transition: background 0.2s, transform 0.2s; }
-    .hero-dots button.on { background: #c0392b; transform: scale(1.25); }
-    @media (max-width: 700px) {
-      .hero { margin-top: 16px; padding: 0 12px; }
-      .hero-track { height: 215px; border-radius: 12px; }
-      .hero-btn { width: 34px; height: 34px; font-size: 21px; }
-      .hero-cap { font-size: 1rem; padding: 34px 16px 14px; }
-    }
+         <section class="hero" id="hero" hidden style="max-width: 1200px; margin: 22px auto 0; padding: 0 20px;">
+      <div class="hero-track" id="heroTrack" style="position: relative; width: 100%; height: 340px; border-radius: 16px; overflow: hidden; background: #eee; box-shadow: 0 10px 28px rgba(0,0,0,0.16);">
+        <div id="heroSlides"></div>
+        
+        <!-- Botones de avance/retroceso -->
+        <button class="hero-btn prev" type="button" onclick="moverSlider(-1)" style="position: absolute; top: 50%; transform: translateY(-50%); left: 14px; width: 42px; height: 42px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.9); color: #c0392b; font-size: 26px; cursor: pointer; z-index: 2; display: flex; align-items: center; justify-content: center;">‹</button>
+        
+        <button class="hero-btn next" type="button" onclick="moverSlider(1)" style="position: absolute; top: 50%; transform: translateY(-50%); right: 14px; width: 42px; height: 42px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.9); color: #c0392b; font-size: 26px; cursor: pointer; z-index: 2; display: flex; align-items: center; justify-content: center;">›</button>
+      </div>
+      <div class="hero-dots" id="heroDots" style="display: flex; justify-content: center; gap: 8px; margin-top: 12px;"></div>
+    </section>
   </style>
 </head>
 <body>
