@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🍕 Panel de Control - Bella Napoli</title>
+  <title>🍕 Panel de Control - Administración</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root { --primary: #c0392b; --secondary: #27ae60; --bg: #f4f7f6; --text: #333; }
@@ -59,7 +59,7 @@
 
   <div id="login-screen">
     <div class="login-box">
-      <h2>🍕 Bella Napoli</h2>
+       <h2 id="admin-header-title">🍕 Cargando...</h2>
       <p style="margin-bottom: 20px; color: #666; font-size: 0.9rem;">Ingresa tus credenciales de empleado.</p>
       <input type="email" id="login-email" placeholder="Correo electrónico">
       <input type="password" id="login-pass" placeholder="Contraseña">
@@ -330,20 +330,27 @@
       document.getElementById('stripe-status-text').textContent = e.target.checked ? 'Activado' : 'Desactivado';
     });
 
-    async function guardarConfiguracion() {
-      const configs = [
-        { clave: 'nombre_negocio', valor: document.getElementById('cfg-nombre').value.trim() },
-        { clave: 'promocion', valor: document.getElementById('cfg-promo').value.trim() },
-        { clave: 'stripe_habilitado', valor: document.getElementById('cfg-stripe').checked ? 'true' : 'false' }
-      ];
-      for (const c of configs) {
-        await fetchSupabase('/rest/v1/configuracion', {
-          method: 'POST',
-          headers: { 'Prefer': 'resolution=merge-duplicates' },
-          body: JSON.stringify(c)
-        });
+        async function cargarConfiguracion() {
+      const data = await fetchSupabase('/rest/v1/configuracion?select=*');
+      const config = {};
+      data.forEach(item => config[item.clave] = item.valor);
+      
+      document.getElementById('cfg-nombre').value = config.nombre_negocio || '';
+      document.getElementById('cfg-promo').value = config.promocion || '';
+      document.getElementById('cfg-telefono').value = config.telefono || '';
+      document.getElementById('cfg-whatsapp').value = config.whatsapp || '';
+      document.getElementById('cfg-direccion').value = config.direccion || '';
+      document.getElementById('cfg-horario').value = config.horario || '';
+      document.getElementById('cfg-stripe').checked = (config.stripe_habilitado === 'true');
+
+      // Cambia el nombre en el menú lateral y en la pestaña del navegador
+      if (config.nombre_negocio) {
+        document.getElementById('admin-header-title').textContent = '🍕 ' + config.nombre_negocio;
+        document.title = 'Panel - ' + config.nombre_negocio;
+      } else {
+        document.getElementById('admin-header-title').textContent = '🍕 Mi Negocio';
+        document.title = 'Panel de Administración';
       }
-      mostrarAlerta('Configuración guardada.');
     }
 
     async function crearEmpleado() {
