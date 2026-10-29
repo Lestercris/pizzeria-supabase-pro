@@ -1,3 +1,10 @@
+¡Claro que sí! Entiendo perfectamente que con tantos cambios sea fácil perderse. 
+
+Aquí tienes el archivo **`index.html` completo, limpio y actualizado**. Ya tiene integrado todo lo que hemos hablado: la conexión a Supabase, la carga de productos, el carrito, la lectura de la configuración (para el nombre, promoción, horario, mapa, etc.) y el sistema de reseñas.
+
+Copia todo este código y reemplaza el contenido de tu `index.html` en GitHub:
+
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -74,7 +81,18 @@
     .footer-col p { font-size: 0.95rem; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 8px; }
     .footer-col a { color: #f1c40f; text-decoration: none; }
     .footer-col a:hover { text-decoration: underline; }
+    
+    /* Mapa y botón GPS */
+    .mapa-container { margin-top: 15px; border-radius: 8px; overflow: hidden; border: 2px solid #34495e; display: none; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+    .mapa-container iframe { display: block; width: 100%; height: 180px; border: 0; }
+    .btn-gps { display: none; margin-top: 10px; background: #27ae60; color: white !important; text-align: center; padding: 8px 12px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; transition: background 0.2s; }
+    .btn-gps:hover { background: #219150; text-decoration: none !important; }
 
+    /* Reseñas */
+    .resena { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid #f1c40f; }
+    .estrellas { color: #f1c40f; font-size: 1rem; margin-bottom: 5px; }
+    .resena p { font-size: 0.85rem; font-style: italic; margin: 0; color: #bdc3c7; }
+    
     .footer-bottom { text-align: center; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem; color: #95a5a6; }
 
     /* Botón flotante WhatsApp */
@@ -132,8 +150,14 @@
     <div class="footer-container">
       <div class="footer-col">
         <h3>📍 Dónde estamos</h3>
-        <p id="footer-direccion">Próximamente dirección...</p>
+        <p id="footer-direccion">Cargando dirección...</p>
         <p>📞 <a id="footer-telefono" href="#">Cargando...</a></p>
+        
+        <!-- MAPA Y BOTÓN GPS -->
+        <div id="mapa-container" class="mapa-container">
+          <iframe id="mapa-iframe" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+        <a id="btn-gps" href="#" target="_blank" class="btn-gps">🚗 Cómo llegar (Abrir GPS)</a>
       </div>
       
       <div class="footer-col">
@@ -144,7 +168,22 @@
       <div class="footer-col">
         <h3>⭐ Opiniones de clientes</h3>
         <div id="lista-resenas" style="margin-bottom: 15px; max-height: 250px; overflow-y: auto;">
-          <p style="color: #bdc3c7; font-size: 0.9rem;">Módulo de reseñas en construcción...</p>
+          <p style="color: #bdc3c7; font-size: 0.9rem;">Cargando reseñas...</p>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px;">
+          <p style="font-size: 0.9rem; margin-bottom: 10px; font-weight: bold; color: #fff;">Déjanos tu opinión</p>
+          <input type="text" id="res-nombre" placeholder="Tu nombre" style="width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: none; font-family: inherit;">
+          <select id="res-estrellas" style="width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: none; font-family: inherit;">
+            <option value="5">★★★★★ (Excelente)</option>
+            <option value="4">★★★★☆ (Muy bueno)</option>
+            <option value="3">★★★☆☆ (Normal)</option>
+            <option value="2">★★☆☆☆ (Malo)</option>
+            <option value="1">★☆☆☆☆ (Muy malo)</option>
+          </select>
+          <textarea id="res-comentario" placeholder="¿Qué te pareció la pizza?" style="width: 100%; padding: 8px; margin-bottom: 8px; border-radius: 5px; border: none; resize: vertical; font-family: inherit;" rows="2"></textarea>
+          <button type="button" onclick="enviarResena()" style="background: #c0392b; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%;">Enviar Reseña</button>
+          <div id="res-msg" style="font-size: 0.8rem; margin-top: 8px; display: none; text-align: center;"></div>
         </div>
       </div>
     </div>
@@ -168,7 +207,6 @@
     const IMG_PLACEHOLDER = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="160"><rect width="100%" height="100%" fill="#f1f1f1"/><text x="150" y="86" text-anchor="middle" font-family="sans-serif" font-size="16" fill="#b0b0b0">Sin imagen</text></svg>');
 
     let productos = [], productosFiltrados = [], carrito = {}, stripeHabilitado = false;
-    let telefonoNegocio = '+34601860462';
     let categoriaActual = 'Todas', paginaActual = 1;
     const productosPorPagina = 6; 
 
@@ -205,7 +243,6 @@
         
         const data = await response.json();
         
-        // Adaptamos los datos
         productos = data.map(p => ({
           ID: p.id,
           Categoria: p.categoria,
@@ -225,7 +262,7 @@
       }
     }
     
-    // === CARGAR CONFIGURACIÓN DESDE SUPABASE ===
+    // === CARGAR CONFIGURACIÓN Y RESEÑAS ===
     async function cargarConfig() {
       try {
         const response = await fetch(SUPABASE_URL + '/rest/v1/configuracion?select=*', {
@@ -239,8 +276,9 @@
         let config = {};
         data.forEach(item => { config[item.clave] = item.valor; });
 
-        stripeHabilitado = !!(config.stripe_habilitado === 'true' || config.stripe_habilitado === 'TRUE');
+        stripeHabilitado = !!(config.stripe_habilitado === 'true');
 
+        // 1. Cargar Promoción
         if (config.promocion && config.promocion.trim() !== '') {
           const banner = document.createElement('div');
           banner.className = 'promo-banner';
@@ -249,12 +287,49 @@
           if (promoContainer) promoContainer.appendChild(banner);
         }
 
+        // 2. Cargar Nombre del Negocio
         if (config.nombre_negocio) {
           const header = document.getElementById('header-titulo');
           const footer = document.getElementById('footer-nombre');
           if (header) header.textContent = '🍕 ' + config.nombre_negocio;
           if (footer) footer.textContent = config.nombre_negocio;
           document.title = '🍕 ' + config.nombre_negocio;
+        }
+
+        // 3. Cargar Dirección, Teléfono y Horario en el Footer
+        if (config.direccion) document.getElementById('footer-direccion').textContent = config.direccion;
+        if (config.telefono) {
+          const telLink = document.getElementById('footer-telefono');
+          telLink.textContent = config.telefono;
+          telLink.href = 'tel:' + config.telefono.replace(/\s/g, '');
+        }
+        if (config.horario) document.getElementById('footer-horario').textContent = config.horario;
+
+        // 4. Cargar WhatsApp Dinámico
+        if (config.whatsapp) {
+          const waBtn = document.getElementById('wa-float-btn');
+          if (waBtn) {
+            const numLimpio = config.whatsapp.replace(/\D/g, '');
+            waBtn.href = `https://wa.me/${numLimpio}?text=Hola,%20quiero%20hacer%20un%20pedido`;
+          }
+        }
+
+        // 5. Cargar Mapa y GPS Dinámico
+        if (config.direccion) {
+          const dirEncoded = encodeURIComponent(config.direccion);
+          
+          const btnGps = document.getElementById('btn-gps');
+          if (btnGps) {
+            btnGps.href = `https://www.google.com/maps/search/?api=1&query=${dirEncoded}`;
+            btnGps.style.display = 'block';
+          }
+
+          const mapaContainer = document.getElementById('mapa-container');
+          const mapaIframe = document.getElementById('mapa-iframe');
+          if (mapaContainer && mapaIframe) {
+            mapaIframe.src = `https://maps.google.com/maps?q=${dirEncoded}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+            mapaContainer.style.display = 'block';
+          }
         }
 
       } catch (error) {
@@ -384,7 +459,7 @@
       document.getElementById('btn-pagar').disabled = false;
     }
 
-    // === PROCESAR PEDIDO (GUARDAR EN SUPABASE) ===
+    // === PROCESAR PEDIDO (GUARDAR EN SUPABASE Y ABRIR WHATSAPP) ===
     async function procesarPedido() {
       const nombre = document.getElementById('nombre').value.trim();
       const email = document.getElementById('email').value.trim();
@@ -410,7 +485,7 @@
       });
 
       try {
-        // Insertar pedido en la tabla de Supabase
+        const orderId = 'PED-' + Date.now();
         const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos', {
           method: 'POST',
           headers: {
@@ -420,7 +495,7 @@
             'Prefer': 'return=representation'
           },
           body: JSON.stringify({
-            order_id: 'PED-' + Date.now(),
+            order_id: orderId,
             nombre_cliente: nombre,
             email_cliente: email,
             telefono: telefono,
@@ -433,11 +508,15 @@
 
         if (!response.ok) throw new Error('Error al guardar el pedido');
 
-        const data = await response.json();
-        const orderId = data[0].order_id;
-
-        // Generar resumen para WhatsApp
         let resumenWsp = detalle.map(d => `- ${d}`).join('\n');
+        
+        // Obtener el número de WhatsApp desde la configuración
+        const configRes = await fetch(SUPABASE_URL + '/rest/v1/configuracion?select=valor&clave=eq.whatsapp', {
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+        });
+        const configData = await configRes.json();
+        const telefonoNegocio = configData.length > 0 ? configData[0].valor : '34600000000';
+
         const msg = encodeURIComponent(
           `Hola, acabo de hacer el pedido *#${orderId}* en la web.\n\n` +
           `*Mi pedido:*\n${resumenWsp}\n` +
@@ -467,11 +546,102 @@
 
     function mostrarMensaje(texto, tipo) { const msg = document.getElementById('mensaje'); msg.textContent = texto; msg.className = 'mensaje ' + tipo; }
 
+    // === CARGAR RESEÑAS PÚBLICAS ===
+    async function cargarResenasPublicas() {
+      try {
+        const response = await fetch(SUPABASE_URL + '/rest/v1/resenas?select=*&aprobada=eq.true&order=fecha.desc&limit=5', {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+          }
+        });
+        
+        const data = await response.json();
+        const cont = document.getElementById('lista-resenas');
+        
+        if (!cont) return;
+        
+        if (!data || data.length === 0) {
+          cont.innerHTML = '<p style="color: #bdc3c7; font-size: 0.9rem;">Aún no hay reseñas. ¡Sé el primero!</p>';
+          return;
+        }
+        
+        cont.innerHTML = data.map(r => {
+          const estrellas = '★'.repeat(r.estrellas) + '☆'.repeat(5 - r.estrellas);
+          const fechaFormateada = new Date(r.fecha).toLocaleDateString('es-ES');
+          return `
+            <div class="resena">
+              <div class="estrellas">${estrellas}</div>
+              <p>"${r.comentario}"</p>
+              <small style="color: #95a5a6; font-size: 0.75rem;">- ${r.nombre} (${fechaFormateada})</small>
+            </div>
+          `;
+        }).join('');
+      } catch (error) {
+        console.error("Error cargando reseñas:", error);
+      }
+    }
+
+    // === ENVIAR RESEÑA DESDE EL CLIENTE ===
+    async function enviarResena() {
+      const nombre = document.getElementById('res-nombre').value.trim();
+      const estrellas = document.getElementById('res-estrellas').value;
+      const comentario = document.getElementById('res-comentario').value.trim();
+      const msgDiv = document.getElementById('res-msg');
+      const btn = event.target;
+
+      if (!nombre || !comentario) {
+        msgDiv.textContent = 'Por favor, rellena tu nombre y comentario.';
+        msgDiv.style.color = '#ff6b6b';
+        msgDiv.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+
+      try {
+        const response = await fetch(SUPABASE_URL + '/rest/v1/resenas', {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            nombre: nombre,
+            estrellas: parseInt(estrellas),
+            comentario: comentario,
+            aprobada: false 
+          })
+        });
+
+        if (!response.ok) throw new Error('Error al enviar');
+
+        msgDiv.textContent = '✅ ¡Gracias! Tu reseña será revisada y publicada pronto.';
+        msgDiv.style.color = '#2ecc71';
+        msgDiv.style.display = 'block';
+        document.getElementById('res-nombre').value = '';
+        document.getElementById('res-comentario').value = '';
+
+      } catch (error) {
+        msgDiv.textContent = 'Error de conexión. Inténtalo de nuevo.';
+        msgDiv.style.color = '#ff6b6b';
+        msgDiv.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Enviar Reseña';
+      }
+    }
+
+    // === INICIALIZACIÓN ===
     window.addEventListener('DOMContentLoaded', function () { 
       document.getElementById('year').textContent = new Date().getFullYear();
       cargarConfig(); 
       cargarProductos(); 
+      cargarResenasPublicas();
     });
   </script>
 </body>
 </html>
+```
