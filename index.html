@@ -591,7 +591,50 @@
         console.error("Error cargando reseñas:", error);
       }
     }
+    // === CARGAR SLIDER DESDE SUPABASE ===
+    async function cargarSlides() {
+      try {
+        const response = await fetch(SUPABASE_URL + '/rest/v1/slides?select=*&activo=eq.true&order=orden', {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+          }
+        });
+        
+        const slides = await response.json();
+        const hero = document.getElementById('hero');
+        const cont = document.getElementById('heroSlides');
+        const dots = document.getElementById('heroDots');
 
+        if (!slides || slides.length === 0) {
+          if (hero) hero.hidden = true;
+          return;
+        }
+
+        if (slides.length > 0) {
+          cont.innerHTML = slides.map((s, i) => `
+            <div class="hero-slide${i === 0 ? ' on' : ''}">
+              <img src="${s.imagen_url}" alt="${s.titulo || ''}" ${i === 0 ? '' : 'loading="lazy"'}>
+              ${s.titulo ? `<div class="hero-cap">${s.titulo}</div>` : ''}
+            </div>
+          `).join('');
+
+          dots.innerHTML = slides.map((_, i) => 
+            `<button type="button" aria-label="Ir a la imagen ${i + 1}" onclick="irASlide(${i})"></button>`
+          ).join('');
+
+          if (hero) hero.hidden = false;
+          
+          // Iniciar el carrusel (funciones que ya tienes en tu index.html original)
+          if (typeof slideActual !== 'undefined') slideActual = 0;
+          if (typeof pintarSlide === 'function') pintarSlide();
+          if (typeof iniciarAuto === 'function') iniciarAuto();
+          if (typeof prepararSwipe === 'function') prepararSwipe();
+        }
+      } catch (error) {
+        console.error("Error al cargar el slider:", error);
+      }
+    }
     // === ENVIAR RESEÑA DESDE EL CLIENTE ===
     async function enviarResena() {
       const nombre = document.getElementById('res-nombre').value.trim();
@@ -650,6 +693,7 @@
       cargarConfig(); 
       cargarProductos(); 
       cargarResenasPublicas();
+      cargarSlides();
     });
   </script>
 </body>
