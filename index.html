@@ -532,13 +532,13 @@
         const configData = await configRes.json();
         const telefonoNegocio = configData.length > 0 ? configData[0].valor : '34600000000';
 
-               // --- MENSAJE ELEGANTE PARA WHATSAPP (Mejorado) ---
+        // --- MENSAJE ELEGANTE PARA WHATSAPP ---
         const mensajeWsp = 
           `🍕 *NUEVO PEDIDO WEB* 🍕\n` +
           `➖➖➖➖➖➖➖➖➖\n` +
           `🆔 *Ticket:* ${orderId}\n\n` +
           `🛒 *DETALLE DEL PEDIDO:*\n` +
-          `${detalle.map(d => `🍕 ${d}`).join('\n')}\n\n` +
+          `${detalle.map(d => `🔸 ${d}`).join('\n')}\n\n` +
           `💰 *TOTAL:* ${moneda(total)}\n\n` +
           `👤 *DATOS DEL CLIENTE:*\n` +
           `📝 Nombre: ${nombre}\n` +
