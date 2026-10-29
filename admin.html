@@ -1,3 +1,12 @@
+Tienes toda la razón. Es mejor reemplazar todo el archivo de una vez para asegurarnos de que no falte ninguna llave `}` o corchete que rompa el código.
+
+Aquí tienes el archivo `admin.html` **completo, limpio y con el error del JSON corregido**. 
+
+**⚠️ MUY IMPORTANTE:** Recuerda que en la parte del `<script>`, tienes que buscar `const SUPABASE_SERVICE_KEY = 'PEGA_AQUI_TU_SERVICE_ROLE_KEY';` y asegurarte de que tiene pegada tu clave secreta de Supabase.
+
+Copia todo desde `<!DOCTYPE html>` hasta `</html>` y pégalo en tu GitHub:
+
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -192,7 +201,7 @@
     const SUPABASE_URL = 'https://afarkzyxssgcpmnquqdp.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMzI2NTUsImV4cCI6MjEwODcwODY1NX0.J7gSycaeum0bUzx9tss5OM4WfPUt5BswqxnSEI0RgiY';
     
-    // ⚠️ PEGA AQUÍ TU SERVICE_ROLE_KEY (La encuentras en Settings -> API -> Legacy anon, service_role API keys)
+    // ⚠️ PEGA AQUÍ TU SERVICE_ROLE_KEY
     const SUPABASE_SERVICE_KEY = 'PEGA_AQUI_TU_SERVICE_ROLE_KEY'; 
 
     let productosGlobal = [];
@@ -209,7 +218,7 @@
       };
       const res = await fetch(SUPABASE_URL + endpoint, { ...options, headers });
       if (!res.ok) {
-        const errorData = await res.json();
+        const errorData = await res.json().catch(() => ({}));
         throw new Error(errorData.message || 'Error en la petición');
       }
       return res.json();
@@ -405,14 +414,24 @@
       
       try {
         for (const c of configs) {
-          await fetchSupabase('/rest/v1/configuracion', {
+          const res = await fetch(SUPABASE_URL + '/rest/v1/configuracion', {
             method: 'POST',
-            headers: { 'Prefer': 'resolution=merge-duplicates' },
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+              'Content-Type': 'application/json',
+              'Prefer': 'resolution=merge-duplicates'
+            },
             body: JSON.stringify(c)
           });
+
+          if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Error al guardar en la base de datos');
+          }
         }
         mostrarAlerta('Configuración guardada correctamente.');
-        cargarConfiguracion(); // Recargar para actualizar el título si cambió
+        cargarConfiguracion(); 
       } catch (error) {
         mostrarAlerta('Error al guardar: ' + error.message, 'error');
       }
@@ -506,3 +525,4 @@
   </script>
 </body>
 </html>
+```
