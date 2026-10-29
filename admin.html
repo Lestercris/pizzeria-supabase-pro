@@ -162,6 +162,13 @@
       <div style="background: white; padding: 25px; border-radius: 12px; max-width: 700px; margin-top: 20px;">
         <label>Nombre del Negocio</label>
         <input type="text" id="cfg-nombre">
+        
+        <label>Razón Social / Nombre de Empresa (para tickets)</label>
+        <input type="text" id="cfg-empresa" placeholder="Ej. Hermanos Rivas S.L.">
+
+        <label>CIF / NIF</label>
+        <input type="text" id="cfg-cif" placeholder="Ej. B-12345678">
+
         <label>Promoción del Día</label>
         <input type="text" id="cfg-promo">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
@@ -592,22 +599,34 @@
       }
     }
 
-    // === IMPRIMIR TICKET ===
-    function imprimirTicket(orderId) {
+    // === IMPRIMIR TICKET DINÁMICO ===
+    async function imprimirTicket(orderId) {
       const pedido = pedidosGlobal.find(p => p.order_id === orderId);
       if (!pedido) return;
+
+      // Traemos la configuración actual de Supabase para los datos del ticket
+      let config = {};
+      try {
+        const res = await fetchSupabase('/rest/v1/configuracion?select=*');
+        res.forEach(item => config[item.clave] = item.valor);
+      } catch (e) {
+        console.error('No se pudo cargar la configuración para el ticket');
+      }
+
+      const nombreEmpresa = config.empresa || config.nombre_negocio || 'MI RESTAURANTE';
+      const cif = config.cif || 'CIF no configurado';
+      const telefono = config.telefono || '';
+      const direccion = config.direccion || '';
 
       const fecha = pedido.fecha ? new Date(pedido.fecha).toLocaleString('es-ES') : '--/--/---- --:--';
       const items = pedido.detalle.split(',').map(item => `<div style="margin-bottom: 5px;">- ${item.trim()}</div>`).join('');
       
-      // Generar HTML del ticket con código de barras
       const ticketHTML = `
         <div style="text-align: center; margin-bottom: 10px;">
-          <h2 style="margin: 0; font-size: 1.5rem;">PIZZERÍA HERMANOS RIVAS</h2>
-          <p style="margin: 2px 0;">Calle Colmenarico 1, bajo 4</p>
-          <p style="margin: 2px 0;">Lorca, Murcia</p>
-          <p style="margin: 2px 0;">Tel: +34 601 860 462</p>
-          <p style="margin: 2px 0;">CIF: B-12345678</p>
+          <h2 style="margin: 0; font-size: 1.4rem;">${nombreEmpresa}</h2>
+          ${direccion ? `<p style="margin: 2px 0;">${direccion}</p>` : ''}
+          ${telefono ? `<p style="margin: 2px 0;">Tel: ${telefono}</p>` : ''}
+          <p style="margin: 2px 0;">CIF: ${cif}</p>
         </div>
         <hr style="border-top: 1px dashed #000; margin: 10px 0;">
         <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
@@ -631,7 +650,6 @@
         </div>
         <hr style="border-top: 1px dashed #000; margin: 10px 0;">
         
-        <!-- CÓDIGO DE BARRAS -->
         <div style="text-align: center; margin-top: 15px;">
           <svg id="barcode-ticket"></svg>
         </div>
@@ -644,7 +662,6 @@
       document.getElementById('ticket-impresion').innerHTML = ticketHTML;
       document.getElementById('ticket-impresion').style.display = 'block';
       
-      // Generar el código de barras con JsBarcode
       setTimeout(() => {
         JsBarcode("#barcode-ticket", pedido.order_id, {
           format: "CODE128",
@@ -656,7 +673,6 @@
           margin: 0
         });
         
-        // Lanzar la impresión
         window.print();
         document.getElementById('ticket-impresion').style.display = 'none';
       }, 200);
@@ -682,6 +698,8 @@
         data.forEach(item => config[item.clave] = item.valor);
         
         if(document.getElementById('cfg-nombre')) document.getElementById('cfg-nombre').value = config.nombre_negocio || '';
+        if(document.getElementById('cfg-empresa')) document.getElementById('cfg-empresa').value = config.empresa || '';
+        if(document.getElementById('cfg-cif')) document.getElementById('cfg-cif').value = config.cif || '';
         if(document.getElementById('cfg-promo')) document.getElementById('cfg-promo').value = config.promocion || '';
         if(document.getElementById('cfg-telefono')) document.getElementById('cfg-telefono').value = config.telefono || '';
         if(document.getElementById('cfg-whatsapp')) document.getElementById('cfg-whatsapp').value = config.whatsapp || '';
@@ -709,6 +727,8 @@
     async function guardarConfiguracion() {
       const configs = [
         { clave: 'nombre_negocio', valor: document.getElementById('cfg-nombre').value.trim() },
+        { clave: 'empresa', valor: document.getElementById('cfg-empresa').value.trim() },
+        { clave: 'cif', valor: document.getElementById('cfg-cif').value.trim() },
         { clave: 'promocion', valor: document.getElementById('cfg-promo').value.trim() },
         { clave: 'telefono', valor: document.getElementById('cfg-telefono').value.trim() },
         { clave: 'whatsapp', valor: document.getElementById('cfg-whatsapp').value.trim() },
