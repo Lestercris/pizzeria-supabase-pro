@@ -57,6 +57,25 @@
     
     input[type="file"] { padding: 10px; background: #f8f9fa; border: 1px dashed #ccc; cursor: pointer; }
     .img-preview { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; display: none; }
+
+    /* Estilos para la tabla de pedidos */
+    .tabla-pedidos { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .tabla-pedidos th, .tabla-pedidos td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+    .tabla-pedidos th { background: #2c3e50; color: white; font-weight: 500; }
+    .tabla-pedidos tr:hover { background: #f9f9f9; }
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+    .badge-pendiente { background: #fff3cd; color: #856404; }
+    .badge-preparacion { background: #cce5ff; color: #004085; }
+    .badge-listo { background: #d4edda; color: #155724; }
+    .badge-entregado { background: #d1ecf1; color: #0c5460; }
+
+    /* Estilos de impresión de ticket (80mm) */
+    @media print {
+      body * { visibility: hidden; }
+      #ticket-impresion, #ticket-impresion * { visibility: visible; }
+      #ticket-impresion { position: absolute; left: 0; top: 0; width: 80mm; padding: 10px; font-family: 'Courier New', Courier, monospace; color: black; }
+      .no-print { display: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -75,16 +94,18 @@
   <div class="sidebar hidden-panel" id="sidebar">
     <h2 id="admin-header-title">🍕 Cargando...</h2>
     <button class="active" onclick="mostrarSeccion('productos', event)">📦 Productos</button>
-    <button onclick="mostrarSeccion('slider', event)">🖼️ Slider de Inicio</button>
+    <button onclick="mostrarSeccion('pedidos', event)">📋 Pedidos</button>
+    <button onclick="mostrarSeccion('slider', event)">🖼️ Slider</button>
     <button onclick="mostrarSeccion('resenas', event)">⭐ Reseñas</button>
     <button onclick="mostrarSeccion('configuracion', event)">⚙️ Configuración</button>
-    <button class="admin-only" onclick="mostrarSeccion('usuarios', event)">👥 Usuarios y Roles</button>
+    <button class="admin-only" onclick="mostrarSeccion('usuarios', event)">👥 Usuarios</button>
     <button class="logout" onclick="logout()">🚪 Cerrar Sesión</button>
   </div>
 
   <div class="main-content hidden-panel" id="main-panel">
     <div id="alert-box" class="alert"></div>
 
+    <!-- SECCIÓN PRODUCTOS -->
     <div id="seccion-productos">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h1>Gestión de Productos</h1>
@@ -93,14 +114,41 @@
       <div class="grid-productos" id="lista-productos"></div>
     </div>
 
+    <!-- SECCIÓN PEDIDOS -->
+    <div id="seccion-pedidos" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1>Gestión de Pedidos</h1>
+        <button class="btn" style="width: auto; background: #3498db;" onclick="cargarPedidos()">🔄 Actualizar</button>
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="tabla-pedidos">
+          <thead>
+            <tr>
+              <th>Ticket</th>
+              <th>Cliente</th>
+              <th>Detalle</th>
+              <th>Total</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-pedidos-body">
+            <tr><td colspan="6" style="text-align: center; padding: 20px;">Cargando pedidos...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SECCIÓN SLIDER -->
     <div id="seccion-slider" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h1>Carrusel de Inicio (Slider)</h1>
+        <h1>Carrusel de Inicio</h1>
         <button class="btn btn-success" style="width: auto;" onclick="abrirModalSlide()">+ Nueva Imagen</button>
       </div>
       <div class="grid-slider" id="lista-slides"></div>
     </div>
 
+    <!-- SECCIÓN RESEÑAS -->
     <div id="seccion-resenas" style="display: none;">
       <h1>Gestión de Reseñas</h1>
       <div style="background: white; padding: 25px; border-radius: 12px; max-width: 800px; margin-top: 20px;">
@@ -108,6 +156,7 @@
       </div>
     </div>
 
+    <!-- SECCIÓN CONFIGURACIÓN -->
     <div id="seccion-configuracion" style="display: none;">
       <h1>Configuración de la Web</h1>
       <div style="background: white; padding: 25px; border-radius: 12px; max-width: 700px; margin-top: 20px;">
@@ -133,6 +182,7 @@
       </div>
     </div>
 
+    <!-- SECCIÓN USUARIOS -->
     <div id="seccion-usuarios" style="display: none;">
       <h1>Usuarios y Roles</h1>
       <div style="background: white; padding: 25px; border-radius: 12px; max-width: 600px; margin-top: 20px;">
@@ -141,7 +191,7 @@
         <input type="email" id="new-user-email" placeholder="Correo electrónico">
         <input type="password" id="new-user-pass" placeholder="Contraseña temporal">
         <select id="new-user-role">
-          <option value="empleado">Empleado (Solo ver y editar productos)</option>
+          <option value="empleado">Empleado (Productos y Pedidos)</option>
           <option value="admin">Administrador (Control total)</option>
         </select>
         <button class="btn btn-success" onclick="crearEmpleado()">Crear Usuario</button>
@@ -160,7 +210,16 @@
       <input type="text" id="prod-nombre" required>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
         <div><label>Precio (€)</label><input type="number" id="prod-precio" step="0.01" required></div>
-        <div><label>Categoría</label><input type="text" id="prod-categoria"></div>
+        <div>
+          <label>Categoría</label>
+          <select id="prod-categoria">
+            <option value="Pizzas">Pizzas</option>
+            <option value="Entrantes">Entrantes</option>
+            <option value="Postres">Postres</option>
+            <option value="Bebidas">Bebidas</option>
+            <option value="Otros">Otros</option>
+          </select>
+        </div>
       </div>
       <label>Descripción</label>
       <textarea id="prod-desc" rows="2"></textarea>
@@ -187,7 +246,6 @@
   <div class="modal" id="modal-slider">
     <div class="modal-content">
       <h2 style="margin-bottom: 20px; color: var(--primary);">Nueva Imagen del Slider</h2>
-      <input type="hidden" id="slide-id-original">
       <label>Título (Opcional)</label>
       <input type="text" id="slide-titulo">
       <label>Subtítulo (Opcional)</label>
@@ -205,15 +263,21 @@
     </div>
   </div>
 
+  <!-- ÁREA DE IMPRESIÓN (Oculto en pantalla, visible al imprimir) -->
+  <div id="ticket-impresion" style="display: none;">
+    <!-- Se rellena con JS -->
+  </div>
+
   <script>
     const SUPABASE_URL = 'https://afarkzyxssgcpmnquqdp.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMzI2NTUsImV4cCI6MjEwODcwODY1NX0.J7gSycaeum0bUzx9tss5OM4WfPUt5BswqxnSEI0RgiY';
     
-    // ⚠️ PEGA AQUÍ TU SERVICE_ROLE_KEY
-    const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MzEzMjY1NSwiZXhwIjoyMTA4NzA4NjU1fQ.HmXW8r7uo9b5hohYLmi3koHLKHX-G9WTKBaSakKUO-w'; 
+    // ⚠️ PEGA AQUÍ TU SERVICE_ROLE_KEY (La encuentras en Settings -> API -> Legacy anon, service_role API keys)
+    const SUPABASE_SERVICE_KEY = 'PEGA_AQUI_TU_SERVICE_ROLE_KEY'; 
 
     let productosGlobal = [];
     let slidesGlobal = [];
+    let pedidosGlobal = [];
     let userRole = 'empleado';
 
     async function fetchSupabase(endpoint, options = {}, useServiceKey = false) {
@@ -238,6 +302,7 @@
       setTimeout(() => { box.style.display = 'none'; }, 4000);
     }
 
+    // === LOGIN ===
     async function login() {
       const email = document.getElementById('login-email').value.trim();
       const pass = document.getElementById('login-pass').value;
@@ -264,7 +329,6 @@
         if (userRole === 'admin') document.querySelector('.admin-only').style.display = 'block';
 
         cargarProductos();
-        cargarSlides();
         cargarConfiguracion();
         
       } catch (error) {
@@ -277,20 +341,23 @@
     function logout() { location.reload(); }
 
     function mostrarSeccion(id, event) {
-      ['productos', 'slider', 'configuracion', 'usuarios', 'resenas'].forEach(sec => {
+      ['productos', 'pedidos', 'slider', 'configuracion', 'usuarios', 'resenas'].forEach(sec => {
         document.getElementById(`seccion-${sec}`).style.display = sec === id ? 'block' : 'none';
       });
       document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active'));
       if(event) event.target.classList.add('active');
+      
       if(id === 'resenas') cargarResenas();
+      if(id === 'pedidos') cargarPedidos();
+      if(id === 'slider') cargarSlides();
     }
 
-            async function subirImagen(file, bucket = 'imagenes') {
+    // === SUBIDA DE IMÁGENES ===
+    async function subirImagen(file, bucket = 'imagenes') {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
-      // 🔥 Usamos FormData en lugar de enviar el archivo directamente
       const formData = new FormData();
       formData.append('file', file);
 
@@ -299,17 +366,11 @@
         headers: {
           'apikey': SUPABASE_ANON_KEY,
           'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
-          // ⚠️ NO pongas 'Content-Type' aquí, FormData lo hace automáticamente
         },
         body: formData
       });
 
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error('Error de Supabase Storage:', errorText);
-        throw new Error('Error al subir la imagen: ' + errorText);
-      }
-      
+      if (!res.ok) throw new Error('Error al subir la imagen');
       return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${filePath}`;
     }
 
@@ -345,6 +406,7 @@
       }
     }
 
+    // === PRODUCTOS ===
     async function cargarProductos() {
       const productos = await fetchSupabase('/rest/v1/productos?select=*&order=id');
       productosGlobal = productos;
@@ -353,6 +415,7 @@
           <img src="${p.imagen_url || 'https://via.placeholder.com/300x150?text=Sin+Imagen'}">
           <div class="card-body">
             <h3>${p.nombre} ${!p.disponible ? '(Oculto)' : ''}</h3>
+            <p style="font-size: 0.85rem; color: #666;">${p.categoria || ''}</p>
             <div class="price">${Number(p.precio).toFixed(2)} €</div>
             <div class="card-actions">
               <button class="btn-edit" onclick="abrirModalEditar('${p.id}')">✏️ Editar</button>
@@ -387,7 +450,7 @@
       document.getElementById('prod-id').value = p.id;
       document.getElementById('prod-nombre').value = p.nombre;
       document.getElementById('prod-precio').value = p.precio;
-      document.getElementById('prod-categoria').value = p.categoria || '';
+      document.getElementById('prod-categoria').value = p.categoria || 'Pizzas';
       document.getElementById('prod-desc').value = p.descripcion || '';
       document.getElementById('prod-ingredientes').value = p.ingredientes || '';
       document.getElementById('prod-imagen').value = p.imagen_url || '';
@@ -408,7 +471,7 @@
       const data = {
         id: document.getElementById('prod-id').value.trim(),
         nombre: document.getElementById('prod-nombre').value.trim(),
-        categoria: document.getElementById('prod-categoria').value.trim(),
+        categoria: document.getElementById('prod-categoria').value,
         precio: parseFloat(document.getElementById('prod-precio').value),
         descripcion: document.getElementById('prod-desc').value.trim(),
         ingredientes: document.getElementById('prod-ingredientes').value.trim(),
@@ -437,71 +500,106 @@
       mostrarAlerta('Producto eliminado.');
     }
 
-    async function cargarSlides() {
-      const slides = await fetchSupabase('/rest/v1/slides?select=*&order=orden');
-      slidesGlobal = slides;
-      document.getElementById('lista-slides').innerHTML = slides.map(s => `
-        <div class="card">
-          <img src="${s.imagen_url}">
-          <div class="card-body">
-            <h3>${s.titulo || 'Sin Título'}</h3>
-            <div class="card-actions">
-              <button class="btn-delete" onclick="eliminarSlide('${s.id}')">🗑️ Borrar</button>
-            </div>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function abrirModalSlide() {
-      document.getElementById('slide-id-original').value = '';
-      document.getElementById('slide-titulo').value = '';
-      document.getElementById('slide-subtitulo').value = '';
-      document.getElementById('slide-imagen').value = '';
-      document.getElementById('file-slide').value = '';
-      document.getElementById('preview-slide').style.display = 'none';
-      document.getElementById('modal-slider').style.display = 'flex';
-    }
-
-       async function guardarSlide() {
-      const fileInput = document.getElementById('file-slide');
-      const imgUrlInput = document.getElementById('slide-imagen');
-      
-      // Si el usuario ha seleccionado una foto pero la URL aún no se ha guardado, esperamos un poco
-      if (fileInput.files.length > 0 && !imgUrlInput.value) {
-        mostrarAlerta('Subiendo imagen... por favor, espera un momento.', 'success');
-        // Le damos 2 segundos a la subida para que termine
-        await new Promise(resolve => setTimeout(resolve, 2000)); 
-      }
-
-      const data = {
-        titulo: document.getElementById('slide-titulo').value.trim(),
-        subtitulo: document.getElementById('slide-subtitulo').value.trim(),
-        imagen_url: imgUrlInput.value,
-        activo: true,
-        orden: 1
-      };
-
-      if (!data.imagen_url) {
-        return mostrarAlerta('Debes subir una imagen y esperar a que se complete la subida.', 'error');
-      }
-
+    // === PEDIDOS ===
+    async function cargarPedidos() {
       try {
-        await fetchSupabase('/rest/v1/slides', { method: 'POST', body: JSON.stringify(data) });
-        document.getElementById('modal-slider').style.display = 'none';
-        cargarSlides();
-        mostrarAlerta('Imagen añadida al Slider.');
+        const pedidos = await fetchSupabase('/rest/v1/pedidos?select=*&order=fecha.desc&limit=50');
+        pedidosGlobal = pedidos;
+        const tbody = document.getElementById('tabla-pedidos-body');
+        
+        if (pedidos.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No hay pedidos todavía.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = pedidos.map(p => {
+          let badgeClass = 'badge-pendiente';
+          if (p.estado === 'En preparación') badgeClass = 'badge-preparacion';
+          if (p.estado === 'Listo') badgeClass = 'badge-listo';
+          if (p.estado === 'Entregado') badgeClass = 'badge-entregado';
+
+          return `
+            <tr>
+              <td style="font-weight: bold;">${p.order_id}</td>
+              <td>${p.nombre_cliente}<br><small>${p.telefono || ''}</small></td>
+              <td>${p.detalle}</td>
+              <td style="font-weight: bold;">${Number(p.total).toFixed(2)} €</td>
+              <td><span class="badge ${badgeClass}">${p.estado}</span></td>
+              <td>
+                <button class="btn" style="width: auto; padding: 5px 10px; font-size: 0.8rem; background: #3498db;" onclick="imprimirTicket('${p.order_id}')">🖨️ Imprimir</button>
+                <button class="btn" style="width: auto; padding: 5px 10px; font-size: 0.8rem; background: #25D366;" onclick="contactarWhatsApp('${p.telefono}', '${p.order_id}', '${p.estado}')">💬 WhatsApp</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
       } catch (error) {
-        mostrarAlerta('Error: ' + error.message, 'error');
+        document.getElementById('tabla-pedidos-body').innerHTML = '<tr><td colspan="6" style="color:red; text-align: center; padding: 20px;">Error al cargar pedidos.</td></tr>';
       }
     }
-    async function eliminarSlide(id) {
-      if (!confirm('¿Eliminar imagen del slider?')) return;
-      await fetchSupabase(`/rest/v1/slides?id=eq.${id}`, { method: 'DELETE' });
-      cargarSlides();
-      mostrarAlerta('Imagen eliminada.');
+
+    // === IMPRIMIR TICKET ===
+    function imprimirTicket(orderId) {
+      const pedido = pedidosGlobal.find(p => p.order_id === orderId);
+      if (!pedido) return;
+
+      const fecha = pedido.fecha ? new Date(pedido.fecha).toLocaleString('es-ES') : '--/--/---- --:--';
+      const items = pedido.detalle.split(',').map(item => `<div style="margin-bottom: 5px;">- ${item.trim()}</div>`).join('');
+      
+      const ticketHTML = `
+        <div style="text-align: center; margin-bottom: 10px;">
+          <h2 style="margin: 0; font-size: 1.5rem;">PIZZERÍA</h2>
+          <p style="margin: 2px 0;">Tel: 600 000 000</p>
+          <p style="margin: 2px 0;">Calle Falsa 123</p>
+        </div>
+        <hr style="border-top: 1px dashed #000; margin: 10px 0;">
+        <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
+          <span>Ticket: ${pedido.order_id}</span>
+          <span>${fecha}</span>
+        </div>
+        <hr style="border-top: 1px dashed #000; margin: 10px 0;">
+        <div style="font-size: 0.9rem;">
+          <strong>Cliente:</strong> ${pedido.nombre_cliente}<br>
+          <strong>Teléfono:</strong> ${pedido.telefono || 'N/A'}<br>
+          <strong>Dirección:</strong> ${pedido.direccion || 'Recogida en tienda'}
+        </div>
+        <hr style="border-top: 1px dashed #000; margin: 10px 0;">
+        <div style="font-size: 1rem; margin-bottom: 10px;">
+          ${items}
+        </div>
+        <hr style="border-top: 1px dashed #000; margin: 10px 0;">
+        <div style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: bold;">
+          <span>TOTAL:</span>
+          <span>${Number(pedido.total).toFixed(2)} €</span>
+        </div>
+        <hr style="border-top: 1px dashed #000; margin: 10px 0;">
+        <div style="text-align: center; font-size: 0.8rem; margin-top: 15px;">
+          ¡Gracias por su pedido!
+        </div>
+      `;
+
+      document.getElementById('ticket-impresion').innerHTML = ticketHTML;
+      document.getElementById('ticket-impresion').style.display = 'block';
+      
+      // Lanzar la impresión
+      setTimeout(() => {
+        window.print();
+        document.getElementById('ticket-impresion').style.display = 'none';
+      }, 100);
     }
 
+    function contactarWhatsApp(telefono, orderId, estado) {
+      if (!telefono) return alert('Este pedido no tiene teléfono.');
+      const numLimpio = telefono.replace(/\D/g, '');
+      let msg = '';
+      if (estado === 'En preparación') msg = `Hola, tu pedido *${orderId}* ya está en el horno. 🍕`;
+      else if (estado === 'Listo') msg = `¡Hola! Tu pedido *${orderId}* está listo. 🛵`;
+      else if (estado === 'Entregado') msg = `¡Esperamos que disfrutes tu pedido *${orderId}*! 😊`;
+      else msg = `Hola, contactamos sobre tu pedido *${orderId}*.`;
+      
+      window.open(`https://wa.me/${numLimpio}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    // === CONFIGURACIÓN ===
     async function cargarConfiguracion() {
       try {
         const data = await fetchSupabase('/rest/v1/configuracion?select=*');
@@ -526,9 +624,7 @@
           if (headerTitle) headerTitle.textContent = '🍕 Mi Negocio';
           document.title = 'Panel de Administración';
         }
-      } catch (error) {
-        console.error("Error cargando config:", error);
-      }
+      } catch (error) { console.error("Error config:", error); }
     }
 
     document.getElementById('cfg-stripe')?.addEventListener('change', (e) => {
@@ -565,6 +661,7 @@
       }
     }
 
+    // === RESEÑAS ===
     async function cargarResenas() {
       try {
         const resenas = await fetchSupabase('/rest/v1/resenas?select=*&order=fecha.desc');
@@ -587,23 +684,22 @@
           </div>
         `).join('');
       } catch (error) {
-        document.getElementById('lista-resenas-admin').innerHTML = `<p style="color:red">Error al cargar reseñas. Asegúrate de tener la tabla 'resenas' creada en Supabase.</p>`;
+        document.getElementById('lista-resenas-admin').innerHTML = `<p style="color:red">Error al cargar reseñas.</p>`;
       }
     }
 
     async function aprobarResena(id) {
       await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify({ aprobada: true }) });
-      cargarResenas();
-      mostrarAlerta('Reseña publicada.');
+      cargarResenas(); mostrarAlerta('Reseña publicada.');
     }
 
     async function eliminarResena(id) {
       if (!confirm('¿Eliminar esta reseña?')) return;
       await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, { method: 'DELETE' });
-      cargarResenas();
-      mostrarAlerta('Reseña eliminada.');
+      cargarResenas(); mostrarAlerta('Reseña eliminada.');
     }
 
+    // === USUARIOS ===
     async function crearEmpleado() {
       if (userRole !== 'admin') return mostrarAlerta('No tienes permisos', 'error');
 
