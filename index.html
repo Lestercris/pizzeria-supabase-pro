@@ -16,13 +16,13 @@
     .promo-banner { background: #f1c40f; color: #7d6608; text-align: center; padding: 12px; font-weight: 600; font-size: 1.05rem; letter-spacing: 0.5px; display: flex; justify-content: center; align-items: center; gap: 8px; }
     .promo-banner span { font-size: 1.2rem; }
 
-    /* Slider de portada */
-    .hero { max-width: 1200px; margin: 22px auto 0; padding: 0 20px; }
+    /* Slider de portada (Carrusel) */
+    .hero { display: block; width: 100%; max-width: 1200px; margin: 22px auto 0; padding: 0 20px; }
     .hero[hidden] { display: none; }
-    .hero-track { position: relative; width: 100%; height: 340px; border-radius: 16px; overflow: hidden; background: #eee; box-shadow: 0 10px 28px rgba(0,0,0,0.16); touch-action: pan-y; }
-    .hero-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 0.7s ease; pointer-events: none; }
+    .hero-track { display: block; position: relative; width: 100%; height: 340px; border-radius: 16px; overflow: hidden; background: #eee; box-shadow: 0 10px 28px rgba(0,0,0,0.16); touch-action: pan-y; }
+    .hero-slide { display: block; position: absolute; inset: 0; opacity: 0; transition: opacity 0.7s ease; pointer-events: none; }
     .hero-slide.on { opacity: 1; pointer-events: auto; }
-    .hero-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .hero-slide img { display: block; width: 100%; height: 100%; min-width: 100%; object-fit: cover; object-position: center; }
     .hero-cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 46px 24px 18px; background: linear-gradient(to top, rgba(0,0,0,0.72), rgba(0,0,0,0)); color: #fff; font-size: 1.15rem; font-weight: 600; letter-spacing: 0.2px; text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
     .hero-btn { position: absolute; top: 50%; transform: translateY(-50%); width: 42px; height: 42px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.9); color: #c0392b; font-size: 26px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(0,0,0,0.2); transition: background 0.2s, transform 0.15s; z-index: 2; }
     .hero-btn:hover { background: #fff; transform: translateY(-50%) scale(1.06); }
