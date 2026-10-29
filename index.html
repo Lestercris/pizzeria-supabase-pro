@@ -636,6 +636,11 @@
       cargarResenasPublicas();
       cargarSlides(); 
     });
+        function mostrarMensaje(texto, tipo) { 
+      const msg = document.getElementById('mensaje'); 
+      msg.textContent = texto; 
+      msg.className = 'mensaje ' + tipo; 
+    }
   </script>
 </body>
 </html>
