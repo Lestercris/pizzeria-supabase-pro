@@ -454,16 +454,28 @@
       document.getElementById('modal-slider').style.display = 'flex';
     }
 
-    async function guardarSlide() {
+       async function guardarSlide() {
+      const fileInput = document.getElementById('file-slide');
+      const imgUrlInput = document.getElementById('slide-imagen');
+      
+      // Si el usuario ha seleccionado una foto pero la URL aún no se ha guardado, esperamos un poco
+      if (fileInput.files.length > 0 && !imgUrlInput.value) {
+        mostrarAlerta('Subiendo imagen... por favor, espera un momento.', 'success');
+        // Le damos 2 segundos a la subida para que termine
+        await new Promise(resolve => setTimeout(resolve, 2000)); 
+      }
+
       const data = {
         titulo: document.getElementById('slide-titulo').value.trim(),
         subtitulo: document.getElementById('slide-subtitulo').value.trim(),
-        imagen_url: document.getElementById('slide-imagen').value,
+        imagen_url: imgUrlInput.value,
         activo: true,
         orden: 1
       };
 
-      if (!data.imagen_url) return mostrarAlerta('Debes subir una imagen.', 'error');
+      if (!data.imagen_url) {
+        return mostrarAlerta('Debes subir una imagen y esperar a que se complete la subida.', 'error');
+      }
 
       try {
         await fetchSupabase('/rest/v1/slides', { method: 'POST', body: JSON.stringify(data) });
@@ -474,7 +486,6 @@
         mostrarAlerta('Error: ' + error.message, 'error');
       }
     }
-
     async function eliminarSlide(id) {
       if (!confirm('¿Eliminar imagen del slider?')) return;
       await fetchSupabase(`/rest/v1/slides?id=eq.${id}`, { method: 'DELETE' });
