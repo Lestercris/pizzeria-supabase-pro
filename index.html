@@ -496,7 +496,7 @@
     }
 
     // === PROCESAR PEDIDO ===
-    async function procesarPedido() {
+       async function procesarPedido() {
       const nombre = document.getElementById('nombre').value.trim();
       const email = document.getElementById('email').value.trim();
       const telefono = document.getElementById('telefono').value.trim();
@@ -538,7 +538,17 @@
         const numLimpio = telefonoNegocio.replace(/\D/g, ''); 
         
         mostrarMensaje('¡Pedido registrado! Abriendo WhatsApp...', 'ok');
-        carrito = {}; renderCarrito(); btn.textContent = 'Pagar y Enviar Pedido'; btn.disabled = true; 
+        
+        // 🔥 AQUÍ ESTÁ LA MAGIA: Limpiamos el carrito y las cajas
+        carrito = {}; 
+        renderCarrito(); 
+        document.getElementById('nombre').value = '';
+        document.getElementById('email').value = '';
+        document.getElementById('telefono').value = '';
+        document.getElementById('direccion').value = '';
+
+        btn.textContent = 'Pagar y Enviar Pedido'; 
+        btn.disabled = true; 
 
         setTimeout(() => { window.open(`https://wa.me/${numLimpio}?text=${msg}`, '_blank'); }, 1000);
 
@@ -547,7 +557,6 @@
         btn.textContent = 'Pagar y Enviar Pedido'; btn.disabled = false; 
       }
     }
-
     function mostrarMensaje(texto, tipo) { const msg = document.getElementById('mensaje'); msg.textContent = texto; msg.className = 'mensaje ' + tipo; }
 
     // === CARGAR RESEÑAS PÚBLICAS ===
