@@ -11,7 +11,7 @@
     header { background: linear-gradient(135deg, #c0392b, #e74c3c); color: white; padding: 25px 20px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
     header h1 { font-size: 2rem; }
     header p { font-size: 1rem; opacity: 0.9; margin-top: 5px; }
-
+    
     /* Promoción del día */
     /*.promo-banner { background: #f1c40f; color: #7d6608; text-align: center; padding: 12px; font-weight: 700; font-size: 1.1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1); letter-spacing: 0.5px; }
     .promo-banner span { background: #c0392b; color: white; padding: 2px 8px; border-radius: 4px; margin-right: 8px; font-size: 0.9rem; }*/
@@ -116,7 +116,14 @@
     <h1 id="header-titulo">🍕 Cargando...</h1>
     <p id="header-subtitulo">Auténtica pizza, hecha con amor</p>
   </header>
-
+    <section class="hero" id="hero" hidden>
+      <div class="hero-track" id="heroTrack">
+        <div id="heroSlides"></div>
+        <button class="hero-btn prev" type="button" onclick="moverSlider(-1)">‹</button>
+        <button class="hero-btn next" type="button" onclick="moverSlider(1)">›</button>
+      </div>
+      <div class="hero-dots" id="heroDots"></div>
+    </section>
   <div id="promo-container"></div>
 
   <div class="main-content">
