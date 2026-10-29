@@ -264,15 +264,16 @@
   </div>
 
   <!-- ÁREA DE IMPRESIÓN (Oculto en pantalla, visible al imprimir) -->
-  <div id="ticket-impresion" style="display: none;">
-    <!-- Se rellena con JS -->
-  </div>
+  <div id="ticket-impresion" style="display: none;"></div>
+
+  <!-- LIBRERÍA PARA CÓDIGO DE BARRAS (JsBarcode) -->
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 
   <script>
     const SUPABASE_URL = 'https://afarkzyxssgcpmnquqdp.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMzI2NTUsImV4cCI6MjEwODcwODY1NX0.J7gSycaeum0bUzx9tss5OM4WfPUt5BswqxnSEI0RgiY';
     
-    // ⚠️ PEGA AQUÍ TU SERVICE_ROLE_KEY (La encuentras en Settings -> API -> Legacy anon, service_role API keys)
+    // ⚠️ PEGA AQUÍ TU SERVICE_ROLE_KEY
     const SUPABASE_SERVICE_KEY = 'PEGA_AQUI_TU_SERVICE_ROLE_KEY'; 
 
     let productosGlobal = [];
@@ -500,6 +501,60 @@
       mostrarAlerta('Producto eliminado.');
     }
 
+    // === SLIDER ===
+    async function cargarSlides() {
+      const slides = await fetchSupabase('/rest/v1/slides?select=*&order=orden');
+      slidesGlobal = slides;
+      document.getElementById('lista-slides').innerHTML = slides.map(s => `
+        <div class="card">
+          <img src="${s.imagen_url}">
+          <div class="card-body">
+            <h3>${s.titulo || 'Sin Título'}</h3>
+            <div class="card-actions">
+              <button class="btn-delete" onclick="eliminarSlide('${s.id}')">🗑️ Borrar</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function abrirModalSlide() {
+      document.getElementById('slide-titulo').value = '';
+      document.getElementById('slide-subtitulo').value = '';
+      document.getElementById('slide-imagen').value = '';
+      document.getElementById('file-slide').value = '';
+      document.getElementById('preview-slide').style.display = 'none';
+      document.getElementById('modal-slider').style.display = 'flex';
+    }
+
+    async function guardarSlide() {
+      const data = {
+        titulo: document.getElementById('slide-titulo').value.trim(),
+        subtitulo: document.getElementById('slide-subtitulo').value.trim(),
+        imagen_url: document.getElementById('slide-imagen').value,
+        activo: true,
+        orden: 1
+      };
+
+      if (!data.imagen_url) return mostrarAlerta('Debes subir una imagen.', 'error');
+
+      try {
+        await fetchSupabase('/rest/v1/slides', { method: 'POST', body: JSON.stringify(data) });
+        document.getElementById('modal-slider').style.display = 'none';
+        cargarSlides();
+        mostrarAlerta('Imagen añadida al Slider.');
+      } catch (error) {
+        mostrarAlerta('Error: ' + error.message, 'error');
+      }
+    }
+
+    async function eliminarSlide(id) {
+      if (!confirm('¿Eliminar imagen del slider?')) return;
+      await fetchSupabase(`/rest/v1/slides?id=eq.${id}`, { method: 'DELETE' });
+      cargarSlides();
+      mostrarAlerta('Imagen eliminada.');
+    }
+
     // === PEDIDOS ===
     async function cargarPedidos() {
       try {
@@ -545,11 +600,14 @@
       const fecha = pedido.fecha ? new Date(pedido.fecha).toLocaleString('es-ES') : '--/--/---- --:--';
       const items = pedido.detalle.split(',').map(item => `<div style="margin-bottom: 5px;">- ${item.trim()}</div>`).join('');
       
+      // Generar HTML del ticket con código de barras
       const ticketHTML = `
         <div style="text-align: center; margin-bottom: 10px;">
-          <h2 style="margin: 0; font-size: 1.5rem;">PIZZERÍA</h2>
-          <p style="margin: 2px 0;">Tel: 600 000 000</p>
-          <p style="margin: 2px 0;">Calle Falsa 123</p>
+          <h2 style="margin: 0; font-size: 1.5rem;">PIZZERÍA HERMANOS RIVAS</h2>
+          <p style="margin: 2px 0;">Calle Colmenarico 1, bajo 4</p>
+          <p style="margin: 2px 0;">Lorca, Murcia</p>
+          <p style="margin: 2px 0;">Tel: +34 601 860 462</p>
+          <p style="margin: 2px 0;">CIF: B-12345678</p>
         </div>
         <hr style="border-top: 1px dashed #000; margin: 10px 0;">
         <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
@@ -572,6 +630,12 @@
           <span>${Number(pedido.total).toFixed(2)} €</span>
         </div>
         <hr style="border-top: 1px dashed #000; margin: 10px 0;">
+        
+        <!-- CÓDIGO DE BARRAS -->
+        <div style="text-align: center; margin-top: 15px;">
+          <svg id="barcode-ticket"></svg>
+        </div>
+        
         <div style="text-align: center; font-size: 0.8rem; margin-top: 15px;">
           ¡Gracias por su pedido!
         </div>
@@ -580,11 +644,22 @@
       document.getElementById('ticket-impresion').innerHTML = ticketHTML;
       document.getElementById('ticket-impresion').style.display = 'block';
       
-      // Lanzar la impresión
+      // Generar el código de barras con JsBarcode
       setTimeout(() => {
+        JsBarcode("#barcode-ticket", pedido.order_id, {
+          format: "CODE128",
+          lineColor: "#000",
+          width: 2,
+          height: 40,
+          displayValue: true,
+          fontSize: 14,
+          margin: 0
+        });
+        
+        // Lanzar la impresión
         window.print();
         document.getElementById('ticket-impresion').style.display = 'none';
-      }, 100);
+      }, 200);
     }
 
     function contactarWhatsApp(telefono, orderId, estado) {
