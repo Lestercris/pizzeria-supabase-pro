@@ -17,8 +17,10 @@
     /* Contenedor de las tarjetas de pedidos */
     .grid-pedidos { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; padding: 20px; overflow-y: auto; height: 100%; align-content: start; }
 
-    .tarjeta { background-color: #2c3e50; border-radius: 12px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.5); display: flex; flex-direction: column; border-top: 8px solid #e74c3c; transition: transform 0.2s; }
-    .tarjeta.en-preparacion { border-top-color: #f1c40f; } /* Amarillo para preparación */
+    /* Tarjetas */
+    .tarjeta { background-color: #2c3e50; border-radius: 12px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.5); display: flex; flex-direction: column; border-top: 8px solid #e74c3c; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
+    .tarjeta:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.7); }
+    .tarjeta.en-preparacion { border-top-color: #f1c40f; }
     
     .tarjeta-header { background-color: rgba(0,0,0,0.2); padding: 15px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid rgba(255,255,255,0.1); }
     .tarjeta-header h2 { font-size: 1.5rem; color: #fff; margin: 0; }
@@ -27,7 +29,6 @@
     .tarjeta-body { padding: 15px; flex-grow: 1; }
     .lista-detalles { list-style: none; margin-bottom: 15px; }
     .lista-detalles li { font-size: 1.2rem; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.1); }
-    .cliente-info { font-size: 0.9rem; color: #bdc3c7; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; }
     
     .tarjeta-footer { padding: 15px; background-color: rgba(0,0,0,0.3); display: flex; gap: 10px; }
     .btn-accion { flex: 1; padding: 15px; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.2s; text-transform: uppercase; }
@@ -36,7 +37,22 @@
     .btn-terminar { background-color: #27ae60; color: white; }
     .btn-terminar:hover { background-color: #219150; }
 
-    /* Estado vacío */
+    /* Ventana Modal de Detalles */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
+    .modal-content { background: #2c3e50; width: 100%; max-width: 600px; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-top: 10px solid #c0392b; animation: aparecer 0.3s ease; }
+    @keyframes aparecer { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    
+    .modal-header { padding: 20px; background: rgba(0,0,0,0.3); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .modal-header h2 { font-size: 1.8rem; color: #f1c40f; }
+    .btn-cerrar { background: none; border: none; color: #fff; font-size: 2rem; cursor: pointer; line-height: 1; }
+    
+    .modal-body { padding: 25px; }
+    .detalle-grupo { margin-bottom: 20px; }
+    .detalle-grupo h3 { font-size: 1rem; color: #bdc3c7; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+    .detalle-grupo p { font-size: 1.2rem; color: #fff; }
+    .detalle-lista { list-style: none; margin-top: 10px; }
+    .detalle-lista li { font-size: 1.4rem; margin-bottom: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 4px solid #e74c3c; }
+
     .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh; color: #7f8c8d; }
     .empty-state h2 { font-size: 2rem; margin-bottom: 10px; }
   </style>
@@ -59,23 +75,52 @@
     </div>
   </div>
 
+  <!-- VENTANA MODAL PARA VER DETALLES -->
+  <div class="modal-overlay" id="modal-detalles" onclick="cerrarModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 id="modal-ticket">Ticket</h2>
+        <button class="btn-cerrar" onclick="document.getElementById('modal-detalles').style.display='none'">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="detalle-grupo">
+          <h3>🛒 Productos</h3>
+          <ul class="detalle-lista" id="modal-productos"></ul>
+        </div>
+        <div class="detalle-grupo">
+          <h3>👤 Datos del Cliente</h3>
+          <p id="modal-cliente"></p>
+        </div>
+        <div class="detalle-grupo">
+          <h3>📍 Dirección de Entrega</h3>
+          <p id="modal-direccion"></p>
+        </div>
+        <div class="detalle-grupo">
+          <h3>📞 Teléfono</h3>
+          <p id="modal-telefono"></p>
+        </div>
+        <div class="detalle-grupo">
+          <h3>⏰ Hora del Pedido</h3>
+          <p id="modal-hora"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // === CONFIGURACIÓN SUPABASE ===
     const SUPABASE_URL = 'https://afarkzyxssgcpmnquqdp.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMzI2NTUsImV4cCI6MjEwODcwODY1NX0.J7gSycaeum0bUzx9tss5OM4WfPUt5BswqxnSEI0RgiY';
 
     let pedidosGlobal = [];
 
-    // Reloj en tiempo real
+    // Reloj
     setInterval(() => {
-      const ahora = new Date();
-      document.getElementById('reloj').textContent = ahora.toLocaleTimeString('es-ES');
+      document.getElementById('reloj').textContent = new Date().toLocaleTimeString('es-ES');
     }, 1000);
 
-    // Función para obtener los pedidos de Supabase
+    // Obtener pedidos
     async function obtenerPedidos() {
       try {
-        // Traemos solo los pedidos que NO estén completados ni cancelados
         const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos?select=*&estado=in.(Pendiente,En preparación)&order=fecha.asc', {
           headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
         });
@@ -84,21 +129,25 @@
         
         const pedidos = await response.json();
         
-        // Actualizamos el estado visual
         document.getElementById('status-dot').style.backgroundColor = '#27ae60';
-        document.getElementById('status-dot').style.boxShadow = '0 0 10px #27ae60';
         document.getElementById('status-text').textContent = 'Conectado';
         
-        // Solo re-renderizamos si hay cambios (para no parpadear)
-        if (JSON.stringify(pedidos) !== JSON.stringify(pedidosGlobal)) {
+        // Actualizamos solo si la cantidad o los IDs de los pedidos han cambiado para evitar parpadeos
+        const idsActuales = pedidos.map(p => p.order_id).join(',');
+        const idsAnteriores = pedidosGlobal.map(p => p.order_id).join(',');
+        
+        if (idsActuales !== idsAnteriores || pedidos.length !== pedidosGlobal.length) {
           pedidosGlobal = pedidos;
+          renderizarPedidos(pedidos);
+        } else {
+          // Actualizamos el estado visual si cambió de Pendiente a Preparación
+          pedidosGlobal = pedidos; 
           renderizarPedidos(pedidos);
         }
 
       } catch (error) {
         console.error(error);
         document.getElementById('status-dot').style.backgroundColor = '#e74c3c';
-        document.getElementById('status-dot').style.boxShadow = '0 0 10px #e74c3c';
         document.getElementById('status-text').textContent = 'Desconectado';
       }
     }
@@ -115,16 +164,19 @@
       }
 
       emptyState.style.display = 'none';
+      
+      // Generamos el HTML solo si no existe o ha cambiado
       contenedor.innerHTML = pedidos.map(p => {
         const esPreparando = p.estado === 'En preparación';
         const claseBorde = esPreparando ? 'en-preparacion' : '';
         const hora = p.fecha ? new Date(p.fecha).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'}) : '--:--';
         
-        // Formatear el detalle (viene separado por comas)
-        const items = p.detalle ? p.detalle.split(',').map(item => `<li>🔸 ${item.trim()}</li>`).join('') : '<li>Sin detalle</li>';
+        // En la tarjeta solo mostramos los items principales para no saturar
+        const itemsArray = p.detalle ? p.detalle.split(',') : [];
+        const items = itemsArray.map(item => `<li>🔸 ${item.trim()}</li>`).join('');
 
         return `
-          <div class="tarjeta ${claseBorde}">
+          <div class="tarjeta ${claseBorde}" onclick="abrirModal('${p.order_id}')">
             <div class="tarjeta-header">
               <div>
                 <h2>${p.order_id}</h2>
@@ -136,16 +188,13 @@
               <ul class="lista-detalles">
                 ${items}
               </ul>
-              <div class="cliente-info">
-                <strong>Cliente:</strong> ${p.nombre_cliente || 'Mostrador'}<br>
-                ${p.direccion ? `<strong>Entrega:</strong> ${p.direccion}` : '<strong>Recogida en tienda</strong>'}
-              </div>
             </div>
             
-            <div class="tarjeta-footer">
+            <!-- Evitamos que al tocar el botón se abra el modal -->
+            <div class="tarjeta-footer" onclick="event.stopPropagation()">
               ${!esPreparando 
-                ? `<button class="btn-accion btn-empezar" onclick="cambiarEstado('${p.order_id}', 'En preparación')">▶ Empezar a Preparar</button>`
-                : `<button class="btn-accion btn-terminar" onclick="cambiarEstado('${p.order_id}', 'Listo')">✅ Pedido Terminado</button>`
+                ? `<button class="btn-accion btn-empezar" onclick="cambiarEstado('${p.order_id}', 'En preparación')">▶ Preparar</button>`
+                : `<button class="btn-accion btn-terminar" onclick="cambiarEstado('${p.order_id}', 'Listo')">✅ Terminado</button>`
               }
             </div>
           </div>
@@ -153,7 +202,33 @@
       }).join('');
     }
 
-    // Función para cambiar el estado del pedido
+    // Abrir la ventana de detalles
+    function abrirModal(orderId) {
+      const pedido = pedidosGlobal.find(p => p.order_id === orderId);
+      if (!pedido) return;
+
+      const hora = pedido.fecha ? new Date(pedido.fecha).toLocaleString('es-ES') : '--:--';
+      
+      document.getElementById('modal-ticket').textContent = pedido.order_id;
+      document.getElementById('modal-cliente').textContent = pedido.nombre_cliente || 'No especificado';
+      document.getElementById('modal-direccion').textContent = pedido.direccion || 'Recogida en tienda';
+      document.getElementById('modal-telefono').textContent = pedido.telefono || 'No especificado';
+      document.getElementById('modal-hora').textContent = hora;
+      
+      const items = pedido.detalle ? pedido.detalle.split(',').map(item => `<li>${item.trim()}</li>`).join('') : '<li>Sin detalle</li>';
+      document.getElementById('modal-productos').innerHTML = items;
+
+      document.getElementById('modal-detalles').style.display = 'flex';
+    }
+
+    // Cerrar la ventana
+    function cerrarModal(event) {
+      if (event.target.id === 'modal-detalles') {
+        document.getElementById('modal-detalles').style.display = 'none';
+      }
+    }
+
+    // Cambiar estado
     async function cambiarEstado(orderId, nuevoEstado) {
       try {
         const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos?order_id=eq.' + orderId, {
@@ -168,17 +243,16 @@
 
         if (!response.ok) throw new Error('Error al actualizar');
         
-        // Forzamos una recarga inmediata para que desaparezca o cambie de color
-        obtenerPedidos();
+        obtenerPedidos(); // Recarga inmediata
 
       } catch (error) {
-        alert('Error al cambiar el estado del pedido. Revisa la conexión.');
+        alert('Error al cambiar el estado del pedido.');
       }
     }
 
-    // Iniciar el ciclo de actualización automática cada 10 segundos
-    obtenerPedidos(); // Primera carga
-    setInterval(obtenerPedidos, 10000); // Actualizar cada 10s
+    // Iniciar el ciclo
+    obtenerPedidos();
+    setInterval(obtenerPedidos, 10000); // Cada 10 segundos
 
   </script>
 </body>
