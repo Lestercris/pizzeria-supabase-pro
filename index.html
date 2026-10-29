@@ -532,11 +532,12 @@
         const configData = await configRes.json();
         const telefonoNegocio = configData.length > 0 ? configData[0].valor : '34600000000';
 
-                  // --- MENSAJE ELEGANTE PARA WHATSAPP (Emojis Universales) ---
+                // --- MENSAJE ELEGANTE PARA WHATSAPP ---
         const mensajeWsp = 
           `🍕 *NUEVO PEDIDO WEB* 🍕\n` +
-          `--------------------\n` +
-          `🎫 *Ticket:* ${orderId}\n\n` +
+          `----------------------\n` +
+          `🎫 *Ticket:* \n` +
+          `*${orderId}*\n\n` +
           `🛒 *DETALLE DEL PEDIDO:*\n` +
           `${detalle.map(d => `👉 ${d}`).join('\n')}\n\n` +
           `💰 *TOTAL:* ${moneda(total)}\n\n` +
@@ -544,7 +545,7 @@
           `📝 Nombre: ${nombre}\n` +
           `📞 Teléfono: ${telefono || 'No especificado'}\n` +
           `📍 Dirección: ${direccion || 'Recogida en tienda'}\n\n` +
-          `--------------------\n` +
+          `----------------------\n` +
           `💬 _Os escribo para coordinar el pago._\n` +
           `😊 _¡Gracias por elegirnos!_`;
         const msg = encodeURIComponent(mensajeWsp);
