@@ -285,12 +285,12 @@
       if(id === 'resenas') cargarResenas();
     }
 
-        async function subirImagen(file, bucket = 'imagenes') {
+            async function subirImagen(file, bucket = 'imagenes') {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
-      // Crear un FormData para enviar el archivo correctamente
+      // 🔥 Usamos FormData en lugar de enviar el archivo directamente
       const formData = new FormData();
       formData.append('file', file);
 
@@ -299,7 +299,7 @@
         headers: {
           'apikey': SUPABASE_ANON_KEY,
           'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
-          // ⚠️ NO pongas 'Content-Type' aquí, el navegador lo pone solo con FormData
+          // ⚠️ NO pongas 'Content-Type' aquí, FormData lo hace automáticamente
         },
         body: formData
       });
@@ -309,6 +309,7 @@
         console.error('Error de Supabase Storage:', errorText);
         throw new Error('Error al subir la imagen: ' + errorText);
       }
+      
       return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${filePath}`;
     }
 
