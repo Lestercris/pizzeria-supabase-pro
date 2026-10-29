@@ -532,21 +532,21 @@
         const configData = await configRes.json();
         const telefonoNegocio = configData.length > 0 ? configData[0].valor : '34600000000';
 
-              // --- MENSAJE ELEGANTE PARA WHATSAPP (Emojis 100% compatibles) ---
+                // --- MENSAJE ELEGANTE PARA WHATSAPP (Versión Limpia) ---
         const mensajeWsp = 
-          `🍕 *NUEVO PEDIDO WEB* 🍕\n` +
-          `==========================\n` +
-          `🎫 *Ticket:* ${orderId}\n\n` +
-          `🛒 *DETALLE DEL PEDIDO:*\n` +
-          `${detalle.map(d => `👉 ${d}`).join('\n')}\n\n` +
-          `💶 *TOTAL:* ${moneda(total)}\n\n` +
-          `👤 *DATOS DEL CLIENTE:*\n` +
-          `📝 Nombre: ${nombre}\n` +
-          `📞 Teléfono: ${telefono || 'No especificado'}\n` +
-          `📍 Dirección: ${direccion || 'Recogida en tienda'}\n\n` +
-          `==========================\n` +
-          `💬 _Os escribo para coordinar el pago._\n` +
-          `😊 _¡Gracias por elegirnos!_`;
+          `*NUEVO PEDIDO WEB*\n` +
+          `----------------------\n` +
+          `*Ticket:* ${orderId}\n\n` +
+          `*DETALLE DEL PEDIDO:*\n` +
+          `${detalle.map(d => `- ${d}`).join('\n')}\n\n` +
+          `*TOTAL:* ${moneda(total)}\n\n` +
+          `*DATOS DEL CLIENTE:*\n` +
+          `Nombre: ${nombre}\n` +
+          `Telefono: ${telefono || 'No especificado'}\n` +
+          `Direccion: ${direccion || 'Recogida en tienda'}\n\n` +
+          `----------------------\n` +
+          `_Os escribo para coordinar el pago._\n` +
+          `_Gracias por elegirnos._`;
         const msg = encodeURIComponent(mensajeWsp);
         const numLimpio = telefonoNegocio.replace(/\D/g, ''); 
         
