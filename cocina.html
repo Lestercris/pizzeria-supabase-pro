@@ -132,16 +132,9 @@
         document.getElementById('status-dot').style.backgroundColor = '#27ae60';
         document.getElementById('status-text').textContent = 'Conectado';
         
-        // Actualizamos solo si la cantidad o los IDs de los pedidos han cambiado para evitar parpadeos
-        const idsActuales = pedidos.map(p => p.order_id).join(',');
-        const idsAnteriores = pedidosGlobal.map(p => p.order_id).join(',');
-        
-        if (idsActuales !== idsAnteriores || pedidos.length !== pedidosGlobal.length) {
+        // Actualizamos solo si hay cambios reales para evitar parpadeos en la pantalla
+        if (JSON.stringify(pedidos) !== JSON.stringify(pedidosGlobal)) {
           pedidosGlobal = pedidos;
-          renderizarPedidos(pedidos);
-        } else {
-          // Actualizamos el estado visual si cambió de Pendiente a Preparación
-          pedidosGlobal = pedidos; 
           renderizarPedidos(pedidos);
         }
 
@@ -165,13 +158,11 @@
 
       emptyState.style.display = 'none';
       
-      // Generamos el HTML solo si no existe o ha cambiado
       contenedor.innerHTML = pedidos.map(p => {
         const esPreparando = p.estado === 'En preparación';
         const claseBorde = esPreparando ? 'en-preparacion' : '';
         const hora = p.fecha ? new Date(p.fecha).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'}) : '--:--';
         
-        // En la tarjeta solo mostramos los items principales para no saturar
         const itemsArray = p.detalle ? p.detalle.split(',') : [];
         const items = itemsArray.map(item => `<li>🔸 ${item.trim()}</li>`).join('');
 
@@ -190,11 +181,10 @@
               </ul>
             </div>
             
-            <!-- Evitamos que al tocar el botón se abra el modal -->
             <div class="tarjeta-footer" onclick="event.stopPropagation()">
               ${!esPreparando 
-                ? `<button class="btn-accion btn-empezar" onclick="cambiarEstado('${p.order_id}', 'En preparación')">▶ Preparar</button>`
-                : `<button class="btn-accion btn-terminar" onclick="cambiarEstado('${p.order_id}', 'Listo')">✅ Terminado</button>`
+                ? `<button class="btn-accion btn-empezar" onclick="cambiarEstado('${p.order_id}', 'En preparación')">▶ PREPARAR</button>`
+                : `<button class="btn-accion btn-terminar" onclick="cambiarEstado('${p.order_id}', 'Listo')">✅ TERMINADO</button>`
               }
             </div>
           </div>
@@ -228,7 +218,7 @@
       }
     }
 
-    // Cambiar estado
+    // Cambiar estado con corrección de "minimal" y recarga visual
     async function cambiarEstado(orderId, nuevoEstado) {
       try {
         const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos?order_id=eq.' + orderId, {
@@ -236,17 +226,24 @@
           headers: {
             'apikey': SUPABASE_ANON_KEY,
             'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal' // Evita el error si Supabase no devuelve datos
           },
           body: JSON.stringify({ estado: nuevoEstado })
         });
 
         if (!response.ok) throw new Error('Error al actualizar');
         
-        obtenerPedidos(); // Recarga inmediata
+        if (nuevoEstado === 'Listo') {
+           pedidosGlobal = pedidosGlobal.filter(p => p.order_id !== orderId);
+           renderizarPedidos(pedidosGlobal);
+        } else {
+           obtenerPedidos();
+        }
 
       } catch (error) {
-        alert('Error al cambiar el estado del pedido.');
+        console.error(error);
+        alert('Error al cambiar el estado del pedido. Revisa la conexión.');
       }
     }
 
