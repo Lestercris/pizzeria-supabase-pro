@@ -69,10 +69,12 @@
   </header>
 
   <div class="grid-pedidos" id="contenedor-pedidos">
-    <div class="empty-state" id="empty-state" style="display: none;">
-      <h2>¡Todo al día! 🍕</h2>
-      <p>No hay pedidos pendientes en este momento.</p>
-    </div>
+    <!-- Aquí se inyectan las tarjetas -->
+  </div>
+  
+  <div class="empty-state" id="empty-state" style="display: none;">
+    <h2>¡Todo al día! 🍕</h2>
+    <p>No hay pedidos pendientes en este momento.</p>
   </div>
 
   <!-- VENTANA MODAL PARA VER DETALLES -->
@@ -132,11 +134,9 @@
         document.getElementById('status-dot').style.backgroundColor = '#27ae60';
         document.getElementById('status-text').textContent = 'Conectado';
         
-        // Actualizamos solo si hay cambios reales para evitar parpadeos en la pantalla
-        if (JSON.stringify(pedidos) !== JSON.stringify(pedidosGlobal)) {
-          pedidosGlobal = pedidos;
-          renderizarPedidos(pedidos);
-        }
+        // Si cambia la cantidad de pedidos o el estado de alguno, volvemos a pintar
+        pedidosGlobal = pedidos;
+        renderizarPedidos(pedidos);
 
       } catch (error) {
         console.error(error);
@@ -152,7 +152,6 @@
       if (pedidos.length === 0) {
         contenedor.innerHTML = '';
         emptyState.style.display = 'flex';
-        contenedor.appendChild(emptyState);
         return;
       }
 
@@ -218,32 +217,37 @@
       }
     }
 
-    // Cambiar estado con corrección de "minimal" y recarga visual
+    // Cambiar estado (Versión Optimista)
     async function cambiarEstado(orderId, nuevoEstado) {
+      // 1. Actualización visual instantánea
+      if (nuevoEstado === 'Listo') {
+         pedidosGlobal = pedidosGlobal.filter(p => p.order_id !== orderId);
+      } else {
+         const pedido = pedidosGlobal.find(p => p.order_id === orderId);
+         if (pedido) pedido.estado = 'En preparación';
+      }
+      renderizarPedidos(pedidosGlobal);
+
+      // 2. Guardado en Supabase
       try {
         const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos?order_id=eq.' + orderId, {
           method: 'PATCH',
           headers: {
             'apikey': SUPABASE_ANON_KEY,
             'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=minimal' // Evita el error si Supabase no devuelve datos
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({ estado: nuevoEstado })
         });
 
-        if (!response.ok) throw new Error('Error al actualizar');
-        
-        if (nuevoEstado === 'Listo') {
-           pedidosGlobal = pedidosGlobal.filter(p => p.order_id !== orderId);
-           renderizarPedidos(pedidosGlobal);
-        } else {
-           obtenerPedidos();
+        if (!response.ok) {
+          throw new Error('Fallo en Supabase');
         }
-
+        
       } catch (error) {
-        console.error(error);
-        alert('Error al cambiar el estado del pedido. Revisa la conexión.');
+        console.error("Error al guardar en BD:", error);
+        alert('Atención: Hubo un problema al guardar en la base de datos. Recargando...');
+        obtenerPedidos();
       }
     }
 
