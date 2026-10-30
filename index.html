@@ -16,7 +16,7 @@
     .promo-banner { background: #f1c40f; color: #7d6608; text-align: center; padding: 12px; font-weight: 600; font-size: 1.05rem; letter-spacing: 0.5px; display: flex; justify-content: center; align-items: center; gap: 8px; }
     .promo-banner span { font-size: 1.2rem; }
 
-    /* Slider de portada (Carrusel) */
+    /* Slider de portada */
     .hero { display: block; width: 100%; max-width: 1200px; margin: 22px auto 0; padding: 0 20px; }
     .hero[hidden] { display: none; }
     .hero-track { display: block; position: relative; width: 100%; height: 340px; border-radius: 16px; overflow: hidden; background: #eee; box-shadow: 0 10px 28px rgba(0,0,0,0.16); touch-action: pan-y; }
@@ -100,14 +100,13 @@
     /* Mapa y botón GPS */
     .mapa-container { margin-top: 15px; border-radius: 8px; overflow: hidden; border: 2px solid #34495e; display: none; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
     .mapa-container iframe { display: block; width: 100%; height: 180px; border: 0; }
-    
     .btn-gps { display: none; margin-top: 10px; background: #27ae60; color: white !important; text-align: center; padding: 8px 12px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; transition: background 0.2s; }
     .btn-gps:hover { background: #219150; text-decoration: none !important; }
 
+    /* Reseñas */
     .resena { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid #f1c40f; }
     .estrellas { color: #f1c40f; font-size: 1rem; margin-bottom: 5px; }
     .resena p { font-size: 0.85rem; font-style: italic; margin: 0; color: #bdc3c7; }
-    
     .footer-bottom { text-align: center; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.85rem; color: #95a5a6; }
 
     /* Botón flotante WhatsApp */
@@ -162,6 +161,10 @@
           <input type="email" id="email" placeholder="Tu email" required>
           <input type="tel" id="telefono" placeholder="Teléfono (opcional)">
           <input type="text" id="direccion" placeholder="Dirección de entrega">
+          
+          <!-- 🔥 NUEVO CAMPO DE OBSERVACIONES -->
+          <input type="text" id="notas" placeholder="Observaciones (Ej: Sin cebolla, extra queso)">
+          
           <button class="btn-pagar" id="btn-pagar" type="button" onclick="procesarPedido()" disabled>
             Pagar y Enviar Pedido
           </button>
@@ -234,7 +237,6 @@
     let categoriaActual = 'Todas', paginaActual = 1;
     const productosPorPagina = 6; 
 
-    // Variables del Slider
     let slides = [], slideActual = 0, slideTimer = null;
 
     function moneda(n) { return MONEDA + (Number(n) || 0).toFixed(2); }
@@ -258,7 +260,6 @@
 
     function imagenesDe(p) { const raw = p.ImagenURL || p.Imagen || ''; return String(raw).split(',').map(function (u) { return u.trim(); }).filter(function (u) { return u !== ''; }); }
 
-    // === CARGAR PRODUCTOS ===
     async function cargarProductos() {
       try {
         const response = await fetch(SUPABASE_URL + '/rest/v1/productos?select=*&disponible=eq.true', {
@@ -275,7 +276,6 @@
       }
     }
     
-    // === CARGAR CONFIGURACIÓN Y RESEÑAS ===
     async function cargarConfig() {
       try {
         const response = await fetch(SUPABASE_URL + '/rest/v1/configuracion?select=*', {
@@ -333,7 +333,6 @@
       } catch (error) { console.error("Error config:", error); }
     }
 
-    // === CARGAR SLIDER ===
     async function cargarSlides() {
       try {
         const response = await fetch(SUPABASE_URL + '/rest/v1/slides?select=*&activo=eq.true&order=orden', {
@@ -382,7 +381,6 @@
       track.addEventListener('mouseenter', detenerAuto); track.addEventListener('mouseleave', iniciarAuto);
     }
 
-    // === RENDERIZADO DE PRODUCTOS ===
     function mostrarProductos(lista) {
       if (!Array.isArray(lista)) { document.getElementById('catalogo').innerHTML = '<p style="color:#c0392b">Error de respuesta.</p>'; return; }
       productos = lista.filter(function (p) { return esVisible(p) && precioNum(p.Precio) > 0; });
@@ -462,7 +460,6 @@
       }
     }
 
-    // === LÓGICA DEL CARRITO ===
     function agregarAlCarrito(id) {
       const p = productos.find(function (x) { return String(x.ID) === String(id); });
       if (!p) return;
@@ -482,9 +479,7 @@
       if (ids.length === 0) { 
         cont.innerHTML = '<p class="carrito-vacio">El carrito está vacío</p>'; 
         document.getElementById('total').textContent = moneda(0); 
-        <input type="text" id="notas" placeholder="Observaciones (Ej: Sin cebolla, extra queso)">
         document.getElementById('btn-pagar').disabled = true; return; 
-        
       }
       let total = 0, html = '';
       ids.forEach(function (id) {
@@ -497,12 +492,12 @@
       document.getElementById('btn-pagar').disabled = false;
     }
 
-       async function procesarPedido() {
+    async function procesarPedido() {
       const nombre = document.getElementById('nombre').value.trim();
       const email = document.getElementById('email').value.trim();
       const telefono = document.getElementById('telefono').value.trim();
       const direccion = document.getElementById('direccion').value.trim();
-      const notas = document.getElementById('notas').value.trim();
+      const notas = document.getElementById('notas').value.trim(); // 🔥 Capturamos las notas
       const btn = document.getElementById('btn-pagar');
 
       if (!nombre || !email) { mostrarMensaje('Por favor, completa tu nombre y email.', 'error'); return; }
@@ -512,8 +507,8 @@
       
       btn.disabled = true; btn.textContent = 'Procesando...';
 
-       let total = 0, detalle = [];
-       Object.keys(carrito).forEach(id => {
+      let total = 0, detalle = [];
+      Object.keys(carrito).forEach(id => {
         const item = carrito[id], subtotal = precioNum(item.producto.Precio) * item.cantidad;
         total += subtotal; 
         
@@ -546,41 +541,26 @@
 
         if (!response.ok) throw new Error('Error al guardar');
 
+        let resumenWsp = detalle.map(d => `- ${d}`).join('\n');
         const configRes = await fetch(SUPABASE_URL + '/rest/v1/configuracion?select=valor&clave=eq.whatsapp', { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY } });
         const configData = await configRes.json();
         const telefonoNegocio = configData.length > 0 ? configData[0].valor : '34600000000';
 
-                // --- MENSAJE ELEGANTE PARA WHATSAPP ---
-        const mensajeWsp = 
-          `🍕 *NUEVO PEDIDO WEB* 🍕\n` +
-          `----------------------\n` +
-          `🎫 *Ticket:* \n` +
-          `*${orderId}*\n\n` +
-          `🛒 *DETALLE DEL PEDIDO:*\n` +
-          `${detalle.map(d => `👉 ${d}`).join('\n')}\n\n` +
-          `💰 *TOTAL:* ${moneda(total)}\n\n` +
-          `👤 *DATOS DEL CLIENTE:*\n` +
-          `📝 Nombre: ${nombre}\n` +
-          `📞 Teléfono: ${telefono || 'No especificado'}\n` +
-          `📍 Dirección: ${direccion || 'Recogida en tienda'}\n\n` +
-          `----------------------\n` +
-          `💬 _Os escribo para coordinar el pago._\n` +
-          `😊 _¡Gracias por elegirnos!_`;
-        const msg = encodeURIComponent(mensajeWsp);
+        const msg = encodeURIComponent(`Hola, acabo de hacer el pedido *#${orderId}* en la web.\n\n*Mi pedido:*\n${resumenWsp}\n*Total:* ${moneda(total)}\n\n*Nombre:* ${nombre}\n*Dirección:* ${direccion || 'Recogida en tienda'}\n\nOs escribo para coordinar el pago.`);
         const numLimpio = telefonoNegocio.replace(/\D/g, ''); 
         
         mostrarMensaje('¡Pedido registrado! Abriendo WhatsApp...', 'ok');
         
-        // Limpiamos el carrito y las cajas de texto
+        // Limpiamos el carrito y las cajas
         carrito = {}; 
         renderCarrito(); 
         document.getElementById('nombre').value = '';
         document.getElementById('email').value = '';
         document.getElementById('telefono').value = '';
         document.getElementById('direccion').value = '';
+        document.getElementById('notas').value = ''; // 🔥 Limpiamos notas
 
-        btn.textContent = 'Pagar y Enviar Pedido'; 
-        btn.disabled = true; 
+        btn.textContent = 'Pagar y Enviar Pedido'; btn.disabled = true; 
 
         setTimeout(() => { window.open(`https://wa.me/${numLimpio}?text=${msg}`, '_blank'); }, 1000);
 
@@ -589,7 +569,9 @@
         btn.textContent = 'Pagar y Enviar Pedido'; btn.disabled = false; 
       }
     }
-    // === CARGAR RESEÑAS PÚBLICAS ===
+
+    function mostrarMensaje(texto, tipo) { const msg = document.getElementById('mensaje'); msg.textContent = texto; msg.className = 'mensaje ' + tipo; }
+
     async function cargarResenasPublicas() {
       try {
         const response = await fetch(SUPABASE_URL + '/rest/v1/resenas?select=*&aprobada=eq.true&order=fecha.desc&limit=5', {
@@ -612,7 +594,6 @@
       } catch (error) { console.error("Error reseñas:", error); }
     }
 
-    // === ENVIAR RESEÑA ===
     async function enviarResena() {
       const nombre = document.getElementById('res-nombre').value.trim();
       const estrellas = document.getElementById('res-estrellas').value;
@@ -646,7 +627,6 @@
       } finally { btn.disabled = false; btn.textContent = 'Enviar Reseña'; }
     }
 
-    // === INICIALIZACIÓN ===
     window.addEventListener('DOMContentLoaded', function () { 
       document.getElementById('year').textContent = new Date().getFullYear();
       cargarConfig(); 
@@ -654,11 +634,6 @@
       cargarResenasPublicas();
       cargarSlides(); 
     });
-        function mostrarMensaje(texto, tipo) { 
-      const msg = document.getElementById('mensaje'); 
-      msg.textContent = texto; 
-      msg.className = 'mensaje ' + tipo; 
-    }
   </script>
 </body>
 </html>
