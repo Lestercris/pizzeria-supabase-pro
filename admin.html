@@ -179,7 +179,9 @@
     <!-- SECCIÓN USUARIOS -->
     <div id="seccion-usuarios" style="display: none;">
       <h1>Usuarios y Roles</h1>
-      <div style="background: white; padding: 25px; border-radius: 12px; max-width: 600px; margin-top: 20px;">
+      
+      <!-- Formulario de creación -->
+      <div style="background: white; padding: 25px; border-radius: 12px; max-width: 600px; margin-top: 20px; margin-bottom: 30px;">
         <h3>Crear Nuevo Empleado</h3>
         <input type="text" id="new-user-name" placeholder="Nombre del empleado">
         <input type="email" id="new-user-email" placeholder="Correo electrónico">
@@ -192,6 +194,28 @@
         </select>
         <button class="btn btn-success" onclick="crearEmpleado()">Crear Usuario</button>
       </div>
+
+      <!-- NUEVA TABLA DE USUARIOS -->
+      <div style="background: white; padding: 25px; border-radius: 12px; max-width: 800px;">
+        <h3>Lista de Usuarios Registrados</h3>
+        <div style="overflow-x: auto; margin-top: 15px;">
+          <table class="tabla-pedidos">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Teléfono</th>
+                <th>Rol</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-usuarios-body">
+              <tr><td colspan="5" style="text-align: center;">Cargando usuarios...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -335,6 +359,7 @@
       if(id === 'resenas') cargarResenas();
       if(id === 'pedidos') cargarPedidos();
       if(id === 'slider') cargarSlides();
+      if(id === 'usuarios') cargarUsuarios(); // 🔥 Cargamos la tabla al entrar
     }
 
     async function subirImagen(file, bucket = 'imagenes') {
@@ -476,167 +501,116 @@
       await fetchSupabase(`/rest/v1/slides?id=eq.${id}`, { method: 'DELETE' }); cargarSlides(); mostrarAlerta('Imagen eliminada.');
     }
 
-    async function cargarPedidos() {
+        async function cargarPedidos() {
       try {
         const pedidos = await fetchSupabase('/rest/v1/pedidos?select=*&order=fecha.desc&limit=50');
         pedidosGlobal = pedidos;
         const tbody = document.getElementById('tabla-pedidos-body');
-        if (pedidos.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No hay pedidos.</td></tr>'; return; }
-
+        if (!pedidos.length) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#999;">No hay pedidos aún</td></tr>';
+          return;
+        }
         tbody.innerHTML = pedidos.map(p => {
-          let badgeClass = 'badge-pendiente';
-          if (p.estado === 'En preparación') badgeClass = 'badge-preparacion';
-          if (p.estado === 'Listo') badgeClass = 'badge-listo';
-          if (p.estado === 'Entregado') badgeClass = 'badge-entregado';
+          const badgeClass = p.estado === 'pendiente' ? 'badge-pendiente'
+            : p.estado === 'preparacion' ? 'badge-preparacion'
+            : p.estado === 'listo' ? 'badge-listo'
+            : 'badge-entregado';
+          const detalle = Array.isArray(p.productos)
+            ? p.productos.map(item => `${item.cantidad || 1}x ${item.nombre || item.producto || ''}`).join('<br>')
+            : (p.detalle || '—');
           return `
             <tr>
-              <td style="font-weight: bold;">${p.order_id}</td>
-              <td>${p.nombre_cliente}<br><small>${p.telefono || ''}</small></td>
-              <td>${p.detalle}</td>
-              <td style="font-weight: bold;">${Number(p.total).toFixed(2)} €</td>
-              <td><span class="badge ${badgeClass}">${p.estado}</span></td>
+              <td><strong>#${p.id}</strong></td>
+              <td>${p.cliente_nombre || p.nombre_cliente || 'Cliente'}<br>
+                  <small style="color:#888;">${p.cliente_telefono || p.telefono || ''}</small></td>
+              <td style="font-size:0.85rem;">${detalle}</td>
+              <td><strong>${Number(p.total || 0).toFixed(2)} €</strong></td>
+              <td><span class="badge ${badgeClass}">${(p.estado || 'pendiente').toUpperCase()}</span></td>
               <td>
-                <button class="btn" style="width: auto; padding: 5px 10px; font-size: 0.8rem; background: #3498db;" onclick="imprimirTicket('${p.order_id}')">🖨️ Imprimir</button>
-                <button class="btn" style="width: auto; padding: 5px 10px; font-size: 0.8rem; background: #25D366;" onclick="contactarWhatsApp('${p.telefono}', '${p.order_id}', '${p.estado}')">💬 WhatsApp</button>
+                <select onchange="cambiarEstadoPedido('${p.id}', this.value)" style="padding:6px; font-size:0.85rem; margin-bottom:0;">
+                  <option value="pendiente" ${p.estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+                  <option value="preparacion" ${p.estado === 'preparacion' ? 'selected' : ''}>En preparación</option>
+                  <option value="listo" ${p.estado === 'listo' ? 'selected' : ''}>Listo</option>
+                  <option value="entregado" ${p.estado === 'entregado' ? 'selected' : ''}>Entregado</option>
+                </select>
+                <button class="btn" style="width:auto; padding:6px 10px; font-size:0.8rem; margin-top:5px; background:#3498db;" onclick="imprimirTicket('${p.id}')">🖨️ Ticket</button>
               </td>
             </tr>
           `;
         }).join('');
-      } catch (error) { document.getElementById('tabla-pedidos-body').innerHTML = '<tr><td colspan="6" style="color:red; text-align: center; padding: 20px;">Error al cargar pedidos.</td></tr>'; }
-    }
-
-    async function imprimirTicket(orderId) {
-      const pedido = pedidosGlobal.find(p => String(p.order_id) === String(orderId));
-      if (!pedido) return mostrarAlerta('Pedido no encontrado.', 'error');
-
-      const cfg = configGlobal || {};
-      const nombreNegocio = cfg.nombre_negocio || 'Mi Negocio';
-      const empresa = cfg.empresa || '';
-      const cif = cfg.cif || '';
-      const direccion = cfg.direccion
-            const telefono = cfg.telefono || '';
-      const ticketFooter = cfg.ticket_footer || '¡Gracias por su compra!';
-      const fecha = new Date(pedido.fecha || Date.now());
-
-      const ticketHTML = `
-        <div style="text-align: center; margin-bottom: 10px;">
-          <h2 style="margin: 0; font-size: 16px;">${nombreNegocio}</h2>
-          ${empresa ? `<p style="margin: 2px 0; font-size: 11px;">${empresa}</p>` : ''}
-          ${cif ? `<p style="margin: 2px 0; font-size: 11px;">CIF: ${cif}</p>` : ''}
-          ${direccion ? `<p style="margin: 2px 0; font-size: 11px;">${direccion}</p>` : ''}
-          ${telefono ? `<p style="margin: 2px 0; font-size: 11px;">Tel: ${telefono}</p>` : ''}
-        </div>
-        <hr style="border-top: 1px dashed #000; margin: 8px 0;">
-        <p style="font-size: 11px; margin: 4px 0;"><strong>Ticket:</strong> ${pedido.order_id}</p>
-        <p style="font-size: 11px; margin: 4px 0;"><strong>Cliente:</strong> ${pedido.nombre_cliente}</p>
-        ${pedido.telefono ? `<p style="font-size: 11px; margin: 4px 0;"><strong>Tel:</strong> ${pedido.telefono}</p>` : ''}
-        <p style="font-size: 11px; margin: 4px 0;"><strong>Fecha:</strong> ${fecha.toLocaleString('es-ES')}</p>
-        <hr style="border-top: 1px dashed #000; margin: 8px 0;">
-        <p style="font-size: 11px; margin: 4px 0; white-space: pre-wrap;">${pedido.detalle}</p>
-        <hr style="border-top: 1px dashed #000; margin: 8px 0;">
-        <p style="font-size: 14px; margin: 4px 0; text-align: right;"><strong>TOTAL: ${Number(pedido.total).toFixed(2)} €</strong></p>
-        <hr style="border-top: 1px dashed #000; margin: 8px 0;">
-        <div style="text-align: center; margin-top: 10px;">
-          <svg id="barcode-ticket"></svg>
-        </div>
-        <p style="font-size: 10px; text-align: center; margin-top: 10px;">${ticketFooter}</p>
-      `;
-
-      const ticketDiv = document.getElementById('ticket-impresion');
-      ticketDiv.innerHTML = ticketHTML;
-      ticketDiv.style.display = 'block';
-
-      // Generar código de barras con el order_id
-      try {
-        JsBarcode('#barcode-ticket', String(pedido.order_id), {
-          format: 'CODE128',
-          width: 1.5,
-          height: 40,
-          displayValue: true,
-          fontSize: 10
-        });
-      } catch (e) {
-        console.warn('No se pudo generar el código de barras:', e);
-      }
-
-      // Esperar a que se renderice y luego imprimir
-      setTimeout(() => {
-        window.print();
-        // Ocultar el ticket después de imprimir
-        setTimeout(() => {
-          ticketDiv.style.display = 'none';
-          ticketDiv.innerHTML = '';
-        }, 500);
-      }, 300);
-    }
-
-    function contactarWhatsApp(telefono, orderId, estado) {
-      if (!telefono) return mostrarAlerta('Este pedido no tiene teléfono registrado.', 'error');
-      const numeroLimpio = telefono.replace(/\D/g, '');
-      const numeroFinal = numeroLimpio.startsWith('34') ? numeroLimpio : '34' + numeroLimpio;
-      const mensaje = encodeURIComponent(
-        `Hola! Te contactamos sobre tu pedido #${orderId}. Estado actual: ${estado}. ¡Gracias por tu compra!`
-      );
-      window.open(`https://wa.me/${numeroFinal}?text=${mensaje}`, '_blank');
-    }
-
-    // ==================== RESEÑAS ====================
-    async function cargarResenas() {
-      try {
-        const resenas = await fetchSupabase('/rest/v1/resenas?select=*&order=fecha.desc');
-        const contenedor = document.getElementById('lista-resenas-admin');
-        if (!resenas || resenas.length === 0) {
-          contenedor.innerHTML = '<p style="color:#666;">No hay reseñas todavía.</p>';
-          return;
-        }
-        contenedor.innerHTML = resenas.map(r => `
-          <div style="border-bottom: 1px solid #eee; padding: 15px 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <strong>${r.nombre || 'Anónimo'}</strong>
-              <span style="color: #f1c40f;">${'★'.repeat(r.estrellas || 0)}${'☆'.repeat(5 - (r.estrellas || 0))}</span>
-            </div>
-            <p style="margin: 8px 0; font-size: 0.9rem; color: #555;">${r.comentario || ''}</p>
-            <small style="color:#999;">${r.fecha ? new Date(r.fecha).toLocaleDateString('es-ES') : ''}</small>
-            <button class="btn-delete" style="margin-top: 8px; padding: 5px 10px; border: none; border-radius: 6px; color: white; cursor: pointer;" onclick="eliminarResena('${r.id}')">🗑️ Eliminar</button>
-          </div>
-        `).join('');
       } catch (error) {
-        document.getElementById('lista-resenas-admin').innerHTML = '<p style="color:red;">Error al cargar reseñas.</p>';
+        mostrarAlerta('Error al cargar pedidos: ' + error.message, 'error');
       }
     }
 
-    async function eliminarResena(id) {
-      if (!confirm('¿Eliminar esta reseña?')) return;
+    async function cambiarEstadoPedido(id, nuevoEstado) {
       try {
-        await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, { method: 'DELETE' });
-        cargarResenas();
-        mostrarAlerta('Reseña eliminada.');
+        await fetchSupabase(`/rest/v1/pedidos?id=eq.${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ estado: nuevoEstado })
+        });
+        mostrarAlerta('Estado actualizado.');
       } catch (error) {
         mostrarAlerta('Error: ' + error.message, 'error');
       }
     }
 
-    // ==================== CONFIGURACIÓN ====================
+    async function imprimirTicket(id) {
+      const pedido = pedidosGlobal.find(p => String(p.id) === String(id));
+      if (!pedido) return;
+      const ticket = document.getElementById('ticket-impresion');
+      const detalle = Array.isArray(pedido.productos)
+        ? pedido.productos.map(item => `${item.cantidad || 1}x ${item.nombre || ''} ...... ${(Number(item.precio || 0) * (item.cantidad || 1)).toFixed(2)} €`).join('<br>')
+        : (pedido.detalle || '');
+      ticket.innerHTML = `
+        <div style="text-align:center;">
+          <h3>${configGlobal.nombre_negocio || 'Mi Negocio'}</h3>
+          <p>${configGlobal.empresa || ''}<br>CIF: ${configGlobal.cif || ''}</p>
+          <p>${configGlobal.direccion || ''}<br>Tel: ${configGlobal.telefono || ''}</p>
+          <hr>
+          <p><strong>TICKET #${pedido.id}</strong><br>${new Date(pedido.fecha || Date.now()).toLocaleString('es-ES')}</p>
+        </div>
+        <hr>
+        <p><strong>Cliente:</strong> ${pedido.cliente_nombre || pedido.nombre_cliente || ''}<br>
+        <strong>Tel:</strong> ${pedido.cliente_telefono || pedido.telefono || ''}</p>
+        <hr>
+        <p>${detalle}</p>
+        <hr>
+        <h3 style="text-align:right;">TOTAL: ${Number(pedido.total || 0).toFixed(2)} €</h3>
+        <hr>
+        <div style="text-align:center; font-size:0.85rem;">
+          <p>${configGlobal.ticket_footer || '¡Gracias por su compra!'}</p>
+          <svg id="barcode"></svg>
+        </div>
+      `;
+      ticket.style.display = 'block';
+      try {
+        JsBarcode('#barcode', String(pedido.id), { format: 'CODE128', width: 1.5, height: 40, displayValue: false });
+      } catch (e) { console.warn('Barcode error', e); }
+      window.print();
+      setTimeout(() => { ticket.style.display = 'none'; }, 500);
+    }
+
     async function cargarConfiguracion() {
       try {
         const config = await fetchSupabase('/rest/v1/configuracion?select=*&limit=1');
-        if (config && config.length > 0) {
+        if (config.length) {
           configGlobal = config[0];
           document.getElementById('cfg-nombre').value = configGlobal.nombre_negocio || '';
           document.getElementById('cfg-empresa').value = configGlobal.empresa || '';
           document.getElementById('cfg-cif').value = configGlobal.cif || '';
-          document.getElementById('cfg-promo').value = configGlobal.promocion || '';
+          document.getElementById('cfg-promo').value = configGlobal.promo || '';
           document.getElementById('cfg-telefono').value = configGlobal.telefono || '';
           document.getElementById('cfg-whatsapp').value = configGlobal.whatsapp || '';
           document.getElementById('cfg-direccion').value = configGlobal.direccion || '';
           document.getElementById('cfg-horario').value = configGlobal.horario || '';
           document.getElementById('cfg-ticket-footer').value = configGlobal.ticket_footer || '';
           document.getElementById('cfg-stripe').checked = !!configGlobal.stripe_activo;
-          document.getElementById('stripe-status-text').textContent =
-            configGlobal.stripe_activo ? 'Activado' : 'Desactivado';
+          document.getElementById('stripe-status-text').textContent = configGlobal.stripe_activo ? 'Activado' : 'Desactivado';
+          document.getElementById('admin-header-title').textContent = '🍕 ' + (configGlobal.nombre_negocio || 'Panel Admin');
         }
       } catch (error) {
-        console.warn('No se pudo cargar la configuración:', error);
+        console.warn('Config no disponible:', error.message);
       }
     }
 
@@ -645,7 +619,7 @@
         nombre_negocio: document.getElementById('cfg-nombre').value.trim(),
         empresa: document.getElementById('cfg-empresa').value.trim(),
         cif: document.getElementById('cfg-cif').value.trim(),
-        promocion: document.getElementById('cfg-promo').value.trim(),
+        promo: document.getElementById('cfg-promo').value.trim(),
         telefono: document.getElementById('cfg-telefono').value.trim(),
         whatsapp: document.getElementById('cfg-whatsapp').value.trim(),
         direccion: document.getElementById('cfg-direccion').value.trim(),
@@ -653,28 +627,78 @@
         ticket_footer: document.getElementById('cfg-ticket-footer').value.trim(),
         stripe_activo: document.getElementById('cfg-stripe').checked
       };
-
       try {
-        if (configGlobal && configGlobal.id) {
-          await fetchSupabase(`/rest/v1/configuracion?id=eq.${configGlobal.id}`, {
-            method: 'PATCH', body: JSON.stringify(data)
-          });
+        if (configGlobal.id) {
+          await fetchSupabase(`/rest/v1/configuracion?id=eq.${configGlobal.id}`, { method: 'PATCH', body: JSON.stringify(data) });
         } else {
-          const inserted = await fetchSupabase('/rest/v1/configuracion', {
-            method: 'POST', body: JSON.stringify(data)
-          });
-          if (inserted && inserted.length > 0) configGlobal = inserted[0];
+          await fetchSupabase('/rest/v1/configuracion', { method: 'POST', body: JSON.stringify(data) });
         }
         configGlobal = { ...configGlobal, ...data };
-        document.getElementById('stripe-status-text').textContent =
-          data.stripe_activo ? 'Activado' : 'Desactivado';
-        mostrarAlerta('Configuración guardada correctamente.');
+        document.getElementById('admin-header-title').textContent = '🍕 ' + data.nombre_negocio;
+        document.getElementById('stripe-status-text').textContent = data.stripe_activo ? 'Activado' : 'Desactivado';
+        mostrarAlerta('Configuración guardada.');
       } catch (error) {
         mostrarAlerta('Error: ' + error.message, 'error');
       }
     }
 
-    // ==================== USUARIOS ====================
+    document.getElementById('cfg-stripe')?.addEventListener('change', function () {
+      document.getElementById('stripe-status-text').textContent = this.checked ? 'Activado' : 'Desactivado';
+    });
+
+    async function cargarResenas() {
+      try {
+        const resenas = await fetchSupabase('/rest/v1/resenas?select=*&order=fecha.desc');
+        const cont = document.getElementById('lista-resenas-admin');
+        if (!resenas.length) {
+          cont.innerHTML = '<p style="color:#999;">No hay reseñas todavía.</p>';
+          return;
+        }
+        cont.innerHTML = resenas.map(r => `
+          <div style="border-bottom:1px solid #eee; padding:15px 0;">
+            <strong>${r.nombre || 'Anónimo'}</strong>
+            <span style="color:#f1c40f;">${'★'.repeat(r.estrellas || 5)}${'☆'.repeat(5 - (r.estrellas || 5))}</span>
+            <p style="font-size:0.9rem; color:#555; margin:5px 0;">${r.comentario || ''}</p>
+            <small style="color:#999;">${new Date(r.fecha || Date.now()).toLocaleDateString('es-ES')}</small>
+            <button class="btn-delete" style="width:auto; padding:4px 10px; font-size:0.8rem; margin-left:10px;" onclick="eliminarResena('${r.id}')">🗑️ Eliminar</button>
+          </div>
+        `).join('');
+      } catch (error) {
+        document.getElementById('lista-resenas-admin').innerHTML = '<p style="color:#e74c3c;">Error al cargar reseñas.</p>';
+      }
+    }
+
+    async function eliminarResena(id) {
+      if (!confirm('¿Eliminar reseña?')) return;
+      await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, { method: 'DELETE' });
+      cargarResenas();
+      mostrarAlerta('Reseña eliminada.');
+    }
+
+    async function cargarUsuarios() {
+      try {
+        const usuarios = await fetchSupabase('/rest/v1/perfiles?select=*&order=id');
+        const tbody = document.getElementById('tabla-usuarios-body');
+        if (!usuarios.length) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#999;">No hay usuarios registrados</td></tr>';
+          return;
+        }
+        tbody.innerHTML = usuarios.map(u => `
+          <tr>
+            <td>${u.nombre || '—'}</td>
+            <td>${u.email || '—'}</td>
+            <td>${u.telefono || '—'}</td>
+            <td><span class="badge ${u.rol === 'admin' ? 'badge-listo' : u.rol === 'cocina' ? 'badge-preparacion' : 'badge-pendiente'}">${(u.rol || 'empleado').toUpperCase()}</span></td>
+            <td>
+              <button class="btn-delete" style="width:auto; padding:6px 10px; font-size:0.8rem;" onclick="eliminarUsuario('${u.id}', '${u.email}')">🗑️ Eliminar</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (error) {
+        document.getElementById('tabla-usuarios-body').innerHTML = '<tr><td colspan="5" style="text-align:center; color:#e74c3c;">Error al cargar usuarios</td></tr>';
+      }
+    }
+
     async function crearEmpleado() {
       const nombre = document.getElementById('new-user-name').value.trim();
       const email = document.getElementById('new-user-email').value.trim();
@@ -682,12 +706,10 @@
       const telefono = document.getElementById('new-user-phone').value.trim();
       const rol = document.getElementById('new-user-role').value;
 
-      if (!nombre || !email || !pass) {
-        return mostrarAlerta('Nombre, email y contraseña son obligatorios.', 'error');
-      }
+      if (!email || !pass) return mostrarAlerta('Email y contraseña son obligatorios.', 'error');
 
       try {
-        // Crear usuario en Auth (requiere service_role key)
+        // Crear usuario en Auth usando la service_role key
         const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
           method: 'POST',
           headers: {
@@ -697,12 +719,10 @@
           },
           body: JSON.stringify({ email, password: pass, email_confirm: true })
         });
-
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
-          throw new Error(err.message || 'No se pudo crear el usuario en Auth');
+          throw new Error(err.message || 'Error al crear usuario');
         }
-
         const authUser = await res.json();
 
         // Crear perfil asociado
@@ -712,7 +732,7 @@
             id: authUser.id,
             nombre,
             email,
-            telefono: telefono || null,
+            telefono,
             rol
           })
         });
@@ -721,21 +741,44 @@
         document.getElementById('new-user-email').value = '';
         document.getElementById('new-user-pass').value = '';
         document.getElementById('new-user-phone').value = '';
-        mostrarAlerta('Empleado creado correctamente.');
+        document.getElementById('new-user-role').value = 'empleado';
+
+        cargarUsuarios();
+        mostrarAlerta('Usuario creado correctamente.');
       } catch (error) {
         mostrarAlerta('Error: ' + error.message, 'error');
       }
     }
 
-    // ==================== INICIALIZACIÓN ====================
-    document.addEventListener('DOMContentLoaded', () => {
-      // Permitir login con Enter
-      const passInput = document.getElementById('login-pass');
-      if (passInput) {
-        passInput.addEventListener('keypress', (e) => {
-          if (e.key === 'Enter') login();
-        });
+    async function eliminarUsuario(id, email) {
+      if (!confirm(`¿Eliminar al usuario ${email}?`)) return;
+      try {
+        await fetchSupabase('/rest/v1/perfiles?id=eq.' + id, { method: 'DELETE' });
+        // Opcional: eliminar de Auth (requiere service key)
+        await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'apikey': SUPABASE_SERVICE_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY
+          }
+        }).catch(() => {});
+        cargarUsuarios();
+        mostrarAlerta('Usuario eliminado.');
+      } catch (error) {
+        mostrarAlerta('Error: ' + error.message, 'error');
       }
+    }
+
+    // Cerrar modales al hacer clic fuera
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', e => {
+        if (e.target === modal) modal.style.display = 'none';
+      });
+    });
+
+    // Enter para login
+    document.getElementById('login-pass')?.addEventListener('keypress', e => {
+      if (e.key === 'Enter') login();
     });
   </script>
 </body>
