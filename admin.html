@@ -662,7 +662,48 @@
 
     function restaurarBackup(input) { const file = input.files[0]; if (!file) return; confirmarAccion('Restaurar Backup', '¿Sobrescribir los datos actuales?', () => { const reader = new FileReader(); reader.onload = async (e) => { try { const data = JSON.parse(e.target.result); for (const tabla in data) { await fetchSupabase(`/rest/v1/${tabla}`, { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify(data[tabla]) }); } mostrarAlerta('Backup restaurado.'); cargarProductos(); cargarPedidos(); cargarSlides(); cargarResenas(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } }; reader.readAsText(file); }); }
 
-    function limpiarBaseDeDatos() { confirmarAccion('¡CUIDADO!', 'Esto borrará TODOS los pedidos y productos. Irreversible.', async () => { try { const tablas = ['productos', 'pedidos', 'slides', 'resenas']; for (const tabla of tablas) { await fetchSupabase(`/rest/v1/${tabla}?id=gt.0`, { method: 'DELETE' }); } mostrarAlerta('Base de datos limpia.'); cargarProductos(); cargarPedidos(); cargarSlides(); cargarResenas(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } }); }
+        function limpiarBaseDeDatos() {
+      confirmarAccion('¡CUIDADO!', 'Esto borrará TODOS los pedidos, productos, reseñas y el slider. Esta acción es irreversible.', async () => {
+        try {
+          mostrarAlerta('Borrando datos...', 'success');
+          
+          // 1. Borramos Pedidos (Primero, porque dependen de los productos)
+          await fetch(`${SUPABASE_URL}/rest/v1/pedidos?order_id=neq.0`, {
+            method: 'DELETE',
+            headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY }
+          });
+
+          // 2. Borramos Reseñas
+          await fetch(`${SUPABASE_URL}/rest/v1/resenas?id=neq.0`, {
+            method: 'DELETE',
+            headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY }
+          });
+
+          // 3. Borramos Slider
+          await fetch(`${SUPABASE_URL}/rest/v1/slides?id=neq.0`, {
+            method: 'DELETE',
+            headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY }
+          });
+
+          // 4. Borramos Productos
+          await fetch(`${SUPABASE_URL}/rest/v1/productos?id=neq.0`, {
+            method: 'DELETE',
+            headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY }
+          });
+          
+          mostrarAlerta('Base de datos limpia correctamente.');
+          
+          // Recargamos las listas para que se vean vacías
+          cargarProductos(); 
+          cargarPedidos(); 
+          cargarSlides(); 
+          cargarResenas();
+          
+        } catch (error) {
+          mostrarAlerta('Error al limpiar: ' + error.message, 'error');
+        }
+      });
+    }
   </script>
 </body>
 </html>
