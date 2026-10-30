@@ -68,7 +68,7 @@
     </div>
     <div style="display: flex; align-items: center; gap: 15px;">
       <div class="connection-status" style="display: flex; align-items: center; gap: 8px;">
-        <div class="dot" id="status-dot"></div>
+        <div class="dot" id="status-dot" style="width:10px; height:10px; border-radius:50%; background:#27ae60;"></div>
         <span id="status-text">Conectado</span>
       </div>
       <div class="clock" id="reloj">00:00:00</div>
@@ -119,7 +119,6 @@
       if(miNombre) {
         document.getElementById('select-cocinero').value = miNombre;
       } else {
-        // Si no hay nombre, preguntamos
         const nombre = prompt("Ingresa tu nombre de cocinero:");
         if(nombre) {
           miNombre = nombre;
@@ -182,12 +181,11 @@
         else if (esDeOtro) claseBorde = 'ocupado';
 
         const hora = p.fecha ? new Date(p.fecha).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'}) : '--:--';
-        
-        // Separamos el detalle por comas para hacer la lista
         const itemsArray = p.detalle ? p.detalle.split(',') : [];
         const items = itemsArray.map(item => `<li>🔸 ${item.trim()}</li>`).join('');
 
         let botonera = '';
+        // Usamos comillas dobles en el HTML para evitar conflictos con los strings de JS
         if (esDeOtro) {
           botonera = `<button class="btn-accion btn-bloqueado">Lo prepara ${p.cocinero}</button>`;
         } else if (esMio) {
@@ -227,33 +225,64 @@
         return;
       }
 
+      // 1. Actualizamos la pantalla INMEDIATAMENTE (sin esperar a Supabase)
+      pedidosGlobal = pedidosGlobal.map(p => {
+        if (p.order_id === orderId) {
+          return { ...p, estado: 'En preparación', cocinero: miNombre };
+        }
+        return p;
+      });
+      renderizarPedidos(pedidosGlobal);
+
+      // 2. Guardamos en Supabase
       try {
         const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos?order_id=eq.' + orderId, {
           method: 'PATCH',
-          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+          headers: { 
+            'apikey': SUPABASE_ANON_KEY, 
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation' // IMPORTANTE para que Supabase acepte el update
+          },
           body: JSON.stringify({ estado: 'En preparación', cocinero: miNombre })
         });
 
-        if (!response.ok) throw new Error('Error');
-        obtenerPedidos();
-
-      } catch (error) { alert('Error al tomar el pedido.'); }
+        if (!response.ok) throw new Error('Error al actualizar');
+        
+      } catch (error) {
+        console.error(error);
+        alert('Error al tomar el pedido. Revisa tu conexión.');
+        obtenerPedidos(); // Revertimos el cambio visual si falla
+      }
     }
 
     async function cambiarEstado(orderId, nuevoEstado, event) {
       if (event) event.stopPropagation();
       
+      // 1. Quitamos el pedido de la pantalla INMEDIATAMENTE
       pedidosGlobal = pedidosGlobal.filter(p => p.order_id !== orderId);
       renderizarPedidos(pedidosGlobal);
 
+      // 2. Guardamos en Supabase
       try {
-        await fetch(SUPABASE_URL + '/rest/v1/pedidos?order_id=eq.' + orderId, {
+        const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos?order_id=eq.' + orderId, {
           method: 'PATCH',
-          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+          headers: { 
+            'apikey': SUPABASE_ANON_KEY, 
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+          },
           body: JSON.stringify({ estado: nuevoEstado })
         });
-        obtenerPedidos();
-      } catch (error) { alert('Error al guardar.'); obtenerPedidos(); }
+
+        if (!response.ok) throw new Error('Error al actualizar');
+        
+      } catch (error) { 
+        console.error(error);
+        alert('Error al guardar. Revisa tu conexión.'); 
+        obtenerPedidos(); // Revertimos si falla
+      }
     }
 
     function abrirModal(orderId) {
@@ -267,7 +296,6 @@
       const esEnvio = pedido.direccion && pedido.direccion.trim() !== '' && pedido.direccion.toLowerCase() !== 'recogida en tienda';
       document.getElementById('modal-tipo').textContent = esEnvio ? 'PARA LLEVAR 🛵' : 'RECOGER EN TIENDA 🏪';
 
-      // Aquí mostramos el detalle completo (productos + ingredientes + notas)
       const items = pedido.detalle ? pedido.detalle.split(',').map(item => `<li>${item.trim()}</li>`).join('') : '<li>Sin detalle</li>';
       document.getElementById('modal-productos').innerHTML = items;
 
@@ -280,6 +308,7 @@
       }
     }
 
+    // Iniciar
     obtenerPedidos();
     setInterval(obtenerPedidos, 10000);
   </script>
