@@ -26,6 +26,7 @@
     
     input, select, textarea { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.95rem; outline: none; }
     input:focus, select:focus { border-color: var(--primary); }
+    input[readonly] { background: #e9ecef; color: #6c757d; cursor: not-allowed; }
     label { display: block; font-weight: 500; margin-bottom: 5px; font-size: 0.9rem; color: #555; }
     button.btn { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; transition: 0.3s; }
     button.btn:hover { background: #a93226; }
@@ -58,7 +59,6 @@
     input[type="file"] { padding: 10px; background: #f8f9fa; border: 1px dashed #ccc; cursor: pointer; }
     .img-preview { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; display: none; }
 
-    /* Tabla pedidos */
     .tabla-pedidos { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
     .tabla-pedidos th, .tabla-pedidos td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 0.9rem; }
     .tabla-pedidos th { background: #2c3e50; color: white; font-weight: 500; }
@@ -69,7 +69,6 @@
     .badge-listo { background: #d4edda; color: #155724; }
     .badge-entregado { background: #d1ecf1; color: #0c5460; }
 
-    /* Impresión Ticket */
     @media print {
       body * { visibility: hidden; }
       #ticket-impresion, #ticket-impresion * { visibility: visible; }
@@ -79,7 +78,6 @@
 </head>
 <body>
 
-  <!-- LOGIN -->
   <div id="login-screen">
     <div class="login-box">
       <h2 id="login-title">Panel de Administración</h2>
@@ -91,7 +89,6 @@
     </div>
   </div>
 
-  <!-- SIDEBAR -->
   <div class="sidebar hidden-panel" id="sidebar">
     <h2 id="admin-header-title">🍕 Cargando...</h2>
     <button class="active" onclick="mostrarSeccion('productos', event)">📦 Productos</button>
@@ -106,7 +103,6 @@
   <div class="main-content hidden-panel" id="main-panel">
     <div id="alert-box" class="alert"></div>
 
-    <!-- PRODUCTOS -->
     <div id="seccion-productos">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h1>Gestión de Productos</h1>
@@ -115,7 +111,6 @@
       <div class="grid-productos" id="lista-productos"></div>
     </div>
 
-    <!-- PEDIDOS -->
     <div id="seccion-pedidos" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h1>Gestión de Pedidos</h1>
@@ -123,15 +118,12 @@
       </div>
       <div style="overflow-x: auto;">
         <table class="tabla-pedidos">
-          <thead>
-            <tr><th>Ticket</th><th>Cliente</th><th>Detalle</th><th>Total</th><th>Estado</th><th>Acciones</th></tr>
-          </thead>
+          <thead><tr><th>Ticket</th><th>Cliente</th><th>Detalle</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead>
           <tbody id="tabla-pedidos-body"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- SLIDER -->
     <div id="seccion-slider" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h1>Carrusel de Inicio</h1>
@@ -140,7 +132,6 @@
       <div class="grid-slider" id="lista-slides"></div>
     </div>
 
-    <!-- RESEÑAS -->
     <div id="seccion-resenas" style="display: none;">
       <h1>Gestión de Reseñas</h1>
       <div style="background: white; padding: 25px; border-radius: 12px; max-width: 800px; margin-top: 20px;">
@@ -148,7 +139,6 @@
       </div>
     </div>
 
-    <!-- CONFIGURACIÓN -->
     <div id="seccion-configuracion" style="display: none;">
       <h1>Configuración de la Web</h1>
       <div style="background: white; padding: 25px; border-radius: 12px; max-width: 700px; margin-top: 20px;">
@@ -168,6 +158,12 @@
         <input type="text" id="cfg-direccion">
         <label>Horario</label>
         <input type="text" id="cfg-horario">
+        
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+        
+        <label>Mensaje al pie del Ticket (Fidelización)</label>
+        <textarea id="cfg-ticket-footer" rows="3"></textarea>
+
         <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
         <label>Habilitar Stripe</label>
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
@@ -178,7 +174,6 @@
       </div>
     </div>
 
-    <!-- USUARIOS -->
     <div id="seccion-usuarios" style="display: none;">
       <h1>Usuarios y Roles</h1>
       <div style="background: white; padding: 25px; border-radius: 12px; max-width: 600px; margin-top: 20px;">
@@ -202,8 +197,8 @@
     <div class="modal-content">
       <h2 id="modal-title" style="margin-bottom: 20px; color: var(--primary);">Nuevo Producto</h2>
       <input type="hidden" id="prod-id-original">
-      <label>ID del Producto</label>
-      <input type="text" id="prod-id" required>
+      <label>ID del Producto (Automático)</label>
+      <input type="text" id="prod-id" readonly placeholder="Generado automáticamente" style="background: #f0f0f0; cursor: not-allowed;">
       <label>Nombre</label>
       <input type="text" id="prod-nombre" required>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
@@ -310,7 +305,6 @@
         document.getElementById('main-panel').classList.remove('hidden-panel');
         
         if (userRole === 'admin') document.querySelector('.admin-only').style.display = 'block';
-        // Si el rol es 'cocina', lo ideal es redirigir a cocina.html (lo haremos luego)
         
         cargarProductos(); cargarConfiguracion();
       } catch (error) {
@@ -382,7 +376,7 @@
     function abrirModalNuevo() {
       document.getElementById('modal-title').textContent = 'Nuevo Producto';
       document.getElementById('prod-id-original').value = '';
-      document.getElementById('prod-id').value = '';
+      document.getElementById('prod-id').value = ''; // Se llenará solo
       document.getElementById('prod-nombre').value = '';
       document.getElementById('prod-precio').value = '';
       document.getElementById('prod-categoria').value = 'Pizzas';
@@ -412,15 +406,27 @@
 
     async function guardarProducto() {
       const idOriginal = document.getElementById('prod-id-original').value;
+      
+      // Si es nuevo, no enviamos el ID para que Supabase lo genere automáticamente.
+      // Si es edición, mantenemos el ID original.
       const data = {
-        id: document.getElementById('prod-id').value.trim(), nombre: document.getElementById('prod-nombre').value.trim(),
-        categoria: document.getElementById('prod-categoria').value, precio: parseFloat(document.getElementById('prod-precio').value),
-        descripcion: document.getElementById('prod-desc').value.trim(), ingredientes: document.getElementById('prod-ingredientes').value.trim(),
-        imagen_url: document.getElementById('prod-imagen').value, disponible: document.getElementById('prod-disponible').checked
+        nombre: document.getElementById('prod-nombre').value.trim(),
+        categoria: document.getElementById('prod-categoria').value, 
+        precio: parseFloat(document.getElementById('prod-precio').value),
+        descripcion: document.getElementById('prod-desc').value.trim(), 
+        ingredientes: document.getElementById('prod-ingredientes').value.trim(),
+        imagen_url: document.getElementById('prod-imagen').value, 
+        disponible: document.getElementById('prod-disponible').checked
       };
+
       try {
-        if (idOriginal) await fetchSupabase(`/rest/v1/productos?id=eq.${idOriginal}`, { method: 'PATCH', body: JSON.stringify(data) });
-        else await fetchSupabase('/rest/v1/productos', { method: 'POST', body: JSON.stringify(data) });
+        if (idOriginal) {
+          // Es una edición
+          await fetchSupabase(`/rest/v1/productos?id=eq.${idOriginal}`, { method: 'PATCH', body: JSON.stringify(data) });
+        } else {
+          // Es nuevo, dejamos que Supabase genere el ID
+          await fetchSupabase('/rest/v1/productos', { method: 'POST', body: JSON.stringify(data) });
+        }
         cerrarModal(); cargarProductos(); mostrarAlerta('Producto guardado.');
       } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
     }
@@ -496,7 +502,7 @@
       } catch (error) { document.getElementById('tabla-pedidos-body').innerHTML = '<tr><td colspan="6" style="color:red; text-align: center; padding: 20px;">Error al cargar pedidos.</td></tr>'; }
     }
 
-    // IMPRIMIR TICKET (CENTRADO Y LLAMATIVO)
+    // IMPRIMIR TICKET
     async function imprimirTicket(orderId) {
       const pedido = pedidosGlobal.find(p => p.order_id === orderId);
       if (!pedido) return;
@@ -508,6 +514,7 @@
       const cif = config.cif || 'CIF no configurado';
       const telefono = config.telefono || '';
       const direccion = config.direccion || '';
+      const pieTicket = config.ticket_footer || '¡GRACIAS POR SU PEDIDO!';
       const fecha = pedido.fecha ? new Date(pedido.fecha).toLocaleString('es-ES') : '--/--/---- --:--';
       const items = pedido.detalle.split(',').map(item => `<div style="margin-bottom: 5px;">- ${item.trim()}</div>`).join('');
       
@@ -542,8 +549,7 @@
         </div>
         
         <div style="text-align: center; font-size: 0.9rem; margin-top: 20px; font-weight: bold;">
-          ¡VUELVE PRONTO! 🍕<br>
-          <span style="font-size: 0.8rem; font-weight: normal;">Presenta este ticket y obtén un 10% de descuento en tu próxima compra.</span>
+          ${pieTicket.replace(/\n/g, '<br>')}
         </div>
       `;
 
@@ -582,6 +588,8 @@
         if(document.getElementById('cfg-direccion')) document.getElementById('cfg-direccion').value = config.direccion || '';
         if(document.getElementById('cfg-horario')) document.getElementById('cfg-horario').value = config.horario || '';
         if(document.getElementById('cfg-stripe')) document.getElementById('cfg-stripe').checked = (config.stripe_habilitado === 'true');
+        
+        if(document.getElementById('cfg-ticket-footer')) document.getElementById('cfg-ticket-footer').value = config.ticket_footer || '';
 
         const headerTitle = document.getElementById('admin-header-title');
         if (config.nombre_negocio) {
@@ -609,6 +617,7 @@
         { clave: 'whatsapp', valor: document.getElementById('cfg-whatsapp').value.trim() },
         { clave: 'direccion', valor: document.getElementById('cfg-direccion').value.trim() },
         { clave: 'horario', valor: document.getElementById('cfg-horario').value.trim() },
+        { clave: 'ticket_footer', valor: document.getElementById('cfg-ticket-footer').value.trim() },
         { clave: 'stripe_habilitado', valor: document.getElementById('cfg-stripe').checked ? 'true' : 'false' }
       ];
       try {
@@ -646,7 +655,7 @@
     async function aprobarResena(id) { await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify({ aprobada: true }) }); cargarResenas(); mostrarAlerta('Reseña publicada.'); }
     async function eliminarResena(id) { if (!confirm('¿Eliminar?')) return; await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, { method: 'DELETE' }); cargarResenas(); mostrarAlerta('Eliminada.'); }
 
-    // USUARIOS (CON TELÉFONO Y NUEVOS ROLES)
+    // USUARIOS
     async function crearEmpleado() {
       if (userRole !== 'admin') return mostrarAlerta('No tienes permisos', 'error');
       const nombre = document.getElementById('new-user-name').value.trim();
