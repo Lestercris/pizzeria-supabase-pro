@@ -58,7 +58,7 @@
     input[type="file"] { padding: 10px; background: #f8f9fa; border: 1px dashed #ccc; cursor: pointer; }
     .img-preview { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; display: none; }
 
-    /* Estilos para la tabla de pedidos */
+    /* Tabla pedidos */
     .tabla-pedidos { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
     .tabla-pedidos th, .tabla-pedidos td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 0.9rem; }
     .tabla-pedidos th { background: #2c3e50; color: white; font-weight: 500; }
@@ -69,17 +69,17 @@
     .badge-listo { background: #d4edda; color: #155724; }
     .badge-entregado { background: #d1ecf1; color: #0c5460; }
 
-    /* Estilos de impresión de ticket (80mm) */
+    /* Impresión Ticket */
     @media print {
       body * { visibility: hidden; }
       #ticket-impresion, #ticket-impresion * { visibility: visible; }
       #ticket-impresion { position: absolute; left: 0; top: 0; width: 80mm; padding: 10px; font-family: 'Courier New', Courier, monospace; color: black; }
-      .no-print { display: none !important; }
     }
   </style>
 </head>
 <body>
 
+  <!-- LOGIN -->
   <div id="login-screen">
     <div class="login-box">
       <h2 id="login-title">Panel de Administración</h2>
@@ -91,6 +91,7 @@
     </div>
   </div>
 
+  <!-- SIDEBAR -->
   <div class="sidebar hidden-panel" id="sidebar">
     <h2 id="admin-header-title">🍕 Cargando...</h2>
     <button class="active" onclick="mostrarSeccion('productos', event)">📦 Productos</button>
@@ -105,7 +106,7 @@
   <div class="main-content hidden-panel" id="main-panel">
     <div id="alert-box" class="alert"></div>
 
-    <!-- SECCIÓN PRODUCTOS -->
+    <!-- PRODUCTOS -->
     <div id="seccion-productos">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h1>Gestión de Productos</h1>
@@ -114,7 +115,7 @@
       <div class="grid-productos" id="lista-productos"></div>
     </div>
 
-    <!-- SECCIÓN PEDIDOS -->
+    <!-- PEDIDOS -->
     <div id="seccion-pedidos" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h1>Gestión de Pedidos</h1>
@@ -123,23 +124,14 @@
       <div style="overflow-x: auto;">
         <table class="tabla-pedidos">
           <thead>
-            <tr>
-              <th>Ticket</th>
-              <th>Cliente</th>
-              <th>Detalle</th>
-              <th>Total</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
+            <tr><th>Ticket</th><th>Cliente</th><th>Detalle</th><th>Total</th><th>Estado</th><th>Acciones</th></tr>
           </thead>
-          <tbody id="tabla-pedidos-body">
-            <tr><td colspan="6" style="text-align: center; padding: 20px;">Cargando pedidos...</td></tr>
-          </tbody>
+          <tbody id="tabla-pedidos-body"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- SECCIÓN SLIDER -->
+    <!-- SLIDER -->
     <div id="seccion-slider" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h1>Carrusel de Inicio</h1>
@@ -148,7 +140,7 @@
       <div class="grid-slider" id="lista-slides"></div>
     </div>
 
-    <!-- SECCIÓN RESEÑAS -->
+    <!-- RESEÑAS -->
     <div id="seccion-resenas" style="display: none;">
       <h1>Gestión de Reseñas</h1>
       <div style="background: white; padding: 25px; border-radius: 12px; max-width: 800px; margin-top: 20px;">
@@ -156,40 +148,37 @@
       </div>
     </div>
 
-    <!-- SECCIÓN CONFIGURACIÓN -->
+    <!-- CONFIGURACIÓN -->
     <div id="seccion-configuracion" style="display: none;">
       <h1>Configuración de la Web</h1>
       <div style="background: white; padding: 25px; border-radius: 12px; max-width: 700px; margin-top: 20px;">
-        <label>Nombre del Negocio</label>
+        <label>Nombre del Negocio (Público)</label>
         <input type="text" id="cfg-nombre">
-        
-        <label>Razón Social / Nombre de Empresa (para tickets)</label>
-        <input type="text" id="cfg-empresa" placeholder="Ej. Hermanos Rivas S.L.">
-
+        <label>Razón Social / Empresa (Ticket)</label>
+        <input type="text" id="cfg-empresa">
         <label>CIF / NIF</label>
-        <input type="text" id="cfg-cif" placeholder="Ej. B-12345678">
-
+        <input type="text" id="cfg-cif">
         <label>Promoción del Día</label>
         <input type="text" id="cfg-promo">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-          <div><label>Teléfono de contacto</label><input type="text" id="cfg-telefono"></div>
-          <div><label>Número de WhatsApp (solo números)</label><input type="text" id="cfg-whatsapp"></div>
+          <div><label>Teléfono</label><input type="text" id="cfg-telefono"></div>
+          <div><label>WhatsApp (solo números)</label><input type="text" id="cfg-whatsapp"></div>
         </div>
-        <label>Dirección Física</label>
+        <label>Dirección</label>
         <input type="text" id="cfg-direccion">
-        <label>Horario de apertura</label>
+        <label>Horario</label>
         <input type="text" id="cfg-horario">
         <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
-        <label>Habilitar Pago con Tarjeta (Stripe)</label>
+        <label>Habilitar Stripe</label>
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
           <label class="switch"><input type="checkbox" id="cfg-stripe"><span class="slider"></span></label>
           <span id="stripe-status-text">Desactivado</span>
         </div>
-        <button class="btn btn-success" onclick="guardarConfiguracion()">Guardar Toda la Configuración</button>
+        <button class="btn btn-success" onclick="guardarConfiguracion()">Guardar Configuración</button>
       </div>
     </div>
 
-    <!-- SECCIÓN USUARIOS -->
+    <!-- USUARIOS -->
     <div id="seccion-usuarios" style="display: none;">
       <h1>Usuarios y Roles</h1>
       <div style="background: white; padding: 25px; border-radius: 12px; max-width: 600px; margin-top: 20px;">
@@ -197,8 +186,10 @@
         <input type="text" id="new-user-name" placeholder="Nombre del empleado">
         <input type="email" id="new-user-email" placeholder="Correo electrónico">
         <input type="password" id="new-user-pass" placeholder="Contraseña temporal">
+        <input type="tel" id="new-user-phone" placeholder="Teléfono (Opcional)">
         <select id="new-user-role">
           <option value="empleado">Empleado (Productos y Pedidos)</option>
+          <option value="cocina">Cocina (Solo Monitor)</option>
           <option value="admin">Administrador (Control total)</option>
         </select>
         <button class="btn btn-success" onclick="crearEmpleado()">Crear Usuario</button>
@@ -232,12 +223,10 @@
       <textarea id="prod-desc" rows="2"></textarea>
       <label>Ingredientes</label>
       <textarea id="prod-ingredientes" rows="2"></textarea>
-      
-      <label>Imagen del Producto</label>
+      <label>Imagen</label>
       <img id="preview-prod" class="img-preview">
       <input type="file" id="file-prod" accept="image/*" onchange="subirImagenProducto(this)">
       <input type="hidden" id="prod-imagen">
-
       <label>Disponible en la Web</label>
       <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
         <label class="switch"><input type="checkbox" id="prod-disponible" checked><span class="slider"></span></label>
@@ -257,12 +246,10 @@
       <input type="text" id="slide-titulo">
       <label>Subtítulo (Opcional)</label>
       <input type="text" id="slide-subtitulo">
-      
-      <label>Imagen del Slider</label>
+      <label>Imagen</label>
       <img id="preview-slide" class="img-preview">
       <input type="file" id="file-slide" accept="image/*" onchange="subirImagenSlide(this)">
       <input type="hidden" id="slide-imagen">
-
       <div style="display: flex; gap: 10px; margin-top: 20px;">
         <button class="btn btn-success" onclick="guardarSlide()">Guardar</button>
         <button class="btn" style="background: #95a5a6;" onclick="document.getElementById('modal-slider').style.display = 'none'">Cancelar</button>
@@ -270,22 +257,15 @@
     </div>
   </div>
 
-  <!-- ÁREA DE IMPRESIÓN (Oculto en pantalla, visible al imprimir) -->
   <div id="ticket-impresion" style="display: none;"></div>
-
-  <!-- LIBRERÍA PARA CÓDIGO DE BARRAS (JsBarcode) -->
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 
   <script>
     const SUPABASE_URL = 'https://afarkzyxssgcpmnquqdp.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMzI2NTUsImV4cCI6MjEwODcwODY1NX0.J7gSycaeum0bUzx9tss5OM4WfPUt5BswqxnSEI0RgiY';
-    
-    // ⚠️ PEGA AQUÍ TU SERVICE_ROLE_KEY
-    const SUPABASE_SERVICE_KEY = 'PEGA_AQUI_TU_SERVICE_ROLE_KEY'; 
+    const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MzEzMjY1NSwiZXhwIjoyMTA4NzA4NjU1fQ.HmXW8r7uo9b5hohYLmi3koHLKHX-G9WTKBaSakKUO-w'; 
 
-    let productosGlobal = [];
-    let slidesGlobal = [];
-    let pedidosGlobal = [];
+    let productosGlobal = [], slidesGlobal = [], pedidosGlobal = [];
     let userRole = 'empleado';
 
     async function fetchSupabase(endpoint, options = {}, useServiceKey = false) {
@@ -304,13 +284,10 @@
 
     function mostrarAlerta(mensaje, tipo = 'success') {
       const box = document.getElementById('alert-box');
-      box.textContent = mensaje;
-      box.className = `alert alert-${tipo}`;
-      box.style.display = 'block';
+      box.textContent = mensaje; box.className = `alert alert-${tipo}`; box.style.display = 'block';
       setTimeout(() => { box.style.display = 'none'; }, 4000);
     }
 
-    // === LOGIN ===
     async function login() {
       const email = document.getElementById('login-email').value.trim();
       const pass = document.getElementById('login-pass').value;
@@ -319,11 +296,9 @@
 
       try {
         const response = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
-          method: 'POST',
-          headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+          method: 'POST', headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password: pass })
         });
-
         if (!response.ok) throw new Error('Credenciales incorrectas');
         
         const perfiles = await fetchSupabase(`/rest/v1/perfiles?email=eq.${email}`);
@@ -335,14 +310,12 @@
         document.getElementById('main-panel').classList.remove('hidden-panel');
         
         if (userRole === 'admin') document.querySelector('.admin-only').style.display = 'block';
-
-        cargarProductos();
-        cargarConfiguracion();
+        // Si el rol es 'cocina', lo ideal es redirigir a cocina.html (lo haremos luego)
         
+        cargarProductos(); cargarConfiguracion();
       } catch (error) {
         document.getElementById('login-msg').textContent = error.message;
-        document.getElementById('login-msg').style.display = 'block';
-        btn.textContent = 'Entrar al Panel';
+        document.getElementById('login-msg').style.display = 'block'; btn.textContent = 'Entrar al Panel';
       }
     }
 
@@ -354,67 +327,39 @@
       });
       document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active'));
       if(event) event.target.classList.add('active');
-      
       if(id === 'resenas') cargarResenas();
       if(id === 'pedidos') cargarPedidos();
       if(id === 'slider') cargarSlides();
     }
 
-    // === SUBIDA DE IMÁGENES ===
     async function subirImagen(file, bucket = 'imagenes') {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `${fileName}`;
-
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${bucket}/${filePath}`, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
-        },
-        body: formData
+      const formData = new FormData(); formData.append('file', file);
+      const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${bucket}/${fileName}`, {
+        method: 'POST', headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }, body: formData
       });
-
       if (!res.ok) throw new Error('Error al subir la imagen');
-      return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${filePath}`;
+      return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${fileName}`;
     }
 
     async function subirImagenProducto(input) {
-      if (!input.files || input.files.length === 0) return;
-      const file = input.files[0];
-      const preview = document.getElementById('preview-prod');
-      preview.src = URL.createObjectURL(file);
-      preview.style.display = 'block';
-
-      try {
-        const url = await subirImagen(file);
-        document.getElementById('prod-imagen').value = url;
-        mostrarAlerta('Imagen subida correctamente.');
-      } catch (error) {
-        mostrarAlerta('Error al subir imagen: ' + error.message, 'error');
-      }
+      if (!input.files.length) return;
+      const file = input.files[0]; const preview = document.getElementById('preview-prod');
+      preview.src = URL.createObjectURL(file); preview.style.display = 'block';
+      try { document.getElementById('prod-imagen').value = await subirImagen(file); mostrarAlerta('Imagen subida.'); } 
+      catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
     }
 
     async function subirImagenSlide(input) {
-      if (!input.files || input.files.length === 0) return;
-      const file = input.files[0];
-      const preview = document.getElementById('preview-slide');
-      preview.src = URL.createObjectURL(file);
-      preview.style.display = 'block';
-
-      try {
-        const url = await subirImagen(file);
-        document.getElementById('slide-imagen').value = url;
-        mostrarAlerta('Imagen subida correctamente.');
-      } catch (error) {
-        mostrarAlerta('Error al subir imagen: ' + error.message, 'error');
-      }
+      if (!input.files.length) return;
+      const file = input.files[0]; const preview = document.getElementById('preview-slide');
+      preview.src = URL.createObjectURL(file); preview.style.display = 'block';
+      try { document.getElementById('slide-imagen').value = await subirImagen(file); mostrarAlerta('Imagen subida.'); } 
+      catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
     }
 
-    // === PRODUCTOS ===
+    // PRODUCTOS
     async function cargarProductos() {
       const productos = await fetchSupabase('/rest/v1/productos?select=*&order=id');
       productosGlobal = productos;
@@ -441,10 +386,8 @@
       document.getElementById('prod-nombre').value = '';
       document.getElementById('prod-precio').value = '';
       document.getElementById('prod-categoria').value = 'Pizzas';
-      document.getElementById('prod-desc').value = '';
-      document.getElementById('prod-ingredientes').value = '';
-      document.getElementById('prod-imagen').value = '';
-      document.getElementById('file-prod').value = '';
+      document.getElementById('prod-desc').value = ''; document.getElementById('prod-ingredientes').value = '';
+      document.getElementById('prod-imagen').value = ''; document.getElementById('file-prod').value = '';
       document.getElementById('preview-prod').style.display = 'none';
       document.getElementById('prod-disponible').checked = true;
       document.getElementById('modal-producto').style.display = 'flex';
@@ -455,20 +398,13 @@
       if (!p) return;
       document.getElementById('modal-title').textContent = 'Editar Producto';
       document.getElementById('prod-id-original').value = p.id;
-      document.getElementById('prod-id').value = p.id;
-      document.getElementById('prod-nombre').value = p.nombre;
-      document.getElementById('prod-precio').value = p.precio;
-      document.getElementById('prod-categoria').value = p.categoria || 'Pizzas';
-      document.getElementById('prod-desc').value = p.descripcion || '';
-      document.getElementById('prod-ingredientes').value = p.ingredientes || '';
+      document.getElementById('prod-id').value = p.id; document.getElementById('prod-nombre').value = p.nombre;
+      document.getElementById('prod-precio').value = p.precio; document.getElementById('prod-categoria').value = p.categoria || 'Pizzas';
+      document.getElementById('prod-desc').value = p.descripcion || ''; document.getElementById('prod-ingredientes').value = p.ingredientes || '';
       document.getElementById('prod-imagen').value = p.imagen_url || '';
-      
       const preview = document.getElementById('preview-prod');
-      if(p.imagen_url) { preview.src = p.imagen_url; preview.style.display = 'block'; }
-      else { preview.style.display = 'none'; }
-      document.getElementById('file-prod').value = '';
-
-      document.getElementById('prod-disponible').checked = p.disponible;
+      if(p.imagen_url) { preview.src = p.imagen_url; preview.style.display = 'block'; } else { preview.style.display = 'none'; }
+      document.getElementById('file-prod').value = ''; document.getElementById('prod-disponible').checked = p.disponible;
       document.getElementById('modal-producto').style.display = 'flex';
     }
 
@@ -477,363 +413,48 @@
     async function guardarProducto() {
       const idOriginal = document.getElementById('prod-id-original').value;
       const data = {
-        id: document.getElementById('prod-id').value.trim(),
-        nombre: document.getElementById('prod-nombre').value.trim(),
-        categoria: document.getElementById('prod-categoria').value,
-        precio: parseFloat(document.getElementById('prod-precio').value),
-        descripcion: document.getElementById('prod-desc').value.trim(),
-        ingredientes: document.getElementById('prod-ingredientes').value.trim(),
-        imagen_url: document.getElementById('prod-imagen').value,
-        disponible: document.getElementById('prod-disponible').checked
+        id: document.getElementById('prod-id').value.trim(), nombre: document.getElementById('prod-nombre').value.trim(),
+        categoria: document.getElementById('prod-categoria').value, precio: parseFloat(document.getElementById('prod-precio').value),
+        descripcion: document.getElementById('prod-desc').value.trim(), ingredientes: document.getElementById('prod-ingredientes').value.trim(),
+        imagen_url: document.getElementById('prod-imagen').value, disponible: document.getElementById('prod-disponible').checked
       };
-
       try {
-        if (idOriginal) {
-          await fetchSupabase(`/rest/v1/productos?id=eq.${idOriginal}`, { method: 'PATCH', body: JSON.stringify(data) });
-        } else {
-          await fetchSupabase('/rest/v1/productos', { method: 'POST', body: JSON.stringify(data) });
-        }
-        cerrarModal();
-        cargarProductos();
-        mostrarAlerta('Producto guardado.');
-      } catch (error) {
-        mostrarAlerta('Error: ' + error.message, 'error');
-      }
+        if (idOriginal) await fetchSupabase(`/rest/v1/productos?id=eq.${idOriginal}`, { method: 'PATCH', body: JSON.stringify(data) });
+        else await fetchSupabase('/rest/v1/productos', { method: 'POST', body: JSON.stringify(data) });
+        cerrarModal(); cargarProductos(); mostrarAlerta('Producto guardado.');
+      } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
     }
 
     async function eliminarProducto(id) {
       if (!confirm('¿Eliminar producto?')) return;
-      await fetchSupabase(`/rest/v1/productos?id=eq.${id}`, { method: 'DELETE' });
-      cargarProductos();
-      mostrarAlerta('Producto eliminado.');
+      await fetchSupabase(`/rest/v1/productos?id=eq.${id}`, { method: 'DELETE' }); cargarProductos(); mostrarAlerta('Producto eliminado.');
     }
 
-    // === SLIDER ===
+    // SLIDER
     async function cargarSlides() {
       const slides = await fetchSupabase('/rest/v1/slides?select=*&order=orden');
       slidesGlobal = slides;
       document.getElementById('lista-slides').innerHTML = slides.map(s => `
         <div class="card">
           <img src="${s.imagen_url}">
-          <div class="card-body">
-            <h3>${s.titulo || 'Sin Título'}</h3>
-            <div class="card-actions">
-              <button class="btn-delete" onclick="eliminarSlide('${s.id}')">🗑️ Borrar</button>
-            </div>
-          </div>
+          <div class="card-body"><h3>${s.titulo || 'Sin Título'}</h3><div class="card-actions"><button class="btn-delete" onclick="eliminarSlide('${s.id}')">🗑️ Borrar</button></div></div>
         </div>
       `).join('');
     }
 
     function abrirModalSlide() {
-      document.getElementById('slide-titulo').value = '';
-      document.getElementById('slide-subtitulo').value = '';
-      document.getElementById('slide-imagen').value = '';
-      document.getElementById('file-slide').value = '';
+      document.getElementById('slide-titulo').value = ''; document.getElementById('slide-subtitulo').value = '';
+      document.getElementById('slide-imagen').value = ''; document.getElementById('file-slide').value = '';
       document.getElementById('preview-slide').style.display = 'none';
       document.getElementById('modal-slider').style.display = 'flex';
     }
 
     async function guardarSlide() {
       const data = {
-        titulo: document.getElementById('slide-titulo').value.trim(),
-        subtitulo: document.getElementById('slide-subtitulo').value.trim(),
-        imagen_url: document.getElementById('slide-imagen').value,
-        activo: true,
-        orden: 1
+        titulo: document.getElementById('slide-titulo').value.trim(), subtitulo: document.getElementById('slide-subtitulo').value.trim(),
+        imagen_url: document.getElementById('slide-imagen').value, activo: true, orden: 1
       };
-
       if (!data.imagen_url) return mostrarAlerta('Debes subir una imagen.', 'error');
-
       try {
         await fetchSupabase('/rest/v1/slides', { method: 'POST', body: JSON.stringify(data) });
-        document.getElementById('modal-slider').style.display = 'none';
-        cargarSlides();
-        mostrarAlerta('Imagen añadida al Slider.');
-      } catch (error) {
-        mostrarAlerta('Error: ' + error.message, 'error');
-      }
-    }
-
-    async function eliminarSlide(id) {
-      if (!confirm('¿Eliminar imagen del slider?')) return;
-      await fetchSupabase(`/rest/v1/slides?id=eq.${id}`, { method: 'DELETE' });
-      cargarSlides();
-      mostrarAlerta('Imagen eliminada.');
-    }
-
-    // === PEDIDOS ===
-    async function cargarPedidos() {
-      try {
-        const pedidos = await fetchSupabase('/rest/v1/pedidos?select=*&order=fecha.desc&limit=50');
-        pedidosGlobal = pedidos;
-        const tbody = document.getElementById('tabla-pedidos-body');
-        
-        if (pedidos.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No hay pedidos todavía.</td></tr>';
-          return;
-        }
-
-        tbody.innerHTML = pedidos.map(p => {
-          let badgeClass = 'badge-pendiente';
-          if (p.estado === 'En preparación') badgeClass = 'badge-preparacion';
-          if (p.estado === 'Listo') badgeClass = 'badge-listo';
-          if (p.estado === 'Entregado') badgeClass = 'badge-entregado';
-
-          return `
-            <tr>
-              <td style="font-weight: bold;">${p.order_id}</td>
-              <td>${p.nombre_cliente}<br><small>${p.telefono || ''}</small></td>
-              <td>${p.detalle}</td>
-              <td style="font-weight: bold;">${Number(p.total).toFixed(2)} €</td>
-              <td><span class="badge ${badgeClass}">${p.estado}</span></td>
-              <td>
-                <button class="btn" style="width: auto; padding: 5px 10px; font-size: 0.8rem; background: #3498db;" onclick="imprimirTicket('${p.order_id}')">🖨️ Imprimir</button>
-                <button class="btn" style="width: auto; padding: 5px 10px; font-size: 0.8rem; background: #25D366;" onclick="contactarWhatsApp('${p.telefono}', '${p.order_id}', '${p.estado}')">💬 WhatsApp</button>
-              </td>
-            </tr>
-          `;
-        }).join('');
-      } catch (error) {
-        document.getElementById('tabla-pedidos-body').innerHTML = '<tr><td colspan="6" style="color:red; text-align: center; padding: 20px;">Error al cargar pedidos.</td></tr>';
-      }
-    }
-
-    // === IMPRIMIR TICKET DINÁMICO ===
-    async function imprimirTicket(orderId) {
-      const pedido = pedidosGlobal.find(p => p.order_id === orderId);
-      if (!pedido) return;
-
-      // Traemos la configuración actual de Supabase para los datos del ticket
-      let config = {};
-      try {
-        const res = await fetchSupabase('/rest/v1/configuracion?select=*');
-        res.forEach(item => config[item.clave] = item.valor);
-      } catch (e) {
-        console.error('No se pudo cargar la configuración para el ticket');
-      }
-
-      const nombreEmpresa = config.empresa || config.nombre_negocio || 'MI RESTAURANTE';
-      const cif = config.cif || 'CIF no configurado';
-      const telefono = config.telefono || '';
-      const direccion = config.direccion || '';
-
-      const fecha = pedido.fecha ? new Date(pedido.fecha).toLocaleString('es-ES') : '--/--/---- --:--';
-      const items = pedido.detalle.split(',').map(item => `<div style="margin-bottom: 5px;">- ${item.trim()}</div>`).join('');
-      
-      const ticketHTML = `
-        <div style="text-align: center; margin-bottom: 10px;">
-          <h2 style="margin: 0; font-size: 1.4rem;">${nombreEmpresa}</h2>
-          ${direccion ? `<p style="margin: 2px 0;">${direccion}</p>` : ''}
-          ${telefono ? `<p style="margin: 2px 0;">Tel: ${telefono}</p>` : ''}
-          <p style="margin: 2px 0;">CIF: ${cif}</p>
-        </div>
-        <hr style="border-top: 1px dashed #000; margin: 10px 0;">
-        <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
-          <span>Ticket: ${pedido.order_id}</span>
-          <span>${fecha}</span>
-        </div>
-        <hr style="border-top: 1px dashed #000; margin: 10px 0;">
-        <div style="font-size: 0.9rem;">
-          <strong>Cliente:</strong> ${pedido.nombre_cliente}<br>
-          <strong>Teléfono:</strong> ${pedido.telefono || 'N/A'}<br>
-          <strong>Dirección:</strong> ${pedido.direccion || 'Recogida en tienda'}
-        </div>
-        <hr style="border-top: 1px dashed #000; margin: 10px 0;">
-        <div style="font-size: 1rem; margin-bottom: 10px;">
-          ${items}
-        </div>
-        <hr style="border-top: 1px dashed #000; margin: 10px 0;">
-        <div style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: bold;">
-          <span>TOTAL:</span>
-          <span>${Number(pedido.total).toFixed(2)} €</span>
-        </div>
-        <hr style="border-top: 1px dashed #000; margin: 10px 0;">
-        
-        <div style="text-align: center; margin-top: 15px;">
-          <svg id="barcode-ticket"></svg>
-        </div>
-        
-        <div style="text-align: center; font-size: 0.8rem; margin-top: 15px;">
-          ¡Gracias por su pedido!
-        </div>
-      `;
-
-      document.getElementById('ticket-impresion').innerHTML = ticketHTML;
-      document.getElementById('ticket-impresion').style.display = 'block';
-      
-      setTimeout(() => {
-        JsBarcode("#barcode-ticket", pedido.order_id, {
-          format: "CODE128",
-          lineColor: "#000",
-          width: 2,
-          height: 40,
-          displayValue: true,
-          fontSize: 14,
-          margin: 0
-        });
-        
-        window.print();
-        document.getElementById('ticket-impresion').style.display = 'none';
-      }, 200);
-    }
-
-    function contactarWhatsApp(telefono, orderId, estado) {
-      if (!telefono) return alert('Este pedido no tiene teléfono.');
-      const numLimpio = telefono.replace(/\D/g, '');
-      let msg = '';
-      if (estado === 'En preparación') msg = `Hola, tu pedido *${orderId}* ya está en el horno. 🍕`;
-      else if (estado === 'Listo') msg = `¡Hola! Tu pedido *${orderId}* está listo. 🛵`;
-      else if (estado === 'Entregado') msg = `¡Esperamos que disfrutes tu pedido *${orderId}*! 😊`;
-      else msg = `Hola, contactamos sobre tu pedido *${orderId}*.`;
-      
-      window.open(`https://wa.me/${numLimpio}?text=${encodeURIComponent(msg)}`, '_blank');
-    }
-
-    // === CONFIGURACIÓN ===
-    async function cargarConfiguracion() {
-      try {
-        const data = await fetchSupabase('/rest/v1/configuracion?select=*');
-        const config = {};
-        data.forEach(item => config[item.clave] = item.valor);
-        
-        if(document.getElementById('cfg-nombre')) document.getElementById('cfg-nombre').value = config.nombre_negocio || '';
-        if(document.getElementById('cfg-empresa')) document.getElementById('cfg-empresa').value = config.empresa || '';
-        if(document.getElementById('cfg-cif')) document.getElementById('cfg-cif').value = config.cif || '';
-        if(document.getElementById('cfg-promo')) document.getElementById('cfg-promo').value = config.promocion || '';
-        if(document.getElementById('cfg-telefono')) document.getElementById('cfg-telefono').value = config.telefono || '';
-        if(document.getElementById('cfg-whatsapp')) document.getElementById('cfg-whatsapp').value = config.whatsapp || '';
-        if(document.getElementById('cfg-direccion')) document.getElementById('cfg-direccion').value = config.direccion || '';
-        if(document.getElementById('cfg-horario')) document.getElementById('cfg-horario').value = config.horario || '';
-        if(document.getElementById('cfg-stripe')) document.getElementById('cfg-stripe').checked = (config.stripe_habilitado === 'true');
-
-        const headerTitle = document.getElementById('admin-header-title');
-        if (config.nombre_negocio) {
-          if (headerTitle) headerTitle.textContent = '🍕 ' + config.nombre_negocio;
-          document.title = 'Panel - ' + config.nombre_negocio;
-          const loginTitle = document.getElementById('login-title');
-          if (loginTitle) loginTitle.textContent = 'Panel - ' + config.nombre_negocio;
-        } else {
-          if (headerTitle) headerTitle.textContent = '🍕 Mi Negocio';
-          document.title = 'Panel de Administración';
-        }
-      } catch (error) { console.error("Error config:", error); }
-    }
-
-    document.getElementById('cfg-stripe')?.addEventListener('change', (e) => {
-      document.getElementById('stripe-status-text').textContent = e.target.checked ? 'Activado' : 'Desactivado';
-    });
-
-    async function guardarConfiguracion() {
-      const configs = [
-        { clave: 'nombre_negocio', valor: document.getElementById('cfg-nombre').value.trim() },
-        { clave: 'empresa', valor: document.getElementById('cfg-empresa').value.trim() },
-        { clave: 'cif', valor: document.getElementById('cfg-cif').value.trim() },
-        { clave: 'promocion', valor: document.getElementById('cfg-promo').value.trim() },
-        { clave: 'telefono', valor: document.getElementById('cfg-telefono').value.trim() },
-        { clave: 'whatsapp', valor: document.getElementById('cfg-whatsapp').value.trim() },
-        { clave: 'direccion', valor: document.getElementById('cfg-direccion').value.trim() },
-        { clave: 'horario', valor: document.getElementById('cfg-horario').value.trim() },
-        { clave: 'stripe_habilitado', valor: document.getElementById('cfg-stripe').checked ? 'true' : 'false' }
-      ];
-      
-      try {
-        for (const c of configs) {
-          const res = await fetch(SUPABASE_URL + '/rest/v1/configuracion', {
-            method: 'POST',
-            headers: {
-              'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-              'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates'
-            },
-            body: JSON.stringify(c)
-          });
-          if (!res.ok) throw new Error('Error al guardar');
-        }
-        mostrarAlerta('Configuración guardada correctamente.');
-        cargarConfiguracion(); 
-      } catch (error) {
-        mostrarAlerta('Error al guardar: ' + error.message, 'error');
-      }
-    }
-
-    // === RESEÑAS ===
-    async function cargarResenas() {
-      try {
-        const resenas = await fetchSupabase('/rest/v1/resenas?select=*&order=fecha.desc');
-        const cont = document.getElementById('lista-resenas-admin');
-        if (resenas.length === 0) { cont.innerHTML = '<p>No hay reseñas todavía.</p>'; return; }
-        cont.innerHTML = resenas.map(r => `
-          <div style="border-bottom: 1px solid #eee; padding: 15px 0;">
-            <div style="display: flex; justify-content: space-between;">
-              <strong>${r.nombre}</strong>
-              <span style="color: #f1c40f;">${'★'.repeat(r.estrellas)}${'☆'.repeat(5-r.estrellas)}</span>
-            </div>
-            <p style="font-size: 0.9rem; margin: 5px 0; color: #555;">"${r.comentario}"</p>
-            <div style="display: flex; gap: 10px; margin-top: 10px;">
-              <span style="font-size: 0.8rem; background: ${r.aprobada ? '#d4edda' : '#fff3cd'}; padding: 3px 8px; border-radius: 4px;">
-                ${r.aprobada ? 'Publicada' : 'Pendiente'}
-              </span>
-              ${!r.aprobada ? `<button class="btn" style="width: auto; padding: 5px 10px; font-size: 0.8rem; background: #27ae60;" onclick="aprobarResena(${r.id})">Aprobar</button>` : ''}
-              <button class="btn" style="width: auto; padding: 5px 10px; font-size: 0.8rem; background: #e74c3c;" onclick="eliminarResena(${r.id})">Eliminar</button>
-            </div>
-          </div>
-        `).join('');
-      } catch (error) {
-        document.getElementById('lista-resenas-admin').innerHTML = `<p style="color:red">Error al cargar reseñas.</p>`;
-      }
-    }
-
-    async function aprobarResena(id) {
-      await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify({ aprobada: true }) });
-      cargarResenas(); mostrarAlerta('Reseña publicada.');
-    }
-
-    async function eliminarResena(id) {
-      if (!confirm('¿Eliminar esta reseña?')) return;
-      await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, { method: 'DELETE' });
-      cargarResenas(); mostrarAlerta('Reseña eliminada.');
-    }
-
-    // === USUARIOS ===
-    async function crearEmpleado() {
-      if (userRole !== 'admin') return mostrarAlerta('No tienes permisos', 'error');
-
-      const nombre = document.getElementById('new-user-name').value.trim();
-      const email = document.getElementById('new-user-email').value.trim();
-      const pass = document.getElementById('new-user-pass').value;
-      const rol = document.getElementById('new-user-role').value;
-
-      if (!email || !pass) return mostrarAlerta('Email y contraseña requeridos', 'error');
-
-      try {
-        const authRes = await fetch(SUPABASE_URL + '/auth/v1/admin/users', {
-          method: 'POST',
-          headers: {
-            'apikey': SUPABASE_SERVICE_KEY,
-            'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ email, password: pass, email_confirm: true })
-        });
-
-        if (!authRes.ok) throw new Error('Error al crear el usuario en Auth');
-        const userData = await authRes.json();
-
-        await fetchSupabase('/rest/v1/perfiles', {
-          method: 'POST',
-          headers: { 'Prefer': 'resolution=merge-duplicates' },
-          body: JSON.stringify({ id: userData.id, email: email, rol: rol, nombre: nombre })
-        }, true);
-
-        mostrarAlerta(`Empleado ${nombre} creado con éxito.`);
-        document.getElementById('new-user-name').value = '';
-        document.getElementById('new-user-email').value = '';
-        document.getElementById('new-user-pass').value = '';
-
-      } catch (error) {
-        mostrarAlerta('Error al crear empleado: ' + error.message, 'error');
-      }
-    }
-  </script>
-</body>
-</html>
+        document.getElementById('modal-slider').
