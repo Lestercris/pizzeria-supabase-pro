@@ -216,13 +216,21 @@
     function moneda(n) { return '€' + (Number(n) || 0).toFixed(2); }
     function precioNum(valor) { if (typeof valor === 'number') return isFinite(valor) ? valor : 0; let s = String(valor == null ? '' : valor).replace(/[^\d.,-]/g, ''); if (!s) return 0; if (s.indexOf(',') > -1 && s.indexOf('.') > -1) { s = s.lastIndexOf(',') > s.lastIndexOf('.') ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, ''); } else { s = s.replace(',', '.'); } const n = parseFloat(s); return isNaN(n) ? 0 : n; }
 
-    async function fetchSupabase(endpoint, options = {}, useServiceKey = false) {
-      const key = useServiceKey ? SUPABASE_SERVICE_KEY : SUPABASE_ANON_KEY;
-      const headers = { 'apikey': key, 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...options.headers };
-      const res = await fetch(SUPABASE_URL + endpoint, { ...options, headers });
-      if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.message || 'Error en la petición'); }
-      return res.json();
-    }
+async function fetchSupabase(endpoint, options = {}) {
+  const headers = { 
+    'apikey': SUPABASE_ANON_KEY, 
+    'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 
+    'Content-Type': 'application/json', 
+    'Prefer': 'return=representation', 
+    ...options.headers 
+  };
+  const res = await fetch(SUPABASE_URL + endpoint, { ...options, headers });
+  if (!res.ok) { 
+    const err = await res.json().catch(() => ({})); 
+    throw new Error(err.message || 'Error en la petición'); 
+  }
+  return res.json();
+}
 
     function mostrarAlerta(mensaje, tipo = 'success') {
       const box = document.getElementById('alert-box');
@@ -317,35 +325,45 @@
       } catch (error) { mostrarAlerta('Error al guardar: ' + error.message, 'error'); }
     }
 
-    function eliminarProducto(id) { confirmarAccion('Eliminar Producto', '¿Seguro que quieres eliminar este producto?', async () => { try { await fetchSupabase(`/rest/v1/productos?id=eq.${id}`, { method: 'DELETE' }); mostrarAlerta('Producto eliminado.'); cargarProductos(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } }); }
-
-        async function subirImagenProducto(input) {
-      const file = input.files[0]; 
-      if (!file) return;
-      try { 
-        const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-        const fileName = `prod_${Date.now()}.${ext}`;
-        const res = await fetch(`${SUPABASE_URL}/storage/v1/object/productos/${fileName}`, {
-          method: 'POST', 
-          headers: { 
-            'apikey': SUPABASE_SERVICE_KEY, 
-            'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY, 
-            'Content-Type': file.type, 
-            'x-upsert': 'true' 
-          }, 
-          body: file
-        });
-        if (!res.ok) throw new Error('Error al subir');
-        
-        const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/productos/${fileName}`;
-        document.getElementById('prod-imagen').value = publicUrl;
-        document.getElementById('preview-prod').src = publicUrl; 
-        document.getElementById('preview-prod').style.display = 'block';
-        mostrarAlerta('Imagen subida.');
-      } catch (error) { 
-        mostrarAlerta('Error al subir imagen: ' + error.message, 'error'); 
-      }
-    }
+  function eliminarProducto(id) { 
+  confirmarAccion('Eliminar Producto', '¿Seguro?', async () => { 
+    try { 
+      await fetchSupabase(`/rest/v1/productos?id=eq.${id}`, { method: 'DELETE' }); 
+      mostrarAlerta('Eliminado.'); cargarProductos(); 
+    } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } 
+  }); 
+}
+async function subirImagenProducto(input) { 
+  const file = input.files[0]; if (!file) return; 
+  try { 
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const fileName = `prod_${Date.now()}.${ext}`;
+    
+    // Usamos la sesión del usuario logueado en lugar de la Service Key
+    const session = await fetch(`${SUPABASE_URL}/auth/v1/user`, { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }});
+    
+    const res = await fetch(`${SUPABASE_URL}/storage/v1/object/productos/${fileName}`, { 
+      method: 'POST', 
+      headers: { 
+        'apikey': SUPABASE_ANON_KEY, 
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 
+        'Content-Type': file.type, 
+        'x-upsert': 'true' 
+      }, 
+      body: file 
+    }); 
+    
+    if (!res.ok) throw new Error('Error al subir. Revisa las políticas de Storage en Supabase.'); 
+    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/productos/${fileName}`; 
+    document.getElementById('prod-imagen').value = publicUrl; 
+    document.getElementById('preview-prod').src = publicUrl; 
+    document.getElementById('preview-prod').style.display = 'block'; 
+    mostrarAlerta('Imagen subida con éxito.'); 
+  } catch (error) { 
+    mostrarAlerta('Error: ' + error.message, 'error'); 
+  } 
+}
+      
     async function cargarSlides() { try { const data = await fetchSupabase('/rest/v1/slides?select=*&order=orden.asc'); slidesGlobal = data || []; renderizarSlides(); } catch (error) { mostrarAlerta('Error slider: ' + error.message, 'error'); } }
 
     function renderizarSlides() {
