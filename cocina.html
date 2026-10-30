@@ -161,12 +161,12 @@
       }
     });
 
-    // CARGAR COCINEROS DESDE LA TABLA PERFILES DE SUPABASE (SOLO ROL COCINA Y ADMIN)
+       // CARGAR COCINEROS DESDE LA TABLA PERFILES DE SUPABASE (SOLO ROL COCINA)
     async function cargarCocinerosDesdeBD() {
       const select = document.getElementById('select-cocinero');
       try {
-        // CORREGIDO: Filtro estricto para que solo salgan los cocineros y admins
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/perfiles?select=nombre,rol&or=(rol.eq.cocina,rol.eq.admin)&order=nombre.asc`, {
+        // CORREGIDO ESTRICTAMENTE: Solo trae a los que tienen el rol 'cocina'
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/perfiles?select=nombre,rol&rol=eq.cocina&order=nombre.asc`, {
           headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
         });
         
@@ -190,7 +190,6 @@
         select.innerHTML = `<option value="">Error de conexión</option>`;
       }
     }
-
     // FUNCIÓN PARA CERRAR SESIÓN Y VOLVER AL LOGIN
     async function cerrarSesionCocina() {
       // Borramos el nombre guardado en local para que la próxima vez pida seleccionar
