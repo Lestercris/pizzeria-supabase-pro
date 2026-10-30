@@ -320,22 +320,33 @@
 
     function eliminarProducto(id) { confirmarAccion('Eliminar Producto', '¿Seguro que quieres eliminar este producto?', async () => { try { await fetchSupabase(`/rest/v1/productos?id=eq.${id}`, { method: 'DELETE' }); mostrarAlerta('Producto eliminado.'); cargarProductos(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } }); }
 
-    async function subirImagenProducto(input) {
-      const file = input.files[0]; if (!file) return;
-     // try { const ext = (file
-            const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-      const fileName = `prod_${Date.now()}.${ext}`;
-      const res = await fetch(`${SUPABASE_URL}/storage/v1/object/productos/${fileName}`, {
-        method: 'POST', headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY, 'Content-Type': file.type, 'x-upsert': 'true' }, body: file
-      });
-      if (!res.ok) throw new Error('Error al subir');
-      const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/productos/${fileName}`;
-      document.getElementById('prod-imagen').value = publicUrl;
-      document.getElementById('preview-prod').src = publicUrl; document.getElementById('preview-prod').style.display = 'block';
-      mostrarAlerta('Imagen subida.');
-    } catch (error) { mostrarAlerta('Error al subir imagen: ' + error.message, 'error'); }
+        async function subirImagenProducto(input) {
+      const file = input.files[0]; 
+      if (!file) return;
+      try { 
+        const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+        const fileName = `prod_${Date.now()}.${ext}`;
+        const res = await fetch(`${SUPABASE_URL}/storage/v1/object/productos/${fileName}`, {
+          method: 'POST', 
+          headers: { 
+            'apikey': SUPABASE_SERVICE_KEY, 
+            'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY, 
+            'Content-Type': file.type, 
+            'x-upsert': 'true' 
+          }, 
+          body: file
+        });
+        if (!res.ok) throw new Error('Error al subir');
+        
+        const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/productos/${fileName}`;
+        document.getElementById('prod-imagen').value = publicUrl;
+        document.getElementById('preview-prod').src = publicUrl; 
+        document.getElementById('preview-prod').style.display = 'block';
+        mostrarAlerta('Imagen subida.');
+      } catch (error) { 
+        mostrarAlerta('Error al subir imagen: ' + error.message, 'error'); 
+      }
     }
-
     async function cargarSlides() { try { const data = await fetchSupabase('/rest/v1/slides?select=*&order=orden.asc'); slidesGlobal = data || []; renderizarSlides(); } catch (error) { mostrarAlerta('Error slider: ' + error.message, 'error'); } }
 
     function renderizarSlides() {
