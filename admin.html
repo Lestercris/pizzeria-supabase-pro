@@ -3,321 +3,740 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Monitor de Cocina - KDS</title>
+  <title>Panel de Administración</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
-    body { background-color: #1a1a1a; color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    :root { --primary: #c0392b; --secondary: #27ae60; --bg: #f4f7f6; --text: #333; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
     
-    header { background-color: #2c3e50; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #c0392b; }
-    header h1 { font-size: 1.8rem; display: flex; align-items: center; gap: 10px; }
-    .clock { font-size: 1.5rem; font-weight: bold; color: #f1c40f; }
-    .cocinero-select { background: #34495e; color: white; border: 1px solid #f1c40f; padding: 8px 15px; border-radius: 5px; font-size: 1.1rem; margin-left: 20px; outline: none; cursor: pointer; }
-    
-    .grid-pedidos { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; padding: 20px; overflow-y: auto; height: 100%; align-content: start; }
-    .tarjeta { background-color: #2c3e50; border-radius: 12px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.5); display: flex; flex-direction: column; border-top: 8px solid #e74c3c; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
-    .tarjeta:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.7); }
-    .tarjeta.en-preparacion { border-top-color: #f1c40f; } 
-    .tarjeta.ocupado { border-top-color: #7f8c8d; opacity: 0.7; cursor: not-allowed; }
-    
-    .tarjeta-header { background-color: rgba(0,0,0,0.2); padding: 15px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    .tarjeta-header h2 { font-size: 1.5rem; color: #fff; margin: 0; }
-    .tarjeta-header .hora { font-size: 0.9rem; color: #bdc3c7; margin-top: 5px; }
-    
-    .tarjeta-body { padding: 15px; flex-grow: 1; }
-    /* Ajustamos la lista para que no se parta en cajas feas */
-    .lista-detalles { list-style: none; margin-bottom: 15px; }
-    .lista-detalles li { font-size: 1.2rem; margin-bottom: 12px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px; border-left: 4px solid #e74c3c; color: #ecf0f1; line-height: 1.4; }
-    
-    .tarjeta-footer { padding: 15px; background-color: rgba(0,0,0,0.3); display: flex; gap: 10px; }
-    .btn-accion { flex: 1; padding: 15px; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.2s; text-transform: uppercase; }
-    .btn-empezar { background-color: #f39c12; color: white; }
-    .btn-empezar:hover { background-color: #d68910; }
-    .btn-terminar { background-color: #27ae60; color: white; }
-    .btn-terminar:hover { background-color: #219150; }
-    .btn-bloqueado { background-color: #95a5a6; color: #333; cursor: not-allowed; }
+    .sidebar { width: 260px; background: #2c3e50; color: white; padding: 20px; display: flex; flex-direction: column; }
+    .sidebar h2 { text-align: center; margin-bottom: 30px; font-size: 1.5rem; color: #f1c40f; }
+    .sidebar button { background: none; border: none; color: white; padding: 12px 15px; text-align: left; font-size: 1rem; cursor: pointer; border-radius: 8px; transition: 0.3s; margin-bottom: 5px; }
+    .sidebar button:hover, .sidebar button.active { background: var(--primary); }
+    .sidebar .logout { margin-top: auto; color: #e74c3c; }
+    .admin-only { display: none; }
+    .hidden-panel { display: none; }
 
-    /* MODAL */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
-    .modal-content { background: #2c3e50; width: 100%; max-width: 600px; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-top: 10px solid #c0392b; animation: aparecer 0.3s ease; display: flex; flex-direction: column; max-height: 90vh; }
-    @keyframes aparecer { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .main-content { flex: 1; padding: 30px; overflow-y: auto; }
     
-    .modal-header { padding: 20px; background: rgba(0,0,0,0.3); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    .modal-header h2 { font-size: 1.8rem; color: #f1c40f; }
-    .btn-cerrar { background: none; border: none; color: #fff; font-size: 2rem; cursor: pointer; line-height: 1; }
+    #login-screen { position: fixed; inset: 0; background: rgba(44, 62, 80, 0.95); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+    .login-box { background: white; padding: 40px; border-radius: 15px; width: 100%; max-width: 400px; text-align: center; }
+    .login-box h2 { color: var(--primary); margin-bottom: 20px; }
     
-    .modal-body { padding: 25px; overflow-y: auto; flex: 1; }
-    .detalle-grupo { margin-bottom: 20px; }
-    .detalle-grupo h3 { font-size: 1rem; color: #bdc3c7; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
-    .detalle-grupo p { font-size: 1.2rem; color: #fff; }
-    
-    .detalle-lista { list-style: none; margin-top: 10px; }
-    .detalle-lista li { font-size: 1.4rem; margin-bottom: 12px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 4px solid #e74c3c; line-height: 1.5; font-weight: 500; }
-    
-    /* Botón de cerrar gigante para el modal */
-    .btn-cerrar-gigante { width: 100%; padding: 20px; background: #c0392b; color: white; border: none; font-size: 1.3rem; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: background 0.2s; }
-    .btn-cerrar-gigante:hover { background: #a93226; }
+    input, select, textarea { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.95rem; outline: none; }
+    input:focus, select:focus { border-color: var(--primary); }
+    input[readonly] { background: #e9ecef; color: #6c757d; cursor: not-allowed; }
+    label { display: block; font-weight: 500; margin-bottom: 5px; font-size: 0.9rem; color: #555; }
+    button.btn { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; transition: 0.3s; }
+    button.btn:hover { background: #a93226; }
+    button.btn-success { background: var(--secondary); }
 
-    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh; color: #7f8c8d; }
-    .empty-state h2 { font-size: 2rem; margin-bottom: 10px; }
+    .grid-productos, .grid-slider { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
+    .card img { width: 100%; height: 150px; object-fit: cover; background: #eee; }
+    .card-body { padding: 15px; flex: 1; display: flex; flex-direction: column; }
+    .card-body h3 { font-size: 1.1rem; margin-bottom: 5px; color: var(--primary); }
+    .card-body .price { font-size: 1.2rem; font-weight: bold; color: var(--secondary); margin-bottom: 10px; }
+    .card-actions { display: flex; gap: 10px; margin-top: auto; }
+    .card-actions button { flex: 1; padding: 8px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; color: white; }
+    .btn-edit { background: #3498db; }
+    .btn-delete { background: #e74c3c; }
+
+    .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+    .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: var(--secondary); }
+    input:checked + .slider:before { transform: translateX(26px); }
+
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-content { background: white; padding: 30px; border-radius: 12px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+    .alert { padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none; font-weight: 500; }
+    .alert-success { background: #d4edda; color: #155724; }
+    .alert-error { background: #f8d7da; color: #721c24; }
+    
+    input[type="file"] { padding: 10px; background: #f8f9fa; border: 1px dashed #ccc; cursor: pointer; }
+    .img-preview { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; display: none; }
+
+    .tabla-pedidos { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .tabla-pedidos th, .tabla-pedidos td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+    .tabla-pedidos th { background: #2c3e50; color: white; font-weight: 500; }
+    .tabla-pedidos tr:hover { background: #f9f9f9; }
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+    .badge-pendiente { background: #fff3cd; color: #856404; }
+    .badge-preparacion { background: #cce5ff; color: #004085; }
+    .badge-listo { background: #d4edda; color: #155724; }
+    .badge-entregado { background: #d1ecf1; color: #0c5460; }
+
+    @media print {
+      body * { visibility: hidden; }
+      #ticket-impresion, #ticket-impresion * { visibility: visible; }
+      #ticket-impresion { position: absolute; left: 0; top: 0; width: 80mm; padding: 10px; font-family: 'Courier New', Courier, monospace; color: black; }
+    }
   </style>
 </head>
 <body>
 
-  <header>
-    <div style="display: flex; align-items: center;">
-      <h1>👨‍🍳 Monitor de Cocina</h1>
-      <select id="select-cocinero" class="cocinero-select" onchange="cambiarCocinero()">
-        <option value="">-- Cargando cocineros... --</option>
-      </select>
-    </div>
-    <div style="display: flex; align-items: center; gap: 15px;">
-      <div class="connection-status" style="display: flex; align-items: center; gap: 8px;">
-        <div class="dot" id="status-dot"></div>
-        <span id="status-text">Conectado</span>
-      </div>
-      <div class="clock" id="reloj">00:00:00</div>
-    </div>
-  </header>
-
-  <div class="grid-pedidos" id="contenedor-pedidos"></div>
-  
-  <div class="empty-state" id="empty-state" style="display: none;">
-    <h2>¡Todo al día! 🍕</h2>
-    <p>No hay pedidos pendientes en este momento.</p>
-  </div>
-
-  <!-- MODAL -->
-  <div class="modal-overlay" id="modal-detalles" onclick="cerrarModal(event)">
-    <div class="modal-content" onclick="event.stopPropagation()">
-      <div class="modal-header">
-        <h2 id="modal-ticket">Ticket</h2>
-      </div>
-      <div class="modal-body">
-        <div class="detalle-grupo">
-          <h3>🛒 PRODUCTOS A PREPARAR</h3>
-          <ul class="detalle-lista" id="modal-productos"></ul>
-        </div>
-        
-        <div style="display: flex; justify-content: space-between; margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-          <div class="detalle-grupo">
-            <h3>⏰ HORA</h3>
-            <p id="modal-hora"></p>
-          </div>
-          <div class="detalle-grupo">
-            <h3>📦 TIPO</h3>
-            <p id="modal-tipo" style="font-weight: bold; color: #f1c40f;"></p>
-          </div>
-        </div>
-      </div>
-      <!-- Botón GIGANTE para cerrar -->
-      <button class="btn-cerrar-gigante" onclick="document.getElementById('modal-detalles').style.display='none'">✖ CERRAR VENTANA</button>
+  <div id="login-screen">
+    <div class="login-box">
+      <h2 id="login-title">Panel de Administración</h2>
+      <p style="margin-bottom: 20px; color: #666; font-size: 0.9rem;">Ingresa tus credenciales para gestionar el negocio.</p>
+      <input type="email" id="login-email" placeholder="Correo electrónico">
+      <input type="password" id="login-pass" placeholder="Contraseña">
+      <button class="btn" onclick="login()">Entrar al Panel</button>
+      <div id="login-msg" class="alert alert-error" style="margin-top: 15px;"></div>
     </div>
   </div>
+
+  <div class="sidebar hidden-panel" id="sidebar">
+    <h2 id="admin-header-title">🍕 Cargando...</h2>
+    <button class="active" onclick="mostrarSeccion('productos', event)">📦 Productos</button>
+    <button onclick="mostrarSeccion('pedidos', event)">📋 Pedidos</button>
+    <button onclick="mostrarSeccion('slider', event)">🖼️ Slider</button>
+    <button onclick="mostrarSeccion('resenas', event)">⭐ Reseñas</button>
+    <button onclick="mostrarSeccion('configuracion', event)">⚙️ Configuración</button>
+    <button class="admin-only" onclick="mostrarSeccion('usuarios', event)">👥 Usuarios</button>
+    <button class="logout" onclick="logout()">🚪 Cerrar Sesión</button>
+  </div>
+
+  <div class="main-content hidden-panel" id="main-panel">
+    <div id="alert-box" class="alert"></div>
+
+    <!-- SECCIÓN PRODUCTOS -->
+    <div id="seccion-productos">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1>Gestión de Productos</h1>
+        <button class="btn btn-success" style="width: auto;" onclick="abrirModalNuevo()">+ Nuevo Producto</button>
+      </div>
+      <div class="grid-productos" id="lista-productos"></div>
+    </div>
+
+    <!-- SECCIÓN PEDIDOS -->
+    <div id="seccion-pedidos" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1>Gestión de Pedidos</h1>
+        <button class="btn" style="width: auto; background: #3498db;" onclick="cargarPedidos()">🔄 Actualizar</button>
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="tabla-pedidos">
+          <thead><tr><th>Ticket</th><th>Cliente</th><th>Detalle</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody id="tabla-pedidos-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SECCIÓN SLIDER -->
+    <div id="seccion-slider" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1>Carrusel de Inicio</h1>
+        <button class="btn btn-success" style="width: auto;" onclick="abrirModalSlide()">+ Nueva Imagen</button>
+      </div>
+      <div class="grid-slider" id="lista-slides"></div>
+    </div>
+
+    <!-- SECCIÓN RESEÑAS -->
+    <div id="seccion-resenas" style="display: none;">
+      <h1>Gestión de Reseñas</h1>
+      <div style="background: white; padding: 25px; border-radius: 12px; max-width: 800px; margin-top: 20px;">
+        <div id="lista-resenas-admin"></div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN CONFIGURACIÓN -->
+    <div id="seccion-configuracion" style="display: none;">
+      <h1>Configuración de la Web</h1>
+      <div style="background: white; padding: 25px; border-radius: 12px; max-width: 700px; margin-top: 20px;">
+        <label>Nombre del Negocio (Público)</label>
+        <input type="text" id="cfg-nombre">
+        <label>Razón Social / Empresa (Ticket)</label>
+        <input type="text" id="cfg-empresa">
+        <label>CIF / NIF</label>
+        <input type="text" id="cfg-cif">
+        <label>Promoción del Día</label>
+        <input type="text" id="cfg-promo">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div><label>Teléfono</label><input type="text" id="cfg-telefono"></div>
+          <div><label>WhatsApp (solo números)</label><input type="text" id="cfg-whatsapp"></div>
+        </div>
+        <label>Dirección</label>
+        <input type="text" id="cfg-direccion">
+        <label>Horario</label>
+        <input type="text" id="cfg-horario">
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+        <label>Mensaje al pie del Ticket (Fidelización)</label>
+        <textarea id="cfg-ticket-footer" rows="3"></textarea>
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+        <label>Habilitar Stripe</label>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+          <label class="switch"><input type="checkbox" id="cfg-stripe"><span class="slider"></span></label>
+          <span id="stripe-status-text">Desactivado</span>
+        </div>
+        <button class="btn btn-success" onclick="guardarConfiguracion()">Guardar Configuración</button>
+      </div>
+    </div>
+
+    <!-- SECCIÓN USUARIOS -->
+    <div id="seccion-usuarios" style="display: none;">
+      <h1>Usuarios y Roles</h1>
+      <div style="background: white; padding: 25px; border-radius: 12px; max-width: 600px; margin-top: 20px;">
+        <h3>Crear Nuevo Empleado</h3>
+        <input type="text" id="new-user-name" placeholder="Nombre del empleado">
+        <input type="email" id="new-user-email" placeholder="Correo electrónico">
+        <input type="password" id="new-user-pass" placeholder="Contraseña temporal">
+        <input type="tel" id="new-user-phone" placeholder="Teléfono (Opcional)">
+        <select id="new-user-role">
+          <option value="empleado">Empleado (Productos y Pedidos)</option>
+          <option value="cocina">Cocina (Solo Monitor)</option>
+          <option value="admin">Administrador (Control total)</option>
+        </select>
+        <button class="btn btn-success" onclick="crearEmpleado()">Crear Usuario</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PRODUCTO -->
+  <div class="modal" id="modal-producto">
+    <div class="modal-content">
+      <h2 id="modal-title" style="margin-bottom: 20px; color: var(--primary);">Nuevo Producto</h2>
+      <input type="hidden" id="prod-id-original">
+      <label>ID del Producto (Automático)</label>
+      <input type="text" id="prod-id" readonly placeholder="Generado automáticamente" style="background: #f0f0f0; cursor: not-allowed;">
+      <label>Nombre</label>
+      <input type="text" id="prod-nombre" required>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div><label>Precio (€)</label><input type="number" id="prod-precio" step="0.01" required></div>
+        <div>
+          <label>Categoría</label>
+          <select id="prod-categoria">
+            <option value="Pizzas">Pizzas</option>
+            <option value="Entrantes">Entrantes</option>
+            <option value="Postres">Postres</option>
+            <option value="Bebidas">Bebidas</option>
+            <option value="Otros">Otros</option>
+          </select>
+        </div>
+      </div>
+      <label>Descripción</label>
+      <textarea id="prod-desc" rows="2"></textarea>
+      <label>Ingredientes</label>
+      <textarea id="prod-ingredientes" rows="2"></textarea>
+      <label>Imagen</label>
+      <img id="preview-prod" class="img-preview">
+      <input type="file" id="file-prod" accept="image/*" onchange="subirImagenProducto(this)">
+      <input type="hidden" id="prod-imagen">
+      <label>Disponible en la Web</label>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+        <label class="switch"><input type="checkbox" id="prod-disponible" checked><span class="slider"></span></label>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn btn-success" onclick="guardarProducto()">Guardar</button>
+        <button class="btn" style="background: #95a5a6;" onclick="cerrarModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL SLIDER -->
+  <div class="modal" id="modal-slider">
+    <div class="modal-content">
+      <h2 style="margin-bottom: 20px; color: var(--primary);">Nueva Imagen del Slider</h2>
+      <label>Título (Opcional)</label>
+      <input type="text" id="slide-titulo">
+      <label>Subtítulo (Opcional)</label>
+      <input type="text" id="slide-subtitulo">
+      <label>Imagen</label>
+      <img id="preview-slide" class="img-preview">
+      <input type="file" id="file-slide" accept="image/*" onchange="subirImagenSlide(this)">
+      <input type="hidden" id="slide-imagen">
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button class="btn btn-success" onclick="guardarSlide()">Guardar</button>
+        <button class="btn" style="background: #95a5a6;" onclick="document.getElementById('modal-slider').style.display = 'none'">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="ticket-impresion" style="display: none;"></div>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 
   <script>
     const SUPABASE_URL = 'https://afarkzyxssgcpmnquqdp.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMzI2NTUsImV4cCI6MjEwODcwODY1NX0.J7gSycaeum0bUzx9tss5OM4WfPUt5BswqxnSEI0RgiY';
+    
+    // ⚠️ PEGA AQUÍ TU SERVICE_ROLE_KEY
+    const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MzEzMjY1NSwiZXhwIjoyMTA4NzA4NjU1fQ.HmXW8r7uo9b5hohYLmi3koHLKHX-G9WTKBaSakKUO-w'; 
 
-    let pedidosGlobal = [];
-    let miNombre = localStorage.getItem('cocina_nombre') || '';
+    let productosGlobal = [], slidesGlobal = [], pedidosGlobal = [], configGlobal = {};
+    let userRole = 'empleado';
 
-    // Cargar los cocineros desde la base de datos
-    async function cargarCocineros() {
+    async function fetchSupabase(endpoint, options = {}, useServiceKey = false) {
+      const key = useServiceKey ? SUPABASE_SERVICE_KEY : SUPABASE_ANON_KEY;
+      const headers = {
+        'apikey': key, 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json',
+        'Prefer': 'return=representation', ...options.headers
+      };
+      const res = await fetch(SUPABASE_URL + endpoint, { ...options, headers });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'Error en la petición');
+      }
+      return res.json();
+    }
+
+    function mostrarAlerta(mensaje, tipo = 'success') {
+      const box = document.getElementById('alert-box');
+      box.textContent = mensaje; box.className = `alert alert-${tipo}`; box.style.display = 'block';
+      setTimeout(() => { box.style.display = 'none'; }, 4000);
+    }
+
+    async function login() {
+      const email = document.getElementById('login-email').value.trim();
+      const pass = document.getElementById('login-pass').value;
+      const btn = document.querySelector('#login-screen button');
+      btn.textContent = 'Verificando...';
+
       try {
-        const response = await fetch(SUPABASE_URL + '/rest/v1/perfiles?select=nombre&or=(rol.eq.cocina,rol.eq.admin)', {
-          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+        const response = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+          method: 'POST', headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password: pass })
         });
+        if (!response.ok) throw new Error('Credenciales incorrectas');
         
-        const perfiles = await response.json();
-        const select = document.getElementById('select-cocinero');
-        
-        // Limpiamos el select
-        select.innerHTML = '<option value="">-- Selecciona tu nombre --</option>';
-        
-        if (perfiles.length === 0) {
-          // Si no hay perfiles, ponemos uno por defecto
-          select.innerHTML += '<option value="Cocinero">Cocinero</option>';
-        } else {
-          perfiles.forEach(p => {
-            select.innerHTML += `<option value="${p.nombre}">${p.nombre}</option>`;
-          });
+        const perfiles = await fetchSupabase(`/rest/v1/perfiles?email=eq.${email}`);
+        if (perfiles.length > 0) userRole = perfiles[0].rol;
+        else if (email === 'isahyles123@gmail.com') userRole = 'admin'; 
+
+        // 🔥 REDIRECCIÓN PARA COCINA
+        if (userRole === 'cocina') {
+          window.location.href = 'cocina.html';
+          return;
         }
 
-        // Seleccionamos el nombre guardado si existe
-        if (miNombre) {
-          select.value = miNombre;
-        } else {
-          // Si no hay guardado, pedimos que elija
-          miNombre = select.value;
-        }
-
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('sidebar').classList.remove('hidden-panel');
+        document.getElementById('main-panel').classList.remove('hidden-panel');
+        
+        if (userRole === 'admin') document.querySelector('.admin-only').style.display = 'block';
+        
+        cargarProductos(); cargarConfiguracion();
       } catch (error) {
-        console.error('Error al cargar cocineros:', error);
-        // Fallback por si falla
-        const select = document.getElementById('select-cocinero');
-        select.innerHTML = '<option value="Cocinero">Cocinero</option>';
+        document.getElementById('login-msg').textContent = error.message;
+        document.getElementById('login-msg').style.display = 'block'; btn.textContent = 'Entrar al Panel';
       }
     }
 
-    function cambiarCocinero() {
-      miNombre = document.getElementById('select-cocinero').value;
-      localStorage.setItem('cocina_nombre', miNombre);
-      obtenerPedidos(); 
+    function logout() { location.reload(); }
+
+    function mostrarSeccion(id, event) {
+      ['productos', 'pedidos', 'slider', 'configuracion', 'usuarios', 'resenas'].forEach(sec => {
+        document.getElementById(`seccion-${sec}`).style.display = sec === id ? 'block' : 'none';
+      });
+      document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active'));
+      if(event) event.target.classList.add('active');
+      if(id === 'resenas') cargarResenas();
+      if(id === 'pedidos') cargarPedidos();
+      if(id === 'slider') cargarSlides();
     }
 
-    setInterval(() => {
-      document.getElementById('reloj').textContent = new Date().toLocaleTimeString('es-ES');
-    }, 1000);
-
-    async function obtenerPedidos() {
-      try {
-        const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos?select=*&estado=in.(Pendiente,En preparación)&order=fecha.asc', {
-          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
-        });
-        
-        if (!response.ok) throw new Error('Error de red');
-        
-        const pedidos = await response.json();
-        document.getElementById('status-dot').style.backgroundColor = '#27ae60';
-        document.getElementById('status-text').textContent = 'Conectado';
-        
-        // Filtramos para mostrar solo los que no tienen dueño o son míos
-        pedidosGlobal = pedidos.filter(p => !p.cocinero || p.cocinero === miNombre);
-        renderizarPedidos(pedidosGlobal);
-
-      } catch (error) {
-        console.error(error);
-        document.getElementById('status-dot').style.backgroundColor = '#e74c3c';
-        document.getElementById('status-text').textContent = 'Desconectado';
-      }
+    async function subirImagen(file, bucket = 'imagenes') {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const formData = new FormData(); formData.append('file', file);
+      const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${bucket}/${fileName}`, {
+        method: 'POST', headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }, body: formData
+      });
+      if (!res.ok) throw new Error('Error al subir la imagen');
+      return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${fileName}`;
     }
 
-    function renderizarPedidos(pedidos) {
-      const contenedor = document.getElementById('contenedor-pedidos');
-      const emptyState = document.getElementById('empty-state');
-      
-      if (pedidos.length === 0) {
-        contenedor.innerHTML = '';
-        emptyState.style.display = 'flex';
-        return;
-      }
+    async function subirImagenProducto(input) {
+      if (!input.files.length) return;
+      const file = input.files[0]; const preview = document.getElementById('preview-prod');
+      preview.src = URL.createObjectURL(file); preview.style.display = 'block';
+      try { document.getElementById('prod-imagen').value = await subirImagen(file); mostrarAlerta('Imagen subida.'); } 
+      catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
+    }
 
-      emptyState.style.display = 'none';
-      
-      contenedor.innerHTML = pedidos.map(p => {
-        const esMio = p.cocinero === miNombre;
-        const esDeOtro = p.cocinero && p.cocinero !== miNombre;
-        
-        let claseBorde = '';
-        if (esMio) claseBorde = 'en-preparacion';
-        else if (esDeOtro) claseBorde = 'ocupado';
+    async function subirImagenSlide(input) {
+      if (!input.files.length) return;
+      const file = input.files[0]; const preview = document.getElementById('preview-slide');
+      preview.src = URL.createObjectURL(file); preview.style.display = 'block';
+      try { document.getElementById('slide-imagen').value = await subirImagen(file); mostrarAlerta('Imagen subida.'); } 
+      catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
+    }
 
-        const hora = p.fecha ? new Date(p.fecha).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'}) : '--:--';
-        
-        // Como ahora todo el detalle viene con comas (por el join del index), lo mostramos entero en un solo bloque
-        const textoDetalle = p.detalle ? p.detalle : 'Sin detalle';
-
-        let botonera = '';
-        if (esDeOtro) {
-          botonera = `<button class="btn-accion btn-bloqueado">Lo prepara ${p.cocinero}</button>`;
-        } else if (esMio) {
-          botonera = `<button class="btn-accion btn-terminar" onclick="cambiarEstado('${p.order_id}', 'Listo', event)">✅ TERMINADO</button>`;
-        } else {
-          botonera = `<button class="btn-accion btn-empezar" onclick="tomarPedido('${p.order_id}', event)">▶ PREPARAR</button>`;
-        }
-
-        return `
-          <div class="tarjeta ${claseBorde}" onclick="abrirModal('${p.order_id}')">
-            <div class="tarjeta-header">
-              <div>
-                <h2>${p.order_id}</h2>
-                <div class="hora">Llegada: ${hora}</div>
-              </div>
-              ${p.cocinero ? `<div style="font-size:0.8rem; background:#3498db; padding:2px 8px; border-radius:4px;">${p.cocinero}</div>` : ''}
-            </div>
-            
-            <div class="tarjeta-body">
-              <ul class="lista-detalles">
-                <li>${textoDetalle}</li>
-              </ul>
-            </div>
-            
-            <div class="tarjeta-footer" onclick="event.stopPropagation()">
-              ${botonera}
+    async function cargarProductos() {
+      const productos = await fetchSupabase('/rest/v1/productos?select=*&order=id');
+      productosGlobal = productos;
+      document.getElementById('lista-productos').innerHTML = productos.map(p => `
+        <div class="card">
+          <img src="${p.imagen_url || 'https://via.placeholder.com/300x150?text=Sin+Imagen'}">
+          <div class="card-body">
+            <h3>${p.nombre} ${!p.disponible ? '(Oculto)' : ''}</h3>
+            <p style="font-size: 0.85rem; color: #666;">${p.categoria || ''}</p>
+            <div class="price">${Number(p.precio).toFixed(2)} €</div>
+            <div class="card-actions">
+              <button class="btn-edit" onclick="abrirModalEditar('${p.id}')">✏️ Editar</button>
+              <button class="btn-delete" onclick="eliminarProducto('${p.id}')">🗑️ Borrar</button>
             </div>
           </div>
-        `;
-      }).join('');
+        </div>
+      `).join('');
     }
 
-    async function tomarPedido(orderId, event) {
-      event.stopPropagation();
-      if (!miNombre) {
-        alert('Por favor, selecciona tu nombre en el menú superior.');
-        return;
+    function abrirModalNuevo() {
+      document.getElementById('modal-title').textContent = 'Nuevo Producto';
+      document.getElementById('prod-id-original').value = '';
+      document.getElementById('prod-id').value = ''; 
+      document.getElementById('prod-nombre').value = '';
+      document.getElementById('prod-precio').value = '';
+      document.getElementById('prod-categoria').value = 'Pizzas';
+      document.getElementById('prod-desc').value = ''; document.getElementById('prod-ingredientes').value = '';
+      document.getElementById('prod-imagen').value = ''; document.getElementById('file-prod').value = '';
+      document.getElementById('preview-prod').style.display = 'none';
+      document.getElementById('prod-disponible').checked = true;
+      document.getElementById('modal-producto').style.display = 'flex';
+    }
+
+    function abrirModalEditar(id) {
+      const p = productosGlobal.find(x => String(x.id) === String(id));
+      if (!p) return;
+      document.getElementById('modal-title').textContent = 'Editar Producto';
+      document.getElementById('prod-id-original').value = p.id;
+      document.getElementById('prod-id').value = p.id; document.getElementById('prod-nombre').value = p.nombre;
+      document.getElementById('prod-precio').value = p.precio; document.getElementById('prod-categoria').value = p.categoria || 'Pizzas';
+      document.getElementById('prod-desc').value = p.descripcion || ''; document.getElementById('prod-ingredientes').value = p.ingredientes || '';
+      document.getElementById('prod-imagen').value = p.imagen_url || '';
+      const preview = document.getElementById('preview-prod');
+      if(p.imagen_url) { preview.src = p.imagen_url; preview.style.display = 'block'; } else { preview.style.display = 'none'; }
+      document.getElementById('file-prod').value = ''; document.getElementById('prod-disponible').checked = p.disponible;
+      document.getElementById('modal-producto').style.display = 'flex';
+    }
+
+    function cerrarModal() { document.getElementById('modal-producto').style.display = 'none'; }
+
+    async function guardarProducto() {
+      const idOriginal = document.getElementById('prod-id-original').value;
+      const data = {
+        nombre: document.getElementById('prod-nombre').value.trim(),
+        categoria: document.getElementById('prod-categoria').value, 
+        precio: parseFloat(document.getElementById('prod-precio').value),
+        descripcion: document.getElementById('prod-desc').value.trim(), 
+        ingredientes: document.getElementById('prod-ingredientes').value.trim(),
+        imagen_url: document.getElementById('prod-imagen').value, 
+        disponible: document.getElementById('prod-disponible').checked
+      };
+
+      try {
+        if (idOriginal) {
+          await fetchSupabase(`/rest/v1/productos?id=eq.${idOriginal}`, { method: 'PATCH', body: JSON.stringify(data) });
+        } else {
+          await fetchSupabase('/rest/v1/productos', { method: 'POST', body: JSON.stringify(data) });
+        }
+        cerrarModal(); cargarProductos(); mostrarAlerta('Producto guardado.');
+      } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
+    }
+
+    async function eliminarProducto(id) {
+      if (!confirm('¿Eliminar producto?')) return;
+      await fetchSupabase(`/rest/v1/productos?id=eq.${id}`, { method: 'DELETE' }); cargarProductos(); mostrarAlerta('Producto eliminado.');
+    }
+
+    async function cargarSlides() {
+      const slides = await fetchSupabase('/rest/v1/slides?select=*&order=orden');
+      slidesGlobal = slides;
+      document.getElementById('lista-slides').innerHTML = slides.map(s => `
+        <div class="card">
+          <img src="${s.imagen_url}">
+          <div class="card-body"><h3>${s.titulo || 'Sin Título'}</h3><div class="card-actions"><button class="btn-delete" onclick="eliminarSlide('${s.id}')">🗑️ Borrar</button></div></div>
+        </div>
+      `).join('');
+    }
+
+    function abrirModalSlide() {
+      document.getElementById('slide-titulo').value = ''; document.getElementById('slide-subtitulo').value = '';
+      document.getElementById('slide-imagen').value = ''; document.getElementById('file-slide').value = '';
+      document.getElementById('preview-slide').style.display = 'none';
+      document.getElementById('modal-slider').style.display = 'flex';
+    }
+
+    async function guardarSlide() {
+      const data = {
+        titulo: document.getElementById('slide-titulo').value.trim(), subtitulo: document.getElementById('slide-subtitulo').value.trim(),
+        imagen_url: document.getElementById('slide-imagen').value, activo: true, orden: 1
+      };
+      if (!data.imagen_url) return mostrarAlerta('Debes subir una imagen.', 'error');
+      try {
+        await fetchSupabase('/rest/v1/slides', { method: 'POST', body: JSON.stringify(data) });
+        document.getElementById('modal-slider').style.display = 'none'; cargarSlides(); mostrarAlerta('Imagen añadida.');
+      } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
+    }
+
+    async function eliminarSlide(id) {
+      if (!confirm('¿Eliminar imagen?')) return;
+      await fetchSupabase(`/rest/v1/slides?id=eq.${id}`, { method: 'DELETE' }); cargarSlides(); mostrarAlerta('Imagen eliminada.');
+    }
+
+    async function cargarPedidos() {
+      try {
+        const pedidos = await fetchSupabase('/rest/v1/pedidos?select=*&order=fecha.desc&limit=50');
+        pedidosGlobal = pedidos;
+        const tbody = document.getElementById('tabla-pedidos-body');
+        if (pedidos.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No hay pedidos.</td></tr>'; return; }
+
+        tbody.innerHTML = pedidos.map(p => {
+          let badgeClass = 'badge-pendiente';
+          if (p.estado === 'En preparación') badgeClass = 'badge-preparacion';
+          if (p.estado === 'Listo') badgeClass = 'badge-listo';
+          if (p.estado === 'Entregado') badgeClass = 'badge-entregado';
+          return `
+            <tr>
+              <td style="font-weight: bold;">${p.order_id}</td>
+              <td>${p.nombre_cliente}<br><small>${p.telefono || ''}</small></td>
+              <td>${p.detalle}</td>
+              <td style="font-weight: bold;">${Number(p.total).toFixed(2)} €</td>
+              <td><span class="badge ${badgeClass}">${p.estado}</span></td>
+              <td>
+                <button class="btn" style="width: auto; padding: 5px 10px; font-size: 0.8rem; background: #3498db;" onclick="imprimirTicket('${p.order_id}')">🖨️ Imprimir</button>
+                <button class="btn" style="width: auto; padding: 5px 10px; font-size: 0.8rem; background: #25D366;" onclick="contactarWhatsApp('${p.telefono}', '${p.order_id}', '${p.estado}')">💬 WhatsApp</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (error) { document.getElementById('tabla-pedidos-body').innerHTML = '<tr><td colspan="6" style="color:red; text-align: center; padding: 20px;">Error al cargar pedidos.</td></tr>'; }
+    }
+
+    async function imprimirTicket(orderId) {
+      const pedido = pedidosGlobal.find(p => String(p.order_id) === String(orderId));
+      if (!pedido) return mostrarAlerta('Pedido no encontrado.', 'error');
+
+      const cfg = configGlobal || {};
+      const nombreNegocio = cfg.nombre_negocio || 'Mi Negocio';
+      const empresa = cfg.empresa || '';
+      const cif = cfg.cif || '';
+      const direccion = cfg.direccion
+            const telefono = cfg.telefono || '';
+      const ticketFooter = cfg.ticket_footer || '¡Gracias por su compra!';
+      const fecha = new Date(pedido.fecha || Date.now());
+
+      const ticketHTML = `
+        <div style="text-align: center; margin-bottom: 10px;">
+          <h2 style="margin: 0; font-size: 16px;">${nombreNegocio}</h2>
+          ${empresa ? `<p style="margin: 2px 0; font-size: 11px;">${empresa}</p>` : ''}
+          ${cif ? `<p style="margin: 2px 0; font-size: 11px;">CIF: ${cif}</p>` : ''}
+          ${direccion ? `<p style="margin: 2px 0; font-size: 11px;">${direccion}</p>` : ''}
+          ${telefono ? `<p style="margin: 2px 0; font-size: 11px;">Tel: ${telefono}</p>` : ''}
+        </div>
+        <hr style="border-top: 1px dashed #000; margin: 8px 0;">
+        <p style="font-size: 11px; margin: 4px 0;"><strong>Ticket:</strong> ${pedido.order_id}</p>
+        <p style="font-size: 11px; margin: 4px 0;"><strong>Cliente:</strong> ${pedido.nombre_cliente}</p>
+        ${pedido.telefono ? `<p style="font-size: 11px; margin: 4px 0;"><strong>Tel:</strong> ${pedido.telefono}</p>` : ''}
+        <p style="font-size: 11px; margin: 4px 0;"><strong>Fecha:</strong> ${fecha.toLocaleString('es-ES')}</p>
+        <hr style="border-top: 1px dashed #000; margin: 8px 0;">
+        <p style="font-size: 11px; margin: 4px 0; white-space: pre-wrap;">${pedido.detalle}</p>
+        <hr style="border-top: 1px dashed #000; margin: 8px 0;">
+        <p style="font-size: 14px; margin: 4px 0; text-align: right;"><strong>TOTAL: ${Number(pedido.total).toFixed(2)} €</strong></p>
+        <hr style="border-top: 1px dashed #000; margin: 8px 0;">
+        <div style="text-align: center; margin-top: 10px;">
+          <svg id="barcode-ticket"></svg>
+        </div>
+        <p style="font-size: 10px; text-align: center; margin-top: 10px;">${ticketFooter}</p>
+      `;
+
+      const ticketDiv = document.getElementById('ticket-impresion');
+      ticketDiv.innerHTML = ticketHTML;
+      ticketDiv.style.display = 'block';
+
+      // Generar código de barras con el order_id
+      try {
+        JsBarcode('#barcode-ticket', String(pedido.order_id), {
+          format: 'CODE128',
+          width: 1.5,
+          height: 40,
+          displayValue: true,
+          fontSize: 10
+        });
+      } catch (e) {
+        console.warn('No se pudo generar el código de barras:', e);
+      }
+
+      // Esperar a que se renderice y luego imprimir
+      setTimeout(() => {
+        window.print();
+        // Ocultar el ticket después de imprimir
+        setTimeout(() => {
+          ticketDiv.style.display = 'none';
+          ticketDiv.innerHTML = '';
+        }, 500);
+      }, 300);
+    }
+
+    function contactarWhatsApp(telefono, orderId, estado) {
+      if (!telefono) return mostrarAlerta('Este pedido no tiene teléfono registrado.', 'error');
+      const numeroLimpio = telefono.replace(/\D/g, '');
+      const numeroFinal = numeroLimpio.startsWith('34') ? numeroLimpio : '34' + numeroLimpio;
+      const mensaje = encodeURIComponent(
+        `Hola! Te contactamos sobre tu pedido #${orderId}. Estado actual: ${estado}. ¡Gracias por tu compra!`
+      );
+      window.open(`https://wa.me/${numeroFinal}?text=${mensaje}`, '_blank');
+    }
+
+    // ==================== RESEÑAS ====================
+    async function cargarResenas() {
+      try {
+        const resenas = await fetchSupabase('/rest/v1/resenas?select=*&order=fecha.desc');
+        const contenedor = document.getElementById('lista-resenas-admin');
+        if (!resenas || resenas.length === 0) {
+          contenedor.innerHTML = '<p style="color:#666;">No hay reseñas todavía.</p>';
+          return;
+        }
+        contenedor.innerHTML = resenas.map(r => `
+          <div style="border-bottom: 1px solid #eee; padding: 15px 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong>${r.nombre || 'Anónimo'}</strong>
+              <span style="color: #f1c40f;">${'★'.repeat(r.estrellas || 0)}${'☆'.repeat(5 - (r.estrellas || 0))}</span>
+            </div>
+            <p style="margin: 8px 0; font-size: 0.9rem; color: #555;">${r.comentario || ''}</p>
+            <small style="color:#999;">${r.fecha ? new Date(r.fecha).toLocaleDateString('es-ES') : ''}</small>
+            <button class="btn-delete" style="margin-top: 8px; padding: 5px 10px; border: none; border-radius: 6px; color: white; cursor: pointer;" onclick="eliminarResena('${r.id}')">🗑️ Eliminar</button>
+          </div>
+        `).join('');
+      } catch (error) {
+        document.getElementById('lista-resenas-admin').innerHTML = '<p style="color:red;">Error al cargar reseñas.</p>';
+      }
+    }
+
+    async function eliminarResena(id) {
+      if (!confirm('¿Eliminar esta reseña?')) return;
+      try {
+        await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, { method: 'DELETE' });
+        cargarResenas();
+        mostrarAlerta('Reseña eliminada.');
+      } catch (error) {
+        mostrarAlerta('Error: ' + error.message, 'error');
+      }
+    }
+
+    // ==================== CONFIGURACIÓN ====================
+    async function cargarConfiguracion() {
+      try {
+        const config = await fetchSupabase('/rest/v1/configuracion?select=*&limit=1');
+        if (config && config.length > 0) {
+          configGlobal = config[0];
+          document.getElementById('cfg-nombre').value = configGlobal.nombre_negocio || '';
+          document.getElementById('cfg-empresa').value = configGlobal.empresa || '';
+          document.getElementById('cfg-cif').value = configGlobal.cif || '';
+          document.getElementById('cfg-promo').value = configGlobal.promocion || '';
+          document.getElementById('cfg-telefono').value = configGlobal.telefono || '';
+          document.getElementById('cfg-whatsapp').value = configGlobal.whatsapp || '';
+          document.getElementById('cfg-direccion').value = configGlobal.direccion || '';
+          document.getElementById('cfg-horario').value = configGlobal.horario || '';
+          document.getElementById('cfg-ticket-footer').value = configGlobal.ticket_footer || '';
+          document.getElementById('cfg-stripe').checked = !!configGlobal.stripe_activo;
+          document.getElementById('stripe-status-text').textContent =
+            configGlobal.stripe_activo ? 'Activado' : 'Desactivado';
+        }
+      } catch (error) {
+        console.warn('No se pudo cargar la configuración:', error);
+      }
+    }
+
+    async function guardarConfiguracion() {
+      const data = {
+        nombre_negocio: document.getElementById('cfg-nombre').value.trim(),
+        empresa: document.getElementById('cfg-empresa').value.trim(),
+        cif: document.getElementById('cfg-cif').value.trim(),
+        promocion: document.getElementById('cfg-promo').value.trim(),
+        telefono: document.getElementById('cfg-telefono').value.trim(),
+        whatsapp: document.getElementById('cfg-whatsapp').value.trim(),
+        direccion: document.getElementById('cfg-direccion').value.trim(),
+        horario: document.getElementById('cfg-horario').value.trim(),
+        ticket_footer: document.getElementById('cfg-ticket-footer').value.trim(),
+        stripe_activo: document.getElementById('cfg-stripe').checked
+      };
+
+      try {
+        if (configGlobal && configGlobal.id) {
+          await fetchSupabase(`/rest/v1/configuracion?id=eq.${configGlobal.id}`, {
+            method: 'PATCH', body: JSON.stringify(data)
+          });
+        } else {
+          const inserted = await fetchSupabase('/rest/v1/configuracion', {
+            method: 'POST', body: JSON.stringify(data)
+          });
+          if (inserted && inserted.length > 0) configGlobal = inserted[0];
+        }
+        configGlobal = { ...configGlobal, ...data };
+        document.getElementById('stripe-status-text').textContent =
+          data.stripe_activo ? 'Activado' : 'Desactivado';
+        mostrarAlerta('Configuración guardada correctamente.');
+      } catch (error) {
+        mostrarAlerta('Error: ' + error.message, 'error');
+      }
+    }
+
+    // ==================== USUARIOS ====================
+    async function crearEmpleado() {
+      const nombre = document.getElementById('new-user-name').value.trim();
+      const email = document.getElementById('new-user-email').value.trim();
+      const pass = document.getElementById('new-user-pass').value;
+      const telefono = document.getElementById('new-user-phone').value.trim();
+      const rol = document.getElementById('new-user-role').value;
+
+      if (!nombre || !email || !pass) {
+        return mostrarAlerta('Nombre, email y contraseña son obligatorios.', 'error');
       }
 
       try {
-        const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos?order_id=eq.' + orderId, {
-          method: 'PATCH',
-          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ estado: 'En preparación', cocinero: miNombre })
+        // Crear usuario en Auth (requiere service_role key)
+        const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_SERVICE_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email, password: pass, email_confirm: true })
         });
 
-        if (!response.ok) throw new Error('Error');
-        obtenerPedidos();
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || 'No se pudo crear el usuario en Auth');
+        }
 
-      } catch (error) { alert('Error al tomar el pedido.'); }
-    }
+        const authUser = await res.json();
 
-    async function cambiarEstado(orderId, nuevoEstado, event) {
-      if (event) event.stopPropagation();
-      
-      pedidosGlobal = pedidosGlobal.filter(p => p.order_id !== orderId);
-      renderizarPedidos(pedidosGlobal);
-
-      try {
-        await fetch(SUPABASE_URL + '/rest/v1/pedidos?order_id=eq.' + orderId, {
-          method: 'PATCH',
-          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ estado: nuevoEstado })
+        // Crear perfil asociado
+        await fetchSupabase('/rest/v1/perfiles', {
+          method: 'POST',
+          body: JSON.stringify({
+            id: authUser.id,
+            nombre,
+            email,
+            telefono: telefono || null,
+            rol
+          })
         });
-        obtenerPedidos();
-      } catch (error) { alert('Error al guardar.'); obtenerPedidos(); }
-    }
 
-    function abrirModal(orderId) {
-      const pedido = pedidosGlobal.find(p => p.order_id === orderId);
-      if (!pedido) return;
-
-      const hora = pedido.fecha ? new Date(pedido.fecha).toLocaleString('es-ES') : '--:--';
-      document.getElementById('modal-ticket').textContent = pedido.order_id;
-      document.getElementById('modal-hora').textContent = hora;
-      
-      const esEnvio = pedido.direccion && pedido.direccion.trim() !== '' && pedido.direccion.toLowerCase() !== 'recogida en tienda';
-      document.getElementById('modal-tipo').textContent = esEnvio ? 'PARA LLEVAR 🛵' : 'RECOGER EN TIENDA 🏪';
-
-      // Mostramos todo el detalle en un solo bloque grande
-      const textoDetalle = pedido.detalle ? pedido.detalle : 'Sin detalle';
-      document.getElementById('modal-productos').innerHTML = `<li>${textoDetalle}</li>`;
-
-      document.getElementById('modal-detalles').style.display = 'flex';
-    }
-
-    function cerrarModal(event) {
-      if (event.target.id === 'modal-detalles') {
-        document.getElementById('modal-detalles').style.display = 'none';
+        document.getElementById('new-user-name').value = '';
+        document.getElementById('new-user-email').value = '';
+        document.getElementById('new-user-pass').value = '';
+        document.getElementById('new-user-phone').value = '';
+        mostrarAlerta('Empleado creado correctamente.');
+      } catch (error) {
+        mostrarAlerta('Error: ' + error.message, 'error');
       }
     }
 
-    // Iniciamos cargando cocineros y luego pidiendo pedidos
-    async function init() {
-      await cargarCocineros();
-      obtenerPedidos();
-      setInterval(obtenerPedidos, 10000);
-    }
-
-    init();
+    // ==================== INICIALIZACIÓN ====================
+    document.addEventListener('DOMContentLoaded', () => {
+      // Permitir login con Enter
+      const passInput = document.getElementById('login-pass');
+      if (passInput) {
+        passInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') login();
+        });
+      }
+    });
   </script>
 </body>
 </html>
