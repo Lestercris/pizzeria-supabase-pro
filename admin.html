@@ -11,9 +11,9 @@
     header { background-color: #2c3e50; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #c0392b; }
     header h1 { font-size: 1.8rem; display: flex; align-items: center; gap: 10px; }
     .clock { font-size: 1.5rem; font-weight: bold; color: #f1c40f; }
-    .cocinero-select { background: #34495e; color: white; border: 1px solid #f1c40f; padding: 5px 10px; border-radius: 5px; font-size: 1rem; margin-left: 20px; outline: none; }
+    .cocinero-select { background: #34495e; color: white; border: 1px solid #f1c40f; padding: 8px 15px; border-radius: 5px; font-size: 1.1rem; margin-left: 20px; outline: none; cursor: pointer; }
     
-    .grid-pedidos { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; padding: 20px; overflow-y: auto; height: 100%; align-content: start; }
+    .grid-pedidos { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; padding: 20px; overflow-y: auto; height: 100%; align-content: start; }
     .tarjeta { background-color: #2c3e50; border-radius: 12px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.5); display: flex; flex-direction: column; border-top: 8px solid #e74c3c; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
     .tarjeta:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.7); }
     .tarjeta.en-preparacion { border-top-color: #f1c40f; } 
@@ -24,8 +24,9 @@
     .tarjeta-header .hora { font-size: 0.9rem; color: #bdc3c7; margin-top: 5px; }
     
     .tarjeta-body { padding: 15px; flex-grow: 1; }
+    /* Ajustamos la lista para que no se parta en cajas feas */
     .lista-detalles { list-style: none; margin-bottom: 15px; }
-    .lista-detalles li { font-size: 1.2rem; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.1); }
+    .lista-detalles li { font-size: 1.2rem; margin-bottom: 12px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px; border-left: 4px solid #e74c3c; color: #ecf0f1; line-height: 1.4; }
     
     .tarjeta-footer { padding: 15px; background-color: rgba(0,0,0,0.3); display: flex; gap: 10px; }
     .btn-accion { flex: 1; padding: 15px; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.2s; text-transform: uppercase; }
@@ -35,20 +36,26 @@
     .btn-terminar:hover { background-color: #219150; }
     .btn-bloqueado { background-color: #95a5a6; color: #333; cursor: not-allowed; }
 
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
-    .modal-content { background: #2c3e50; width: 100%; max-width: 600px; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-top: 10px solid #c0392b; animation: aparecer 0.3s ease; }
+    /* MODAL */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
+    .modal-content { background: #2c3e50; width: 100%; max-width: 600px; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-top: 10px solid #c0392b; animation: aparecer 0.3s ease; display: flex; flex-direction: column; max-height: 90vh; }
     @keyframes aparecer { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     
     .modal-header { padding: 20px; background: rgba(0,0,0,0.3); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
     .modal-header h2 { font-size: 1.8rem; color: #f1c40f; }
     .btn-cerrar { background: none; border: none; color: #fff; font-size: 2rem; cursor: pointer; line-height: 1; }
     
-    .modal-body { padding: 25px; }
+    .modal-body { padding: 25px; overflow-y: auto; flex: 1; }
     .detalle-grupo { margin-bottom: 20px; }
     .detalle-grupo h3 { font-size: 1rem; color: #bdc3c7; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
     .detalle-grupo p { font-size: 1.2rem; color: #fff; }
+    
     .detalle-lista { list-style: none; margin-top: 10px; }
-    .detalle-lista li { font-size: 1.4rem; margin-bottom: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 4px solid #e74c3c; }
+    .detalle-lista li { font-size: 1.4rem; margin-bottom: 12px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 4px solid #e74c3c; line-height: 1.5; font-weight: 500; }
+    
+    /* Botón de cerrar gigante para el modal */
+    .btn-cerrar-gigante { width: 100%; padding: 20px; background: #c0392b; color: white; border: none; font-size: 1.3rem; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: background 0.2s; }
+    .btn-cerrar-gigante:hover { background: #a93226; }
 
     .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh; color: #7f8c8d; }
     .empty-state h2 { font-size: 2rem; margin-bottom: 10px; }
@@ -60,10 +67,7 @@
     <div style="display: flex; align-items: center;">
       <h1>👨‍🍳 Monitor de Cocina</h1>
       <select id="select-cocinero" class="cocinero-select" onchange="cambiarCocinero()">
-        <option value="">-- Selecciona tu nombre --</option>
-        <option value="Lester">Lester</option>
-        <option value="Adalid">Adalid</option>
-        <option value="Cocinero 3">Cocinero 3</option>
+        <option value="">-- Cargando cocineros... --</option>
       </select>
     </div>
     <div style="display: flex; align-items: center; gap: 15px;">
@@ -82,11 +86,11 @@
     <p>No hay pedidos pendientes en este momento.</p>
   </div>
 
+  <!-- MODAL -->
   <div class="modal-overlay" id="modal-detalles" onclick="cerrarModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
         <h2 id="modal-ticket">Ticket</h2>
-        <button class="btn-cerrar" onclick="document.getElementById('modal-detalles').style.display='none'">×</button>
       </div>
       <div class="modal-body">
         <div class="detalle-grupo">
@@ -105,32 +109,55 @@
           </div>
         </div>
       </div>
+      <!-- Botón GIGANTE para cerrar -->
+      <button class="btn-cerrar-gigante" onclick="document.getElementById('modal-detalles').style.display='none'">✖ CERRAR VENTANA</button>
     </div>
   </div>
 
   <script>
-    // === PROTECCIÓN DE ACCESO ===
-    const rolGuardado = localStorage.getItem('cocina_nombre');
-    if (!rolGuardado) {
-      const nombre = prompt("Ingresa tu nombre de cocinero (o escribe 'admin'):");
-      if (nombre) {
-        localStorage.setItem('cocina_nombre', nombre);
-      } else {
-        window.location.href = 'index.html';
-      }
-    }
-
     const SUPABASE_URL = 'https://afarkzyxssgcpmnquqdp.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMzI2NTUsImV4cCI6MjEwODcwODY1NX0.J7gSycaeum0bUzx9tss5OM4WfPUt5BswqxnSEI0RgiY';
 
     let pedidosGlobal = [];
     let miNombre = localStorage.getItem('cocina_nombre') || '';
 
-    document.addEventListener('DOMContentLoaded', () => {
-      if(miNombre) {
-        document.getElementById('select-cocinero').value = miNombre;
+    // Cargar los cocineros desde la base de datos
+    async function cargarCocineros() {
+      try {
+        const response = await fetch(SUPABASE_URL + '/rest/v1/perfiles?select=nombre&or=(rol.eq.cocina,rol.eq.admin)', {
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+        });
+        
+        const perfiles = await response.json();
+        const select = document.getElementById('select-cocinero');
+        
+        // Limpiamos el select
+        select.innerHTML = '<option value="">-- Selecciona tu nombre --</option>';
+        
+        if (perfiles.length === 0) {
+          // Si no hay perfiles, ponemos uno por defecto
+          select.innerHTML += '<option value="Cocinero">Cocinero</option>';
+        } else {
+          perfiles.forEach(p => {
+            select.innerHTML += `<option value="${p.nombre}">${p.nombre}</option>`;
+          });
+        }
+
+        // Seleccionamos el nombre guardado si existe
+        if (miNombre) {
+          select.value = miNombre;
+        } else {
+          // Si no hay guardado, pedimos que elija
+          miNombre = select.value;
+        }
+
+      } catch (error) {
+        console.error('Error al cargar cocineros:', error);
+        // Fallback por si falla
+        const select = document.getElementById('select-cocinero');
+        select.innerHTML = '<option value="Cocinero">Cocinero</option>';
       }
-    });
+    }
 
     function cambiarCocinero() {
       miNombre = document.getElementById('select-cocinero').value;
@@ -154,6 +181,7 @@
         document.getElementById('status-dot').style.backgroundColor = '#27ae60';
         document.getElementById('status-text').textContent = 'Conectado';
         
+        // Filtramos para mostrar solo los que no tienen dueño o son míos
         pedidosGlobal = pedidos.filter(p => !p.cocinero || p.cocinero === miNombre);
         renderizarPedidos(pedidosGlobal);
 
@@ -186,8 +214,8 @@
 
         const hora = p.fecha ? new Date(p.fecha).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'}) : '--:--';
         
-        const itemsArray = p.detalle ? p.detalle.split(',') : [];
-        const items = itemsArray.map(item => `<li>🔸 ${item.trim()}</li>`).join('');
+        // Como ahora todo el detalle viene con comas (por el join del index), lo mostramos entero en un solo bloque
+        const textoDetalle = p.detalle ? p.detalle : 'Sin detalle';
 
         let botonera = '';
         if (esDeOtro) {
@@ -210,7 +238,7 @@
             
             <div class="tarjeta-body">
               <ul class="lista-detalles">
-                ${items}
+                <li>${textoDetalle}</li>
               </ul>
             </div>
             
@@ -225,7 +253,7 @@
     async function tomarPedido(orderId, event) {
       event.stopPropagation();
       if (!miNombre) {
-        alert('Por favor, selecciona tu nombre en el menú superior antes de tomar un pedido.');
+        alert('Por favor, selecciona tu nombre en el menú superior.');
         return;
       }
 
@@ -269,8 +297,9 @@
       const esEnvio = pedido.direccion && pedido.direccion.trim() !== '' && pedido.direccion.toLowerCase() !== 'recogida en tienda';
       document.getElementById('modal-tipo').textContent = esEnvio ? 'PARA LLEVAR 🛵' : 'RECOGER EN TIENDA 🏪';
 
-      const items = pedido.detalle ? pedido.detalle.split(',').map(item => `<li>${item.trim()}</li>`).join('') : '<li>Sin detalle</li>';
-      document.getElementById('modal-productos').innerHTML = items;
+      // Mostramos todo el detalle en un solo bloque grande
+      const textoDetalle = pedido.detalle ? pedido.detalle : 'Sin detalle';
+      document.getElementById('modal-productos').innerHTML = `<li>${textoDetalle}</li>`;
 
       document.getElementById('modal-detalles').style.display = 'flex';
     }
@@ -281,8 +310,14 @@
       }
     }
 
-    obtenerPedidos();
-    setInterval(obtenerPedidos, 10000);
+    // Iniciamos cargando cocineros y luego pidiendo pedidos
+    async function init() {
+      await cargarCocineros();
+      obtenerPedidos();
+      setInterval(obtenerPedidos, 10000);
+    }
+
+    init();
   </script>
 </body>
 </html>
