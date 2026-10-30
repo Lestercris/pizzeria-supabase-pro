@@ -492,12 +492,12 @@
       document.getElementById('btn-pagar').disabled = false;
     }
 
-    async function procesarPedido() {
+       async function procesarPedido() {
       const nombre = document.getElementById('nombre').value.trim();
       const email = document.getElementById('email').value.trim();
       const telefono = document.getElementById('telefono').value.trim();
       const direccion = document.getElementById('direccion').value.trim();
-      const notas = document.getElementById('notas').value.trim(); // 🔥 Capturamos las notas
+      const notas = document.getElementById('notas').value.trim();
       const btn = document.getElementById('btn-pagar');
 
       if (!nombre || !email) { mostrarMensaje('Por favor, completa tu nombre y email.', 'error'); return; }
@@ -512,19 +512,13 @@
         const item = carrito[id], subtotal = precioNum(item.producto.Precio) * item.cantidad;
         total += subtotal; 
         
-        // 1. Empezamos con el nombre y la cantidad
         let textoItem = `${item.cantidad}x ${item.producto.Nombre}`;
-        
-        // 2. Añadimos los ingredientes de la pizza si los tiene
         if (item.producto.Ingredientes && item.producto.Ingredientes.trim() !== '') {
           textoItem += ` [${item.producto.Ingredientes.trim()}]`;
         }
-        
-        // 3. 🔥 Si el cliente escribió notas (sin cebolla, etc.), las añadimos
         if (notas) {
           textoItem += ` (Nota: ${notas})`;
         }
-        
         detalle.push(textoItem);
       });
 
@@ -541,13 +535,12 @@
 
         if (!response.ok) throw new Error('Error al guardar');
 
-        let resumenWsp = detalle.map(d => `- ${d}`).join('\n');
+        let resumenWsp = detalle.map(d => `👉 ${d}`).join('\n');
         const configRes = await fetch(SUPABASE_URL + '/rest/v1/configuracion?select=valor&clave=eq.whatsapp', { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY } });
         const configData = await configRes.json();
         const telefonoNegocio = configData.length > 0 ? configData[0].valor : '34600000000';
 
-       // const msg = encodeURIComponent(`Hola, acabo de hacer el pedido *#${orderId}* en la web.\n\n*Mi pedido:*\n${resumenWsp}\n*Total:* ${moneda(total)}\n\n*Nombre:* ${nombre}\n*Dirección:* ${direccion || 'Recogida en tienda'}\n\nOs escribo para coordinar el pago.`);
-              // --- MENSAJE ELEGANTE PARA WHATSAPP ---
+        // --- MENSAJE ELEGANTE PARA WHATSAPP ---
         const mensajeWsp = 
           `🍕 *NUEVO PEDIDO WEB* 🍕\n` +
           `----------------------\n` +
@@ -565,20 +558,17 @@
           `😊 _¡Gracias por elegirnos!_`;
 
         const msg = encodeURIComponent(mensajeWsp);
-        
-        //
         const numLimpio = telefonoNegocio.replace(/\D/g, ''); 
         
         mostrarMensaje('¡Pedido registrado! Abriendo WhatsApp...', 'ok');
         
-        // Limpiamos el carrito y las cajas
         carrito = {}; 
         renderCarrito(); 
         document.getElementById('nombre').value = '';
         document.getElementById('email').value = '';
         document.getElementById('telefono').value = '';
         document.getElementById('direccion').value = '';
-        document.getElementById('notas').value = ''; // 🔥 Limpiamos notas
+        document.getElementById('notas').value = '';
 
         btn.textContent = 'Pagar y Enviar Pedido'; btn.disabled = true; 
 
@@ -589,9 +579,6 @@
         btn.textContent = 'Pagar y Enviar Pedido'; btn.disabled = false; 
       }
     }
-
-    function mostrarMensaje(texto, tipo) { const msg = document.getElementById('mensaje'); msg.textContent = texto; msg.className = 'mensaje ' + tipo; }
-
     async function cargarResenasPublicas() {
       try {
         const response = await fetch(SUPABASE_URL + '/rest/v1/resenas?select=*&aprobada=eq.true&order=fecha.desc&limit=5', {
