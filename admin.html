@@ -678,15 +678,50 @@ async function subirImagenProducto(input) {
       }
     }
     async function crearEmpleado() {
-      const nombre = document.getElementById('new-user-name').value.trim(); const email = document.getElementById('new-user-email').value.trim(); const pass = document.getElementById('new-user-pass').value; const telefono = document.getElementById('new-user-phone').value.trim(); const rol = document.getElementById('new-user-role').value;
-      if (!nombre || !email || !pass) { mostrarAlerta('Nombre, email y contraseña son obligatorios.', 'error'); return; }
-      try {
-        const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, { method: 'POST', headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: pass, email_confirm: true }) });
-        if (!res.ok) throw new Error('Email inválido o ya existe.'); const newUser = await res.json();
-        await fetchSupabase('/rest/v1/perfiles', { method: 'POST', body: JSON.stringify({ id: newUser.id, nombre, email, rol, telefono }) });
-        mostrarAlerta('Usuario creado.'); document.getElementById('new-user-name').value = ''; document.getElementById('new-user-email').value = ''; document.getElementById('new-user-pass').value = ''; cargarUsuarios();
-      } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
+  const nombre = document.getElementById('new-user-name').value.trim();
+  const email = document.getElementById('new-user-email').value.trim();
+  const pass = document.getElementById('new-user-pass').value;
+  const telefono = document.getElementById('new-user-phone').value.trim();
+  const rol = document.getElementById('new-user-role').value;
+
+  if (!nombre || !email || !pass) {
+    mostrarAlerta('Nombre, email y contraseña son obligatorios.', 'error');
+    return;
+  }
+
+  try {
+    // Llamada a la Edge Function segura
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-create-user`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, password: pass, nombre, telefono, rol })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Error al crear el usuario');
     }
+
+    mostrarAlerta('Usuario creado con éxito.');
+    
+    // Limpiamos los campos
+    document.getElementById('new-user-name').value = '';
+    document.getElementById('new-user-email').value = '';
+    document.getElementById('new-user-pass').value = '';
+    document.getElementById('new-user-phone').value = '';
+    
+    // Recargamos la tabla de usuarios
+    cargarUsuarios();
+
+  } catch (error) {
+    mostrarAlerta('Error: ' + error.message, 'error');
+  }
+}
 
     async function descargarBackup() { try { mostrarAlerta('Generando backup...', 'success'); const tablas = ['productos', 'pedidos', 'slides', 'resenas', 'configuracion']; let backupData = {}; for (const tabla of tablas) { backupData[tabla] = await fetchSupabase(`/rest/v1/${tabla}?select=*`); } const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `backup_pizzeria_${new Date().toISOString().split('T')[0]}.json`; a.click(); URL.revokeObjectURL(url); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } }
 
