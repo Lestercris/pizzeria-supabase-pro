@@ -310,13 +310,14 @@
       setTimeout(() => { box.style.display = 'none'; }, 4000);
     }
 
-    async function login() {
+        async function login() {
       const email = document.getElementById('login-email').value.trim();
       const pass = document.getElementById('login-pass').value;
       const btn = document.querySelector('#login-screen button');
       btn.textContent = 'Verificando...';
 
       try {
+        // 1. Verificar credenciales en Supabase Auth
         const response = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
           method: 'POST', headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password: pass })
@@ -326,45 +327,60 @@
         const authData = await response.json();
         currentUserId = authData.user.id;
 
+        // 2. Buscar su perfil y rol en la base de datos
         const perfiles = await fetchSupabase(`/rest/v1/perfiles?email=eq.${email}`);
         let nombreMostrar = email;
-        if (perfiles.length > 0) {
-          userRole = perfiles[0].rol;
+        let rolReal = 'empleado'; // Rol por defecto
+
+        if (perfiles && perfiles.length > 0) {
+          rolReal = perfiles[0].rol || 'empleado';
           nombreMostrar = perfiles[0].nombre || email;
-        } else if (email === 'isahyles123@gmail.com') {
-          userRole = 'admin'; 
-          nombreMostrar = 'Súper Admin';
         }
 
-        // REDIRECCIÓN PARA COCINA
+        // 3. REGLA DE ORO PROFESIONAL: El dueño siempre es Súper Admin
+        if (email === 'isahyles123@gmail.com') {
+          rolReal = 'admin'; 
+          nombreMostrar = nombreMostrar === email ? 'Súper Admin' : nombreMostrar;
+        }
+
+        userRole = rolReal;
+
+        // 4. Redirección para el rol de Cocina
         if (userRole === 'cocina') {
           window.location.href = 'cocina.html';
           return;
         }
 
-        // 🔥 GESTIÓN DE PERMISOS EN EL MENÚ
+        // 5. Pintar la interfaz según los privilegios automáticamente
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('sidebar').classList.remove('hidden-panel');
         document.getElementById('main-panel').classList.remove('hidden-panel');
         
-        // Mostrar el nombre en el perfil
+        // Mostrar datos del usuario
         document.getElementById('user-display-name').textContent = nombreMostrar;
         document.getElementById('user-display-role').textContent = userRole;
 
-        // Ocultar botones de admin si no es admin
-        if (userRole !== 'admin') {
-          document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+        // AUTOCONFIGURACIÓN VISUAL: El sistema decide qué mostrar
+        const botonesAdmin = document.querySelectorAll('.admin-only');
+        
+        if (userRole === 'admin') {
+          // Si es admin, forzamos a que se vean los botones de configuración y usuarios
+          botonesAdmin.forEach(el => el.style.display = 'block');
+        } else {
+          // Si es empleado, los ocultamos
+          botonesAdmin.forEach(el => el.style.display = 'none');
         }
         
+        // Cargar los datos del panel
         cargarProductos(); 
         cargarConfiguracion();
         
       } catch (error) {
         document.getElementById('login-msg').textContent = error.message;
-        document.getElementById('login-msg').style.display = 'block'; btn.textContent = 'Entrar al Panel';
+        document.getElementById('login-msg').style.display = 'block'; 
+        btn.textContent = 'Entrar al Panel';
       }
     }
-
     function logout() { location.reload(); }
 
     function mostrarSeccion(id, event) {
