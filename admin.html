@@ -31,6 +31,7 @@
     button.btn { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; transition: 0.3s; }
     button.btn:hover { background: #a93226; }
     button.btn-success { background: var(--secondary); }
+    button.btn-success:hover { background: #219150; }
 
     .grid-productos, .grid-slider { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
     .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
@@ -41,7 +42,9 @@
     .card-actions { display: flex; gap: 10px; margin-top: auto; }
     .card-actions button { flex: 1; padding: 8px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; color: white; }
     .btn-edit { background: #3498db; }
+    .btn-edit:hover { background: #2980b9; }
     .btn-delete { background: #e74c3c; }
+    .btn-delete:hover { background: #c0392b; }
 
     .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
     .switch input { opacity: 0; width: 0; height: 0; }
@@ -195,7 +198,7 @@
         <button class="btn btn-success" onclick="crearEmpleado()">Crear Usuario</button>
       </div>
 
-      <!-- NUEVA TABLA DE USUARIOS -->
+      <!-- TABLA DE USUARIOS -->
       <div style="background: white; padding: 25px; border-radius: 12px; max-width: 800px;">
         <h3>Lista de Usuarios Registrados</h3>
         <div style="overflow-x: auto; margin-top: 15px;">
@@ -215,7 +218,6 @@
           </table>
         </div>
       </div>
-
     </div>
   </div>
 
@@ -279,17 +281,51 @@
     </div>
   </div>
 
-  <div id="ticket-impresion" style="display: none;"></div>
-  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <!-- MODAL EDITAR USUARIO -->
+  <div class="modal" id="modal-editar-usuario">
+    <div class="modal-content">
+      <h2 style="margin-bottom: 20px; color: var(--primary);">Editar Usuario</h2>
+      <input type="hidden" id="edit-user-id">
+      <label>Nombre</label>
+      <input type="text" id="edit-user-name">
+      <label>Correo electrónico (No editable)</label>
+      <input type="email" id="edit-user-email" readonly>
+      <label>Teléfono</label>
+      <input type="tel" id="edit-user-phone">
+      <label>Rol</label>
+      <select id="edit-user-role">
+        <option value="empleado">Empleado (Productos y Pedidos)</option>
+        <option value="cocina">Cocina (Solo Monitor)</option>
+        <option value="admin">Administrador (Control total)</option>
+      </select>
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button class="btn btn-success" onclick="guardarEdicionUsuario()">Guardar Cambios</button>
+        <button class="btn" style="background: #95a5a6;" onclick="document.getElementById('modal-editar-usuario').style.display = 'none'">Cancelar</button>
+      </div>
+    </div>
+  </div>
 
+  <!-- MODAL DE CONFIRMACIÓN PERSONALIZADO -->
+  <div class="modal" id="modal-confirmacion" style="z-index: 10000;">
+    <div class="modal-content" style="text-align: center; max-width: 400px;">
+      <h2 id="confirm-title" style="margin-bottom: 15px; color: var(--primary); font-size: 1.3rem;">Confirmar Acción</h2>
+      <p id="confirm-message" style="margin-bottom: 25px; color: #555; font-size: 0.95rem;">¿Estás seguro de que deseas continuar?</p>
+      <div style="display: flex; gap: 10px; justify-content: center;">
+        <button class="btn" style="background: #95a5a6; width: 45%; margin:0;" onclick="cerrarConfirmacion()">Cancelar</button>
+        <button class="btn" id="btn-confirm-action" style="background: var(--primary); width: 45%; margin:0;">Aceptar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="ticket-impresion" style="display: none;"></div>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
   <script>
     const SUPABASE_URL = 'https://afarkzyxssgcpmnquqdp.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMzI2NTUsImV4cCI6MjEwODcwODY1NX0.J7gSycaeum0bUzx9tss5OM4WfPUt5BswqxnSEI0RgiY';
-    
-    // ⚠️ PEGA AQUÍ TU SERVICE_ROLE_KEY
     const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MzEzMjY1NSwiZXhwIjoyMTA4NzA4NjU1fQ.HmXW8r7uo9b5hohYLmi3koHLKHX-G9WTKBaSakKUO-w'; 
 
     let productosGlobal = [], slidesGlobal = [], pedidosGlobal = [], configGlobal = {};
+    let usuariosGlobal = []; // <-- NUEVO: Para guardar los usuarios y editarlos
     let userRole = 'empleado';
 
     async function fetchSupabase(endpoint, options = {}, useServiceKey = false) {
@@ -312,6 +348,25 @@
       setTimeout(() => { box.style.display = 'none'; }, 4000);
     }
 
+    // --- LÓGICA DEL MODAL DE CONFIRMACIÓN ---
+    let accionConfirmada = null;
+    function mostrarConfirmacion(titulo, mensaje, textoBoton, callback) {
+      document.getElementById('confirm-title').textContent = titulo;
+      document.getElementById('confirm-message').textContent = mensaje;
+      document.getElementById('btn-confirm-action').textContent = textoBoton;
+      accionConfirmada = callback;
+      document.getElementById('modal-confirmacion').style.display = 'flex';
+    }
+    function cerrarConfirmacion() {
+      document.getElementById('modal-confirmacion').style.display = 'none';
+      accionConfirmada = null;
+    }
+    document.getElementById('btn-confirm-action').addEventListener('click', () => {
+      if (accionConfirmada) accionConfirmada();
+      cerrarConfirmacion();
+    });
+    // ----------------------------------------
+
     async function login() {
       const email = document.getElementById('login-email').value.trim();
       const pass = document.getElementById('login-pass').value;
@@ -329,7 +384,6 @@
         if (perfiles.length > 0) userRole = perfiles[0].rol;
         else if (email === 'isahyles123@gmail.com') userRole = 'admin'; 
 
-        // 🔥 REDIRECCIÓN PARA COCINA
         if (userRole === 'cocina') {
           window.location.href = 'cocina.html';
           return;
@@ -359,9 +413,10 @@
       if(id === 'resenas') cargarResenas();
       if(id === 'pedidos') cargarPedidos();
       if(id === 'slider') cargarSlides();
-      if(id === 'usuarios') cargarUsuarios(); // 🔥 Cargamos la tabla al entrar
+      if(id === 'usuarios') cargarUsuarios(); 
     }
 
+    // --- SUBIR IMÁGENES ---
     async function subirImagen(file, bucket = 'imagenes') {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
@@ -389,6 +444,7 @@
       catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
     }
 
+    // --- PRODUCTOS ---
     async function cargarProductos() {
       const productos = await fetchSupabase('/rest/v1/productos?select=*&order=id');
       productosGlobal = productos;
@@ -439,164 +495,245 @@
 
     function cerrarModal() { document.getElementById('modal-producto').style.display = 'none'; }
 
-    async function guardarProducto() {
+        async function guardarProducto() {
       const idOriginal = document.getElementById('prod-id-original').value;
+      const file = document.getElementById('file-prod').files[0];
+      
+      // Construimos el objeto base
       const data = {
         nombre: document.getElementById('prod-nombre').value.trim(),
-        categoria: document.getElementById('prod-categoria').value, 
+        categoria: document.getElementById('prod-categoria').value,
         precio: parseFloat(document.getElementById('prod-precio').value),
-        descripcion: document.getElementById('prod-desc').value.trim(), 
+        descripcion: document.getElementById('prod-desc').value.trim(),
         ingredientes: document.getElementById('prod-ingredientes').value.trim(),
-        imagen_url: document.getElementById('prod-imagen').value, 
-        disponible: document.getElementById('prod-disponible').checked
+        disponible: document.getElementById('prod-disponible').checked,
+        imagen_url: document.getElementById('prod-imagen').value // <-- AQUÍ ESTABA EL ERROR, faltaba esta línea
       };
+
+      // Si se subió un archivo nuevo, lo subimos a Supabase Storage
+      if (file) {
+        try {
+          mostrarAlerta('Subiendo imagen...', 'success');
+          data.imagen_url = await subirImagen(file);
+        } catch (error) {
+          return mostrarAlerta('Error al subir imagen: ' + error.message, 'error');
+        }
+      }
 
       try {
         if (idOriginal) {
-          await fetchSupabase(`/rest/v1/productos?id=eq.${idOriginal}`, { method: 'PATCH', body: JSON.stringify(data) });
+          // Actualizar producto existente
+          await fetchSupabase(`/rest/v1/productos?id=eq.${idOriginal}`, {
+            method: 'PATCH', 
+            body: JSON.stringify(data)
+          });
+          mostrarAlerta('Producto actualizado correctamente.');
         } else {
-          await fetchSupabase('/rest/v1/productos', { method: 'POST', body: JSON.stringify(data) });
+          // Crear producto nuevo
+          delete data.id; // Nos aseguramos de no enviar un ID vacío para que la BD lo genere
+          await fetchSupabase('/rest/v1/productos', {
+            method: 'POST', 
+            body: JSON.stringify(data)
+          });
+          mostrarAlerta('Producto creado correctamente.');
         }
-        cerrarModal(); cargarProductos(); mostrarAlerta('Producto guardado.');
-      } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
-    }
-
-    async function eliminarProducto(id) {
-      if (!confirm('¿Eliminar producto?')) return;
-      await fetchSupabase(`/rest/v1/productos?id=eq.${id}`, { method: 'DELETE' }); cargarProductos(); mostrarAlerta('Producto eliminado.');
-    }
-
-    async function cargarSlides() {
-      const slides = await fetchSupabase('/rest/v1/slides?select=*&order=orden');
-      slidesGlobal = slides;
-      document.getElementById('lista-slides').innerHTML = slides.map(s => `
-        <div class="card">
-          <img src="${s.imagen_url}">
-          <div class="card-body"><h3>${s.titulo || 'Sin Título'}</h3><div class="card-actions"><button class="btn-delete" onclick="eliminarSlide('${s.id}')">🗑️ Borrar</button></div></div>
-        </div>
-      `).join('');
-    }
-
-    function abrirModalSlide() {
-      document.getElementById('slide-titulo').value = ''; document.getElementById('slide-subtitulo').value = '';
-      document.getElementById('slide-imagen').value = ''; document.getElementById('file-slide').value = '';
-      document.getElementById('preview-slide').style.display = 'none';
-      document.getElementById('modal-slider').style.display = 'flex';
-    }
-
-    async function guardarSlide() {
-      const data = {
-        titulo: document.getElementById('slide-titulo').value.trim(), subtitulo: document.getElementById('slide-subtitulo').value.trim(),
-        imagen_url: document.getElementById('slide-imagen').value, activo: true, orden: 1
-      };
-      if (!data.imagen_url) return mostrarAlerta('Debes subir una imagen.', 'error');
-      try {
-        await fetchSupabase('/rest/v1/slides', { method: 'POST', body: JSON.stringify(data) });
-        document.getElementById('modal-slider').style.display = 'none'; cargarSlides(); mostrarAlerta('Imagen añadida.');
-      } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
-    }
-
-    async function eliminarSlide(id) {
-      if (!confirm('¿Eliminar imagen?')) return;
-      await fetchSupabase(`/rest/v1/slides?id=eq.${id}`, { method: 'DELETE' }); cargarSlides(); mostrarAlerta('Imagen eliminada.');
-    }
-
-        async function cargarPedidos() {
-      try {
-        const pedidos = await fetchSupabase('/rest/v1/pedidos?select=*&order=fecha.desc&limit=50');
-        pedidosGlobal = pedidos;
-        const tbody = document.getElementById('tabla-pedidos-body');
-        if (!pedidos.length) {
-          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#999;">No hay pedidos aún</td></tr>';
-          return;
-        }
-        tbody.innerHTML = pedidos.map(p => {
-          const badgeClass = p.estado === 'pendiente' ? 'badge-pendiente'
-            : p.estado === 'preparacion' ? 'badge-preparacion'
-            : p.estado === 'listo' ? 'badge-listo'
-            : 'badge-entregado';
-          const detalle = Array.isArray(p.productos)
-            ? p.productos.map(item => `${item.cantidad || 1}x ${item.nombre || item.producto || ''}`).join('<br>')
-            : (p.detalle || '—');
-          return `
-            <tr>
-              <td><strong>#${p.id}</strong></td>
-              <td>${p.cliente_nombre || p.nombre_cliente || 'Cliente'}<br>
-                  <small style="color:#888;">${p.cliente_telefono || p.telefono || ''}</small></td>
-              <td style="font-size:0.85rem;">${detalle}</td>
-              <td><strong>${Number(p.total || 0).toFixed(2)} €</strong></td>
-              <td><span class="badge ${badgeClass}">${(p.estado || 'pendiente').toUpperCase()}</span></td>
-              <td>
-                <select onchange="cambiarEstadoPedido('${p.id}', this.value)" style="padding:6px; font-size:0.85rem; margin-bottom:0;">
-                  <option value="pendiente" ${p.estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
-                  <option value="preparacion" ${p.estado === 'preparacion' ? 'selected' : ''}>En preparación</option>
-                  <option value="listo" ${p.estado === 'listo' ? 'selected' : ''}>Listo</option>
-                  <option value="entregado" ${p.estado === 'entregado' ? 'selected' : ''}>Entregado</option>
-                </select>
-                <button class="btn" style="width:auto; padding:6px 10px; font-size:0.8rem; margin-top:5px; background:#3498db;" onclick="imprimirTicket('${p.id}')">🖨️ Ticket</button>
-              </td>
-            </tr>
-          `;
-        }).join('');
+        cerrarModal();
+        cargarProductos();
       } catch (error) {
-        mostrarAlerta('Error al cargar pedidos: ' + error.message, 'error');
+        mostrarAlerta('Error al guardar: ' + error.message, 'error');
       }
+    }
+
+    function eliminarProducto(id) {
+      mostrarConfirmacion('Eliminar Producto', '¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.', 'Eliminar', async () => {
+        try {
+          await fetchSupabase(`/rest/v1/productos?id=eq.${id}`, { method: 'DELETE' });
+          mostrarAlerta('Producto eliminado.');
+          cargarProductos();
+        } catch (error) {
+          mostrarAlerta('Error al eliminar: ' + error.message, 'error');
+        }
+      });
+    }
+
+    // --- PEDIDOS ---
+    async function cargarPedidos() {
+      const pedidos = await fetchSupabase('/rest/v1/pedidos?select=*&order=created_at.desc');
+      pedidosGlobal = pedidos;
+      document.getElementById('tabla-pedidos-body').innerHTML = pedidos.map(p => {
+        let badgeClass = 'badge-pendiente';
+        if(p.estado === 'en_preparacion') badgeClass = 'badge-preparacion';
+        if(p.estado === 'listo') badgeClass = 'badge-listo';
+        if(p.estado === 'entregado') badgeClass = 'badge-entregado';
+
+        return `
+        <tr>
+          <td><strong>#${p.id}</strong></td>
+          <td>${p.cliente_nombre || 'Cliente'}<br><small>${p.cliente_telefono || ''}</small></td>
+          <td><small>${(p.detalle || '').substring(0, 50)}...</small></td>
+          <td><strong>${Number(p.total).toFixed(2)} €</strong></td>
+          <td><span class="badge ${badgeClass}">${p.estado}</span></td>
+          <td>
+            <select onchange="cambiarEstadoPedido('${p.id}', this.value)" style="padding: 5px; margin: 0; font-size: 0.8rem;">
+              <option value="pendiente" ${p.estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+              <option value="en_preparacion" ${p.estado === 'en_preparacion' ? 'selected' : ''}>En Preparación</option>
+              <option value="listo" ${p.estado === 'listo' ? 'selected' : ''}>Listo</option>
+              <option value="entregado" ${p.estado === 'entregado' ? 'selected' : ''}>Entregado</option>
+            </select>
+            <button class="btn-edit" style="margin-top: 5px; width: 100%; padding: 5px;" onclick="imprimirTicket('${p.id}')">🖨️ Ticket</button>
+          </td>
+        </tr>`;
+      }).join('');
     }
 
     async function cambiarEstadoPedido(id, nuevoEstado) {
       try {
         await fetchSupabase(`/rest/v1/pedidos?id=eq.${id}`, {
-          method: 'PATCH',
-          body: JSON.stringify({ estado: nuevoEstado })
+          method: 'PATCH', body: JSON.stringify({ estado: nuevoEstado })
         });
-        mostrarAlerta('Estado actualizado.');
+        mostrarAlerta('Estado del pedido actualizado.');
+        cargarPedidos();
+      } catch (error) {
+        mostrarAlerta('Error al actualizar estado: ' + error.message, 'error');
+      }
+    }
+
+    function imprimirTicket(id) {
+      const p = pedidosGlobal.find(x => String(x.id) === String(id));
+      if(!p) return;
+      
+      const ticketDiv = document.getElementById('ticket-impresion');
+      ticketDiv.innerHTML = `
+        <div style="text-align: center;">
+          <h2>${configGlobal.nombre || 'Mi Negocio'}</h2>
+          <p>${configGlobal.direccion || ''}</p>
+          <p>Tel: ${configGlobal.telefono || ''}</p>
+          <p>CIF: ${configGlobal.cif || ''}</p>
+          <hr>
+          <h3>Ticket #${p.id}</h3>
+          <p>${new Date(p.created_at).toLocaleString()}</p>
+          <hr>
+          <div style="text-align: left;">
+            ${p.detalle || 'Sin detalle'}
+          </div>
+          <hr>
+          <h2>TOTAL: ${Number(p.total).toFixed(2)} €</h2>
+          <hr>
+          <p>${configGlobal.ticket_footer || '¡Gracias por su compra!'}</p>
+          <br><br>
+          <svg id="barcode"></svg>
+        </div>
+      `;
+      ticketDiv.style.display = 'block';
+      
+      try {
+        JsBarcode("#barcode", String(p.id), { format: "CODE128", width: 2, height: 40, displayValue: false });
+      } catch(e) {}
+
+      window.print();
+      ticketDiv.style.display = 'none';
+    }
+
+    // --- SLIDER ---
+    async function cargarSlides() {
+      const slides = await fetchSupabase('/rest/v1/slider?select=*&order=id');
+      slidesGlobal = slides;
+      document.getElementById('lista-slides').innerHTML = slides.map(s => `
+        <div class="card">
+          <img src="${s.imagen_url || ''}">
+          <div class="card-body">
+            <h3>${s.titulo || 'Sin título'}</h3>
+            <div class="card-actions">
+              <button class="btn-delete" onclick="eliminarSlide('${s.id}')">🗑️ Borrar</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function abrirModalSlide() {
+      document.getElementById('slide-titulo').value = '';
+      document.getElementById('slide-subtitulo').value = '';
+      document.getElementById('slide-imagen').value = '';
+      document.getElementById('file-slide').value = '';
+      document.getElementById('preview-slide').style.display = 'none';
+      document.getElementById('modal-slider').style.display = 'flex';
+    }
+
+    async function guardarSlide() {
+      const file = document.getElementById('file-slide').files[0];
+      if(!file && !document.getElementById('slide-imagen').value) return mostrarAlerta('Selecciona una imagen', 'error');
+
+      let imgUrl = document.getElementById('slide-imagen').value;
+      if(file) {
+        try { imgUrl = await subirImagen(file); } catch(e) { return mostrarAlerta('Error al subir imagen', 'error'); }
+      }
+
+      try {
+        await fetchSupabase('/rest/v1/slider', {
+          method: 'POST',
+          body: JSON.stringify({
+            titulo: document.getElementById('slide-titulo').value,
+            subtitulo: document.getElementById('slide-subtitulo').value,
+            imagen_url: imgUrl
+          })
+        });
+        document.getElementById('modal-slider').style.display = 'none';
+        mostrarAlerta('Imagen de slider añadida.');
+        cargarSlides();
       } catch (error) {
         mostrarAlerta('Error: ' + error.message, 'error');
       }
     }
 
-    async function imprimirTicket(id) {
-      const pedido = pedidosGlobal.find(p => String(p.id) === String(id));
-      if (!pedido) return;
-      const ticket = document.getElementById('ticket-impresion');
-      const detalle = Array.isArray(pedido.productos)
-        ? pedido.productos.map(item => `${item.cantidad || 1}x ${item.nombre || ''} ...... ${(Number(item.precio || 0) * (item.cantidad || 1)).toFixed(2)} €`).join('<br>')
-        : (pedido.detalle || '');
-      ticket.innerHTML = `
-        <div style="text-align:center;">
-          <h3>${configGlobal.nombre_negocio || 'Mi Negocio'}</h3>
-          <p>${configGlobal.empresa || ''}<br>CIF: ${configGlobal.cif || ''}</p>
-          <p>${configGlobal.direccion || ''}<br>Tel: ${configGlobal.telefono || ''}</p>
-          <hr>
-          <p><strong>TICKET #${pedido.id}</strong><br>${new Date(pedido.fecha || Date.now()).toLocaleString('es-ES')}</p>
-        </div>
-        <hr>
-        <p><strong>Cliente:</strong> ${pedido.cliente_nombre || pedido.nombre_cliente || ''}<br>
-        <strong>Tel:</strong> ${pedido.cliente_telefono || pedido.telefono || ''}</p>
-        <hr>
-        <p>${detalle}</p>
-        <hr>
-        <h3 style="text-align:right;">TOTAL: ${Number(pedido.total || 0).toFixed(2)} €</h3>
-        <hr>
-        <div style="text-align:center; font-size:0.85rem;">
-          <p>${configGlobal.ticket_footer || '¡Gracias por su compra!'}</p>
-          <svg id="barcode"></svg>
-        </div>
-      `;
-      ticket.style.display = 'block';
-      try {
-        JsBarcode('#barcode', String(pedido.id), { format: 'CODE128', width: 1.5, height: 40, displayValue: false });
-      } catch (e) { console.warn('Barcode error', e); }
-      window.print();
-      setTimeout(() => { ticket.style.display = 'none'; }, 500);
+    function eliminarSlide(id) {
+      mostrarConfirmacion('Eliminar Imagen', '¿Borrar esta imagen del carrusel?', 'Eliminar', async () => {
+        try {
+          await fetchSupabase(`/rest/v1/slider?id=eq.${id}`, { method: 'DELETE' });
+          mostrarAlerta('Imagen eliminada.');
+          cargarSlides();
+        } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
+      });
     }
 
+    // --- RESEÑAS ---
+    async function cargarResenas() {
+      try {
+        const resenas = await fetchSupabase('/rest/v1/resenas?select=*&order=created_at.desc');
+        if(resenas.length === 0) {
+          document.getElementById('lista-resenas-admin').innerHTML = '<p>No hay reseñas todavía.</p>';
+          return;
+        }
+        document.getElementById('lista-resenas-admin').innerHTML = resenas.map(r => `
+          <div style="border-bottom: 1px solid #eee; padding: 15px 0;">
+            <div style="display: flex; justify-content: space-between;">
+              <strong>${r.nombre || 'Anónimo'}</strong>
+              <span style="color: #f1c40f;">${'★'.repeat(r.estrellas || 5)}</span>
+            </div>
+            <p style="margin: 5px 0; font-size: 0.9rem; color: #555;">${r.comentario || ''}</p>
+            <small style="color: #999;">${new Date(r.created_at).toLocaleDateString()}</small>
+            <button class="btn-delete" style="padding: 4px 8px; font-size: 0.75rem; margin-top: 10px;" onclick="eliminarResena('${r.id}')">Eliminar</button>
+          </div>
+        `).join('');
+      } catch(e) { console.log(e); }
+    }
+
+    function eliminarResena(id) {
+      mostrarConfirmacion('Eliminar Reseña', '¿Borrar esta reseña?', 'Eliminar', async () => {
+        try {
+          await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, { method: 'DELETE' });
+          mostrarAlerta('Reseña eliminada.'); cargarResenas();
+        } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
+      });
+    }
+
+    // --- CONFIGURACIÓN ---
     async function cargarConfiguracion() {
       try {
-        const config = await fetchSupabase('/rest/v1/configuracion?select=*&limit=1');
-        if (config.length) {
-          configGlobal = config[0];
-          document.getElementById('cfg-nombre').value = configGlobal.nombre_negocio || '';
+        const configs = await fetchSupabase('/rest/v1/configuracion?select=*');
+        if(configs.length > 0) {
+          configGlobal = configs[0];
+          document.getElementById('cfg-nombre').value = configGlobal.nombre || '';
           document.getElementById('cfg-empresa').value = configGlobal.empresa || '';
           document.getElementById('cfg-cif').value = configGlobal.cif || '';
           document.getElementById('cfg-promo').value = configGlobal.promo || '';
@@ -605,18 +742,15 @@
           document.getElementById('cfg-direccion').value = configGlobal.direccion || '';
           document.getElementById('cfg-horario').value = configGlobal.horario || '';
           document.getElementById('cfg-ticket-footer').value = configGlobal.ticket_footer || '';
-          document.getElementById('cfg-stripe').checked = !!configGlobal.stripe_activo;
+          document.getElementById('cfg-stripe').checked = configGlobal.stripe_activo || false;
           document.getElementById('stripe-status-text').textContent = configGlobal.stripe_activo ? 'Activado' : 'Desactivado';
-          document.getElementById('admin-header-title').textContent = '🍕 ' + (configGlobal.nombre_negocio || 'Panel Admin');
         }
-      } catch (error) {
-        console.warn('Config no disponible:', error.message);
-      }
+      } catch (error) { console.log(error); }
     }
 
     async function guardarConfiguracion() {
       const data = {
-        nombre_negocio: document.getElementById('cfg-nombre').value.trim(),
+        nombre: document.getElementById('cfg-nombre').value.trim(),
         empresa: document.getElementById('cfg-empresa').value.trim(),
         cif: document.getElementById('cfg-cif').value.trim(),
         promo: document.getElementById('cfg-promo').value.trim(),
@@ -627,76 +761,46 @@
         ticket_footer: document.getElementById('cfg-ticket-footer').value.trim(),
         stripe_activo: document.getElementById('cfg-stripe').checked
       };
+
       try {
-        if (configGlobal.id) {
-          await fetchSupabase(`/rest/v1/configuracion?id=eq.${configGlobal.id}`, { method: 'PATCH', body: JSON.stringify(data) });
+        if(configGlobal.id) {
+          await fetchSupabase(`/rest/v1/configuracion?id=eq.${configGlobal.id}`, {
+            method: 'PATCH', body: JSON.stringify(data)
+          });
         } else {
-          await fetchSupabase('/rest/v1/configuracion', { method: 'POST', body: JSON.stringify(data) });
+          await fetchSupabase('/rest/v1/configuracion', {
+            method: 'POST', body: JSON.stringify(data)
+          });
         }
-        configGlobal = { ...configGlobal, ...data };
-        document.getElementById('admin-header-title').textContent = '🍕 ' + data.nombre_negocio;
-        document.getElementById('stripe-status-text').textContent = data.stripe_activo ? 'Activado' : 'Desactivado';
-        mostrarAlerta('Configuración guardada.');
+        mostrarAlerta('Configuración guardada exitosamente.');
+        cargarConfiguracion();
       } catch (error) {
-        mostrarAlerta('Error: ' + error.message, 'error');
+        mostrarAlerta('Error al guardar configuración: ' + error.message, 'error');
       }
     }
 
-    document.getElementById('cfg-stripe')?.addEventListener('change', function () {
-      document.getElementById('stripe-status-text').textContent = this.checked ? 'Activado' : 'Desactivado';
+    document.getElementById('cfg-stripe').addEventListener('change', (e) => {
+      document.getElementById('stripe-status-text').textContent = e.target.checked ? 'Activado' : 'Desactivado';
     });
 
-    async function cargarResenas() {
-      try {
-        const resenas = await fetchSupabase('/rest/v1/resenas?select=*&order=fecha.desc');
-        const cont = document.getElementById('lista-resenas-admin');
-        if (!resenas.length) {
-          cont.innerHTML = '<p style="color:#999;">No hay reseñas todavía.</p>';
-          return;
-        }
-        cont.innerHTML = resenas.map(r => `
-          <div style="border-bottom:1px solid #eee; padding:15px 0;">
-            <strong>${r.nombre || 'Anónimo'}</strong>
-            <span style="color:#f1c40f;">${'★'.repeat(r.estrellas || 5)}${'☆'.repeat(5 - (r.estrellas || 5))}</span>
-            <p style="font-size:0.9rem; color:#555; margin:5px 0;">${r.comentario || ''}</p>
-            <small style="color:#999;">${new Date(r.fecha || Date.now()).toLocaleDateString('es-ES')}</small>
-            <button class="btn-delete" style="width:auto; padding:4px 10px; font-size:0.8rem; margin-left:10px;" onclick="eliminarResena('${r.id}')">🗑️ Eliminar</button>
-          </div>
-        `).join('');
-      } catch (error) {
-        document.getElementById('lista-resenas-admin').innerHTML = '<p style="color:#e74c3c;">Error al cargar reseñas.</p>';
-      }
-    }
-
-    async function eliminarResena(id) {
-      if (!confirm('¿Eliminar reseña?')) return;
-      await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, { method: 'DELETE' });
-      cargarResenas();
-      mostrarAlerta('Reseña eliminada.');
-    }
-
+    // --- USUARIOS ---
     async function cargarUsuarios() {
       try {
-        const usuarios = await fetchSupabase('/rest/v1/perfiles?select=*&order=id');
-        const tbody = document.getElementById('tabla-usuarios-body');
-        if (!usuarios.length) {
-          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#999;">No hay usuarios registrados</td></tr>';
-          return;
-        }
-        tbody.innerHTML = usuarios.map(u => `
+        const users = await fetchSupabase('/rest/v1/perfiles?select=*');
+        usuariosGlobal = users;
+        document.getElementById('tabla-usuarios-body').innerHTML = users.map(u => `
           <tr>
-            <td>${u.nombre || '—'}</td>
-            <td>${u.email || '—'}</td>
-            <td>${u.telefono || '—'}</td>
-            <td><span class="badge ${u.rol === 'admin' ? 'badge-listo' : u.rol === 'cocina' ? 'badge-preparacion' : 'badge-pendiente'}">${(u.rol || 'empleado').toUpperCase()}</span></td>
+            <td>${u.nombre || 'Sin nombre'}</td>
+            <td>${u.email}</td>
+            <td>${u.telefono || '-'}</td>
+            <td><span class="badge" style="background: #2c3e50; color: white;">${u.rol}</span></td>
             <td>
-              <button class="btn-delete" style="width:auto; padding:6px 10px; font-size:0.8rem;" onclick="eliminarUsuario('${u.id}', '${u.email}')">🗑️ Eliminar</button>
+              <button class="btn-edit" onclick="abrirModalEditarUsuario('${u.id}')">✏️ Editar</button>
+              <button class="btn-delete" onclick="eliminarUsuario('${u.id}')">🗑️ Borrar</button>
             </td>
           </tr>
         `).join('');
-      } catch (error) {
-        document.getElementById('tabla-usuarios-body').innerHTML = '<tr><td colspan="5" style="text-align:center; color:#e74c3c;">Error al cargar usuarios</td></tr>';
-      }
+      } catch (error) { console.log(error); }
     }
 
     async function crearEmpleado() {
@@ -706,80 +810,103 @@
       const telefono = document.getElementById('new-user-phone').value.trim();
       const rol = document.getElementById('new-user-role').value;
 
-      if (!email || !pass) return mostrarAlerta('Email y contraseña son obligatorios.', 'error');
+      if (!email || !pass) return mostrarAlerta('Email y contraseña son obligatorios', 'error');
 
       try {
-        // Crear usuario en Auth usando la service_role key
         const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
           method: 'POST',
           headers: {
             'apikey': SUPABASE_SERVICE_KEY,
-            'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY,
+            'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ email, password: pass, email_confirm: true })
-        });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.message || 'Error al crear usuario');
-        }
-        const authUser = await res.json();
-
-        // Crear perfil asociado
-        await fetchSupabase('/rest/v1/perfiles', {
-          method: 'POST',
           body: JSON.stringify({
-            id: authUser.id,
-            nombre,
-            email,
-            telefono,
-            rol
+            email, password: pass, email_confirm: true,
+            user_metadata: { nombre, telefono, rol }
           })
         });
 
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.msg || 'Error al crear usuario');
+        }
+
+        const newUser = await res.json();
+        
+        await fetchSupabase('/rest/v1/perfiles', {
+          method: 'POST',
+          body: JSON.stringify({
+            id: newUser.id,
+            email: email,
+            nombre: nombre,
+            telefono: telefono,
+            rol: rol
+          })
+        });
+
+        mostrarAlerta('Usuario creado exitosamente.');
         document.getElementById('new-user-name').value = '';
         document.getElementById('new-user-email').value = '';
         document.getElementById('new-user-pass').value = '';
         document.getElementById('new-user-phone').value = '';
-        document.getElementById('new-user-role').value = 'empleado';
-
         cargarUsuarios();
-        mostrarAlerta('Usuario creado correctamente.');
       } catch (error) {
         mostrarAlerta('Error: ' + error.message, 'error');
       }
     }
 
-    async function eliminarUsuario(id, email) {
-      if (!confirm(`¿Eliminar al usuario ${email}?`)) return;
+    function abrirModalEditarUsuario(id) {
+      const u = usuariosGlobal.find(x => String(x.id) === String(id));
+      if(!u) return;
+      document.getElementById('edit-user-id').value = u.id;
+      document.getElementById('edit-user-name').value = u.nombre || '';
+      document.getElementById('edit-user-email').value = u.email || '';
+      document.getElementById('edit-user-phone').value = u.telefono || '';
+      document.getElementById('edit-user-role').value = u.rol || 'empleado';
+      document.getElementById('modal-editar-usuario').style.display = 'flex';
+    }
+
+    async function guardarEdicionUsuario() {
+      const id = document.getElementById('edit-user-id').value;
+      const nombre = document.getElementById('edit-user-name').value.trim();
+      const telefono = document.getElementById('edit-user-phone').value.trim();
+      const rol = document.getElementById('edit-user-role').value;
+
       try {
-        await fetchSupabase('/rest/v1/perfiles?id=eq.' + id, { method: 'DELETE' });
-        // Opcional: eliminar de Auth (requiere service key)
-        await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${id}`, {
-          method: 'DELETE',
-          headers: {
-            'apikey': SUPABASE_SERVICE_KEY,
-            'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY
-          }
-        }).catch(() => {});
+        await fetchSupabase(`/rest/v1/perfiles?id=eq.${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ nombre, telefono, rol })
+        });
+        document.getElementById('modal-editar-usuario').style.display = 'none';
+        mostrarAlerta('Usuario actualizado correctamente.');
         cargarUsuarios();
-        mostrarAlerta('Usuario eliminado.');
       } catch (error) {
-        mostrarAlerta('Error: ' + error.message, 'error');
+        mostrarAlerta('Error al actualizar usuario: ' + error.message, 'error');
       }
     }
 
-    // Cerrar modales al hacer clic fuera
-    document.querySelectorAll('.modal').forEach(modal => {
-      modal.addEventListener('click', e => {
-        if (e.target === modal) modal.style.display = 'none';
-      });
-    });
+    function eliminarUsuario(id) {
+      mostrarConfirmacion('Eliminar Usuario', '¿Estás seguro de que deseas eliminar este usuario? Perderá acceso al sistema.', 'Eliminar', async () => {
+        try {
+          await fetchSupabase(`/rest/v1/perfiles?id=eq.${id}`, { method: 'DELETE' });
+          
+          await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${id}`, {
+            method: 'DELETE',
+            headers: {
+              'apikey': SUPABASE_SERVICE_KEY,
+              'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
+            }
+          });
 
-    // Enter para login
-    document.getElementById('login-pass')?.addEventListener('keypress', e => {
-      if (e.key === 'Enter') login();
-    });
+          mostrarAlerta('Usuario eliminado.');
+          cargarUsuarios();
+        } catch (error) {
+          mostrarAlerta('Error al eliminar usuario: ' + error.message, 'error');
+        }
+      });
+    }
+
   </script>
 </body>
 </html>
+        
