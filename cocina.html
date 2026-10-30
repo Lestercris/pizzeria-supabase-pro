@@ -11,14 +11,15 @@
     header { background-color: #2c3e50; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #c0392b; }
     header h1 { font-size: 1.8rem; display: flex; align-items: center; gap: 10px; }
     .clock { font-size: 1.5rem; font-weight: bold; color: #f1c40f; }
-    .connection-status { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
-    .dot { width: 12px; height: 12px; border-radius: 50%; background-color: #27ae60; box-shadow: 0 0 10px #27ae60; }
-
+    .cocinero-select { background: #34495e; color: white; border: 1px solid #f1c40f; padding: 5px 10px; border-radius: 5px; font-size: 1rem; margin-left: 20px; outline: none; }
+    
     .grid-pedidos { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; padding: 20px; overflow-y: auto; height: 100%; align-content: start; }
-
     .tarjeta { background-color: #2c3e50; border-radius: 12px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.5); display: flex; flex-direction: column; border-top: 8px solid #e74c3c; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
     .tarjeta:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.7); }
-    .tarjeta.en-preparacion { border-top-color: #f1c40f; }
+    
+    /* Amarillo si lo estoy preparando YO, Gris si lo prepara otro */
+    .tarjeta.en-preparacion { border-top-color: #f1c40f; } 
+    .tarjeta.ocupado { border-top-color: #7f8c8d; opacity: 0.7; cursor: not-allowed; }
     
     .tarjeta-header { background-color: rgba(0,0,0,0.2); padding: 15px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid rgba(255,255,255,0.1); }
     .tarjeta-header h2 { font-size: 1.5rem; color: #fff; margin: 0; }
@@ -34,6 +35,7 @@
     .btn-empezar:hover { background-color: #d68910; }
     .btn-terminar { background-color: #27ae60; color: white; }
     .btn-terminar:hover { background-color: #219150; }
+    .btn-bloqueado { background-color: #95a5a6; color: #333; cursor: not-allowed; }
 
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
     .modal-content { background: #2c3e50; width: 100%; max-width: 600px; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-top: 10px solid #c0392b; animation: aparecer 0.3s ease; }
@@ -57,12 +59,22 @@
 <body>
 
   <header>
-    <h1>👨‍🍳 Monitor de Cocina</h1>
-    <div class="connection-status">
-      <div class="dot" id="status-dot"></div>
-      <span id="status-text">Conectado</span>
+    <div style="display: flex; align-items: center;">
+      <h1>👨‍🍳 Monitor de Cocina</h1>
+      <select id="select-cocinero" class="cocinero-select" onchange="cambiarCocinero()">
+        <option value="">-- Selecciona tu nombre --</option>
+        <option value="Lester">Lester</option>
+        <option value="Adalid">Adalid</option>
+        <option value="Cocinero 3">Cocinero 3</option>
+      </select>
     </div>
-    <div class="clock" id="reloj">00:00:00</div>
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <div class="connection-status" style="display: flex; align-items: center; gap: 8px;">
+        <div class="dot" id="status-dot"></div>
+        <span id="status-text">Conectado</span>
+      </div>
+      <div class="clock" id="reloj">00:00:00</div>
+    </div>
   </header>
 
   <div class="grid-pedidos" id="contenedor-pedidos"></div>
@@ -72,7 +84,6 @@
     <p>No hay pedidos pendientes en este momento.</p>
   </div>
 
-  <!-- VENTANA MODAL PARA VER DETALLES (Solo productos) -->
   <div class="modal-overlay" id="modal-detalles" onclick="cerrarModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -85,7 +96,6 @@
           <ul class="detalle-lista" id="modal-productos"></ul>
         </div>
         
-        <!-- Ya NO mostramos cliente, teléfono ni dirección -->
         <div style="display: flex; justify-content: space-between; margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
           <div class="detalle-grupo">
             <h3>⏰ HORA</h3>
@@ -105,6 +115,20 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMzI2NTUsImV4cCI6MjEwODcwODY1NX0.J7gSycaeum0bUzx9tss5OM4WfPUt5BswqxnSEI0RgiY';
 
     let pedidosGlobal = [];
+    let miNombre = localStorage.getItem('cocinero_actual') || '';
+
+    // Al cargar, seleccionamos el nombre guardado
+    document.addEventListener('DOMContentLoaded', () => {
+      if(miNombre) {
+        document.getElementById('select-cocinero').value = miNombre;
+      }
+    });
+
+    function cambiarCocinero() {
+      miNombre = document.getElementById('select-cocinero').value;
+      localStorage.setItem('cocinero_actual', miNombre);
+      obtenerPedidos(); // Refrescamos para ver los pedidos que nos corresponden
+    }
 
     setInterval(() => {
       document.getElementById('reloj').textContent = new Date().toLocaleTimeString('es-ES');
@@ -122,8 +146,10 @@
         document.getElementById('status-dot').style.backgroundColor = '#27ae60';
         document.getElementById('status-text').textContent = 'Conectado';
         
-        pedidosGlobal = pedidos;
-        renderizarPedidos(pedidos);
+        // Filtrar: Mostrar solo los que no tienen cocinero o los que son míos
+        pedidosGlobal = pedidos.filter(p => !p.cocinero || p.cocinero === miNombre);
+        
+        renderizarPedidos(pedidosGlobal);
 
       } catch (error) {
         console.error(error);
@@ -145,12 +171,27 @@
       emptyState.style.display = 'none';
       
       contenedor.innerHTML = pedidos.map(p => {
-        const esPreparando = p.estado === 'En preparación';
-        const claseBorde = esPreparando ? 'en-preparacion' : '';
+        const esMio = p.cocinero === miNombre;
+        const esDeOtro = p.cocinero && p.cocinero !== miNombre;
+        
+        let claseBorde = '';
+        if (esMio) claseBorde = 'en-preparacion';
+        else if (esDeOtro) claseBorde = 'ocupado';
+
         const hora = p.fecha ? new Date(p.fecha).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'}) : '--:--';
         
+        // Separamos por comas. Como añadimos notas con (), se mostrarán en la misma línea.
         const itemsArray = p.detalle ? p.detalle.split(',') : [];
         const items = itemsArray.map(item => `<li>🔸 ${item.trim()}</li>`).join('');
+
+        let botonera = '';
+        if (esDeOtro) {
+          botonera = `<button class="btn-accion btn-bloqueado">Lo prepara ${p.cocinero}</button>`;
+        } else if (esMio) {
+          botonera = `<button class="btn-accion btn-terminar" onclick="cambiarEstado('${p.order_id}', 'Listo', event)">✅ TERMINADO</button>`;
+        } else {
+          botonera = `<button class="btn-accion btn-empezar" onclick="tomarPedido('${p.order_id}', event)">▶ PREPARAR</button>`;
+        }
 
         return `
           <div class="tarjeta ${claseBorde}" onclick="abrirModal('${p.order_id}')">
@@ -159,6 +200,7 @@
                 <h2>${p.order_id}</h2>
                 <div class="hora">Llegada: ${hora}</div>
               </div>
+              ${p.cocinero ? `<div style="font-size:0.8rem; background:#3498db; padding:2px 8px; border-radius:4px;">${p.cocinero}</div>` : ''}
             </div>
             
             <div class="tarjeta-body">
@@ -168,14 +210,49 @@
             </div>
             
             <div class="tarjeta-footer" onclick="event.stopPropagation()">
-              ${!esPreparando 
-                ? `<button class="btn-accion btn-empezar" onclick="cambiarEstado('${p.order_id}', 'En preparación')">▶ PREPARAR</button>`
-                : `<button class="btn-accion btn-terminar" onclick="cambiarEstado('${p.order_id}', 'Listo')">✅ TERMINADO</button>`
-              }
+              ${botonera}
             </div>
           </div>
         `;
       }).join('');
+    }
+
+    // Función para cuando un cocinero toma el pedido
+    async function tomarPedido(orderId, event) {
+      event.stopPropagation();
+      if (!miNombre) {
+        alert('Por favor, selecciona tu nombre en el menú superior antes de tomar un pedido.');
+        return;
+      }
+
+      try {
+        const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos?order_id=eq.' + orderId, {
+          method: 'PATCH',
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ estado: 'En preparación', cocinero: miNombre })
+        });
+
+        if (!response.ok) throw new Error('Error');
+        obtenerPedidos(); // Refrescamos
+
+      } catch (error) { alert('Error al tomar el pedido.'); }
+    }
+
+    // Función para terminar el pedido
+    async function cambiarEstado(orderId, nuevoEstado, event) {
+      if (event) event.stopPropagation();
+      
+      pedidosGlobal = pedidosGlobal.filter(p => p.order_id !== orderId);
+      renderizarPedidos(pedidosGlobal);
+
+      try {
+        await fetch(SUPABASE_URL + '/rest/v1/pedidos?order_id=eq.' + orderId, {
+          method: 'PATCH',
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ estado: nuevoEstado })
+        });
+        obtenerPedidos();
+      } catch (error) { alert('Error al guardar.'); obtenerPedidos(); }
     }
 
     function abrirModal(orderId) {
@@ -183,11 +260,9 @@
       if (!pedido) return;
 
       const hora = pedido.fecha ? new Date(pedido.fecha).toLocaleString('es-ES') : '--:--';
-      
       document.getElementById('modal-ticket').textContent = pedido.order_id;
       document.getElementById('modal-hora').textContent = hora;
       
-      // Determinamos si es envío o recogida
       const esEnvio = pedido.direccion && pedido.direccion.trim() !== '' && pedido.direccion.toLowerCase() !== 'recogida en tienda';
       document.getElementById('modal-tipo').textContent = esEnvio ? 'PARA LLEVAR 🛵' : 'RECOGER EN TIENDA 🏪';
 
@@ -203,38 +278,9 @@
       }
     }
 
-    async function cambiarEstado(orderId, nuevoEstado) {
-      if (nuevoEstado === 'Listo') {
-         pedidosGlobal = pedidosGlobal.filter(p => p.order_id !== orderId);
-      } else {
-         const pedido = pedidosGlobal.find(p => p.order_id === orderId);
-         if (pedido) pedido.estado = 'En preparación';
-      }
-      renderizarPedidos(pedidosGlobal);
-
-      try {
-        const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos?order_id=eq.' + orderId, {
-          method: 'PATCH',
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ estado: nuevoEstado })
-        });
-
-        if (!response.ok) throw new Error('Fallo en Supabase');
-        
-      } catch (error) {
-        console.error("Error al guardar en BD:", error);
-        alert('Atención: Hubo un problema al guardar en la base de datos. Recargando...');
-        obtenerPedidos();
-      }
-    }
-
+    // Iniciar
     obtenerPedidos();
-    setInterval(obtenerPedidos, 10000);
-
+    setInterval(obtenerPedidos, 10000); // Refrescar cada 10s
   </script>
 </body>
 </html>
