@@ -478,7 +478,558 @@
       }
     }
 
-    // ... (Resto de funciones: cargarProductos, guardarProducto, cargarPedidos, imprimirTicket, cargarConfiguracion, etc.) ...
+    // ============================================================
+//  FUNCIONES QUE FALTABAN EN EL PANEL DE ADMINISTRACIÓN
+//  (Productos, Slider, Pedidos, Ticket, Configuración, Reseñas)
+// ============================================================
+
+// ---------- UTILIDADES ----------
+function esc(txt) {
+  return String(txt == null ? '' : txt).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+function moneda(n) { return '€' + (Number(n) || 0).toFixed(2); }
+
+function precioNum(valor) {
+  if (typeof valor === 'number') return isFinite(valor) ? valor : 0;
+  let s = String(valor == null ? '' : valor).replace(/[^\d.,-]/g, '');
+  if (!s) return 0;
+  if (s.indexOf(',') > -1 && s.indexOf('.') > -1) {
+    s = s.lastIndexOf(',') > s.lastIndexOf('.')
+      ? s.replace(/\./g, '').replace(',', '.')
+      : s.replace(/,/g, '');
+  } else {
+    s = s.replace(',', '.');
+  }
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+
+// ============================================================
+//  PRODUCTOS
+// ============================================================
+async function cargarProductos() {
+  try {
+    const data = await fetchSupabase('/rest/v1/productos?select=*&order=id.desc');
+    productosGlobal = data || [];
+    renderizarProductos();
+  } catch (error) {
+    mostrarAlerta('Error al cargar productos: ' + error.message, 'error');
+  }
+}
+
+function renderizarProductos() {
+  const cont = document.getElementById('lista-productos');
+  if (!productosGlobal.length) {
+    cont.innerHTML = '<p style="color:#999">No hay productos todavía. Crea el primero.</p>';
+    return;
+  }
+  cont.innerHTML = productosGlobal.map(p => {
+    const img = p.imagen_url || 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="150"><rect width="100%" height="100%" fill="#eee"/><text x="150" y="80" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#aaa">Sin imagen</text></svg>');
+    return `
+      <div class="card">
+        <img src="${esc(img)}" alt="${esc(p.nombre)}" onerror="this.src='data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22150%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23eee%22/%3E%3C/svg%3E'">
+        <div class="card-body">
+          <h3>${esc(p.nombre)}</h3>
+          <div class="price">${moneda(precioNum(p.precio))}</div>
+          <p style="font-size:0.8rem;color:#777;margin-bottom:8px;">${esc(p.categoria || 'Otros')} · ${p.disponible ? '✅ Disponible' : '❌ Oculto'}</p>
+          <div class="card-actions">
+            <button class="btn-edit" onclick="editarProducto(${p.id})">✏️ Editar</button>
+            <button class="btn-delete" onclick="eliminarProducto(${p.id})">🗑️ Borrar</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function abrirModalNuevo() {
+  document.getElementById('modal-title').textContent = 'Nuevo Producto';
+  document.getElementById('prod-id-original').value = '';
+  document.getElementById('prod-id').value = 'Se generará automáticamente';
+  document.getElementById('prod-nombre').value = '';
+  document.getElementById('prod-precio').value = '';
+  document.getElementById('prod-categoria').value = 'Pizzas';
+  document.getElementById('prod-desc').value = '';
+  document.getElementById('prod-ingredientes').value = '';
+  document.getElementById('prod-imagen').value = '';
+  document.getElementById('prod-disponible').checked = true;
+  const prev = document.getElementById('preview-prod');
+  prev.src = ''; prev.style.display = 'none';
+  document.getElementById('modal-producto').style.display = 'flex';
+}
+
+function editarProducto(id) {
+  const p = productosGlobal.find(x => Number(x.id) === Number(id));
+  if (!p) return;
+  document.getElementById('modal-title').textContent = 'Editar Producto';
+  document.getElementById('prod-id-original').value = p.id;
+  document.getElementById('prod-id').value = p.id;
+  document.getElementById('prod-nombre').value = p.nombre || '';
+  document.getElementById('prod-precio').value = p.precio || '';
+  document.getElementById('prod-categoria').value = p.categoria || 'Pizzas';
+  document.getElementById('prod-desc').value = p.descripcion || '';
+  document.getElementById('prod-ingredientes').value = p.ingredientes || '';
+  document.getElementById('prod-imagen').value = p.imagen_url || '';
+  document.getElementById('prod-disponible').checked = !!p.disponible;
+  const prev = document.getElementById('preview-prod');
+  if (p.imagen_url) { prev.src = p.imagen_url; prev.style.display = 'block'; }
+  else { prev.src = ''; prev.style.display = 'none'; }
+  document.getElementById('modal-producto').style.display = 'flex';
+}
+
+function cerrarModal() {
+  document.getElementById('modal-producto').style.display = 'none';
+}
+
+async function guardarProducto() {
+  const idOriginal = document.getElementById('prod-id-original').value;
+  const nombre = document.getElementById('prod-nombre').value.trim();
+  const precio = precioNum(document.getElementById('prod-precio').value);
+  const categoria = document.getElementById('prod-categoria').value;
+  const descripcion = document.getElementById('prod-desc').value.trim();
+  const ingredientes = document.getElementById('prod-ingredientes').value.trim();
+  const imagen_url = document.getElementById('prod-imagen').value.trim();
+  const disponible = document.getElementById('prod-disponible').checked;
+
+  if (!nombre || precio <= 0) {
+    mostrarAlerta('El nombre y un precio válido son obligatorios.', 'error');
+    return;
+  }
+
+  const payload = { nombre, precio, categoria, descripcion, ingredientes, imagen_url, disponible };
+
+  try {
+    if (idOriginal) {
+      await fetchSupabase(`/rest/v1/productos?id=eq.${idOriginal}`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload)
+      });
+      mostrarAlerta('Producto actualizado correctamente.');
+    } else {
+      await fetchSupabase('/rest/v1/productos', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      mostrarAlerta('Producto creado correctamente.');
+    }
+    cerrarModal();
+    cargarProductos();
+  } catch (error) {
+    mostrarAlerta('Error al guardar: ' + error.message, 'error');
+  }
+}
+
+async function eliminarProducto(id) {
+  if (!confirm('¿Seguro que quieres eliminar este producto?')) return;
+  try {
+    await fetchSupabase(`/rest/v1/productos?id=eq.${id}`, { method: 'DELETE' });
+    mostrarAlerta('Producto eliminado.');
+    cargarProductos();
+  } catch (error) {
+    mostrarAlerta('Error al eliminar: ' + error.message, 'error');
+  }
+}
+
+// Subida de imagen de producto a Storage
+async function subirImagenProducto(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  try {
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const fileName = `prod_${Date.now()}.${ext}`;
+    const url = `${SUPABASE_URL}/storage/v1/object/productos/${fileName}`;
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_SERVICE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY,
+        'Content-Type': file.type || 'application/octet-stream',
+        'x-upsert': 'true'
+      },
+      body: file
+    });
+    if (!res.ok) throw new Error('No se pudo subir la imagen');
+
+    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/productos/${fileName}`;
+    document.getElementById('prod-imagen').value = publicUrl;
+    const prev = document.getElementById('preview-prod');
+    prev.src = publicUrl; prev.style.display = 'block';
+    mostrarAlerta('Imagen subida correctamente.');
+  } catch (error) {
+    mostrarAlerta('Error al subir imagen: ' + error.message, 'error');
+  }
+}
+
+// ============================================================
+//  SLIDER
+// ============================================================
+async function cargarSlides() {
+  try {
+    const data = await fetchSupabase('/rest/v1/slides?select=*&order=orden.asc');
+    slidesGlobal = data || [];
+    renderizarSlides();
+  } catch (error) {
+    mostrarAlerta('Error al cargar slider: ' + error.message, 'error');
+  }
+}
+
+function renderizarSlides() {
+  const cont = document.getElementById('lista-slides');
+  if (!slidesGlobal.length) {
+    cont.innerHTML = '<p style="color:#999">No hay imágenes en el slider.</p>';
+    return;
+  }
+  cont.innerHTML = slidesGlobal.map(s => `
+    <div class="card">
+      <img src="${esc(s.imagen_url)}" alt="${esc(s.titulo || '')}">
+      <div class="card-body">
+        <h3>${esc(s.titulo || 'Sin título')}</h3>
+        <p style="font-size:0.8rem;color:#777;margin-bottom:8px;">${esc(s.subtitulo || '')}</p>
+        <p style="font-size:0.8rem;color:#777;margin-bottom:8px;">${s.activo ? '✅ Activo' : '❌ Inactivo'} · Orden: ${s.orden || 0}</p>
+        <div class="card-actions">
+          <button class="btn-delete" onclick="eliminarSlide(${s.id})">🗑️ Borrar</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function abrirModalSlide() {
+  document.getElementById('slide-titulo').value = '';
+  document.getElementById('slide-subtitulo').value = '';
+  document.getElementById('slide-imagen').value = '';
+  const prev = document.getElementById('preview-slide');
+  prev.src = ''; prev.style.display = 'none';
+  document.getElementById('modal-slider').style.display = 'flex';
+}
+
+async function guardarSlide() {
+  const titulo = document.getElementById('slide-titulo').value.trim();
+  const subtitulo = document.getElementById('slide-subtitulo').value.trim();
+  const imagen_url = document.getElementById('slide-imagen').value.trim();
+
+  if (!imagen_url) {
+    mostrarAlerta('Debes subir una imagen para el slider.', 'error');
+    return;
+  }
+
+  try {
+    await fetchSupabase('/rest/v1/slides', {
+      method: 'POST',
+      body: JSON.stringify({ titulo, subtitulo, imagen_url, activo: true, orden: slidesGlobal.length })
+    });
+    document.getElementById('modal-slider').style.display = 'none';
+    mostrarAlerta('Imagen añadida al slider.');
+    cargarSlides();
+  } catch (error) {
+    mostrarAlerta('Error al guardar slide: ' + error.message, 'error');
+  }
+}
+
+async function eliminarSlide(id) {
+  if (!confirm('¿Eliminar esta imagen del slider?')) return;
+  try {
+    await fetchSupabase(`/rest/v1/slides?id=eq.${id}`, { method: 'DELETE' });
+    mostrarAlerta('Imagen eliminada.');
+    cargarSlides();
+  } catch (error) {
+    mostrarAlerta('Error al eliminar: ' + error.message, 'error');
+  }
+}
+
+async function subirImagenSlide(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  try {
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const fileName = `slide_${Date.now()}.${ext}`;
+    const url = `${SUPABASE_URL}/storage/v1/object/slides/${fileName}`;
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_SERVICE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY,
+        'Content-Type': file.type || 'application/octet-stream',
+        'x-upsert': 'true'
+      },
+      body: file
+    });
+    if (!res.ok) throw new Error('No se pudo subir la imagen');
+
+    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/slides/${fileName}`;
+    document.getElementById('slide-imagen').value = publicUrl;
+    const prev = document.getElementById('preview-slide');
+    prev.src = publicUrl; prev.style.display = 'block';
+    mostrarAlerta('Imagen subida correctamente.');
+  } catch (error) {
+    mostrarAlerta('Error al subir imagen: ' + error.message, 'error');
+  }
+}
+
+// ============================================================
+//  PEDIDOS
+// ============================================================
+async function cargarPedidos() {
+  try {
+    const data = await fetchSupabase('/rest/v1/pedidos?select=*&order=fecha.desc');
+    pedidosGlobal = data || [];
+    renderizarPedidosAdmin();
+  } catch (error) {
+    mostrarAlerta('Error al cargar pedidos: ' + error.message, 'error');
+  }
+}
+
+function renderizarPedidosAdmin() {
+  const tbody = document.getElementById('tabla-pedidos-body');
+  if (!pedidosGlobal.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay pedidos.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = pedidosGlobal.map(p => {
+    const estadoClase = {
+      'Pendiente': 'badge-pendiente',
+      'En preparación': 'badge-preparacion',
+      'Listo': 'badge-listo',
+      'Entregado': 'badge-entregado'
+    }[p.estado] || 'badge-pendiente';
+
+    return `
+      <tr>
+        <td style="font-weight:bold;">${esc(p.order_id)}</td>
+        <td>${esc(p.nombre_cliente)}<br><small>${esc(p.telefono || '')}</small></td>
+        <td style="max-width:280px;font-size:0.8rem;">${esc(p.detalle)}</td>
+        <td style="font-weight:bold;color:#27ae60;">${moneda(precioNum(p.total))}</td>
+        <td><span class="badge ${estadoClase}">${esc(p.estado)}</span></td>
+        <td>
+          <select onchange="cambiarEstadoPedido('${esc(p.order_id)}', this.value)" style="padding:5px;font-size:0.8rem;">
+            <option value="Pendiente" ${p.estado==='Pendiente'?'selected':''}>Pendiente</option>
+            <option value="En preparación" ${p.estado==='En preparación'?'selected':''}>En preparación</option>
+            <option value="Listo" ${p.estado==='Listo'?'selected':''}>Listo</option>
+            <option value="Entregado" ${p.estado==='Entregado'?'selected':''}>Entregado</option>
+          </select>
+          <button class="btn" style="width:auto;padding:5px 10px;font-size:0.8rem;background:#3498db;margin-top:5px;" onclick="imprimirTicket('${esc(p.order_id)}')">🖨️ Ticket</button>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+async function cambiarEstadoPedido(orderId, nuevoEstado) {
+  try {
+    await fetchSupabase(`/rest/v1/pedidos?order_id=eq.${encodeURIComponent(orderId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ estado: nuevoEstado })
+    });
+    mostrarAlerta('Estado actualizado.');
+    cargarPedidos();
+  } catch (error) {
+    mostrarAlerta('Error al actualizar estado: ' + error.message, 'error');
+  }
+}
+
+// ============================================================
+//  TICKET (impresión)
+// ============================================================
+async function imprimirTicket(orderId) {
+  const pedido = pedidosGlobal.find(p => p.order_id === orderId);
+  if (!pedido) return;
+
+  let config = {};
+  try {
+    const cfgData = await fetchSupabase('/rest/v1/configuracion?select=*');
+    cfgData.forEach(item => { config[item.clave] = item.valor; });
+  } catch (e) { /* sin config, seguimos */ }
+
+  const empresa = config.empresa || config.nombre_negocio || 'Mi Negocio';
+  const cif = config.cif || '';
+  const direccion = config.direccion || '';
+  const telefono = config.telefono || '';
+  const footerMsg = config.ticket_footer || '';
+
+  const items = (pedido.detalle || '').split(',').map(i => i.trim()).filter(Boolean);
+
+  const ticketHTML = `
+    <div style="text-align:center;">
+      <h2 style="margin:0;font-size:16px;">${esc(empresa)}</h2>
+      ${cif ? `<p style="margin:2px 0;font-size:11px;">CIF: ${esc(cif)}</p>` : ''}
+      ${direccion ? `<p style="margin:2px 0;font-size:11px;">${esc(direccion)}</p>` : ''}
+      ${telefono ? `<p style="margin:2px 0;font-size:11px;">Tel: ${esc(telefono)}</p>` : ''}
+    </div>
+    <hr style="border:none;border-top:1px dashed #000;margin:8px 0;">
+    <p style="margin:2px 0;font-size:11px;">Ticket: <strong>${esc(pedido.order_id)}</strong></p>
+    <p style="margin:2px 0;font-size:11px;">Fecha: ${pedido.fecha ? new Date(pedido.fecha).toLocaleString('es-ES') : ''}</p>
+    <p style="margin:2px 0;font-size:11px;">Cliente: ${esc(pedido.nombre_cliente)}</p>
+    ${pedido.telefono ? `<p style="margin:2px 0;font-size:11px;">Tel: ${esc(pedido.telefono)}</p>` : ''}
+    ${pedido.direccion ? `<p style="margin:2px 0;font-size:11px;">Dir: ${esc(pedido.direccion)}</p>` : ''}
+    <hr style="border:none;border-top:1px dashed #000;margin:8px 0;">
+    <div style="font-size:11px;">
+      ${items.map(i => `<p style="margin:2px 0;">${esc(i)}</p>`).join('')}
+    </div>
+    <hr style="border:none;border-top:1px dashed #000;margin:8px 0;">
+    <p style="margin:2px 0;font-size:14px;text-align:right;"><strong>TOTAL: ${moneda(precioNum(pedido.total))}</strong></p>
+    ${footerMsg ? `<hr style="border:none;border-top:1px dashed #000;margin:8px 0;"><p style="text-align:center;font-size:10px;margin:4px 0;">${esc(footerMsg)}</p>` : ''}
+    <div style="text-align:center;margin-top:10px;">
+      <svg id="barcode-ticket"></svg>
+    </div>
+  `;
+
+  const cont = document.getElementById('ticket-impresion');
+  cont.innerHTML = ticketHTML;
+  cont.style.display = 'block';
+
+  // Generar código de barras si la librería está cargada
+  if (window.JsBarcode) {
+    try {
+      JsBarcode('#barcode-ticket', pedido.order_id, {
+        format: 'CODE128', width: 1.2, height: 40, displayValue: true, fontSize: 10
+      });
+    } catch (e) { /* ignorar */ }
+  }
+
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => { cont.style.display = 'none'; }, 500);
+  }, 200);
+}
+
+// ============================================================
+//  CONFIGURACIÓN
+// ============================================================
+async function cargarConfiguracion() {
+  try {
+    const data = await fetchSupabase('/rest/v1/configuracion?select=*');
+    const config = {};
+    (data || []).forEach(item => { config[item.clave] = item.valor; });
+
+    document.getElementById('cfg-nombre').value = config.nombre_negocio || '';
+    document.getElementById('cfg-empresa').value = config.empresa || '';
+    document.getElementById('cfg-cif').value = config.cif || '';
+    document.getElementById('cfg-promo').value = config.promocion || '';
+    document.getElementById('cfg-telefono').value = config.telefono || '';
+    document.getElementById('cfg-whatsapp').value = config.whatsapp || '';
+    document.getElementById('cfg-direccion').value = config.direccion || '';
+    document.getElementById('cfg-horario').value = config.horario || '';
+    document.getElementById('cfg-ticket-footer').value = config.ticket_footer || '';
+
+    const stripeOn = config.stripe_habilitado === 'true';
+    document.getElementById('cfg-stripe').checked = stripeOn;
+    document.getElementById('stripe-status-text').textContent = stripeOn ? 'Activado' : 'Desactivado';
+  } catch (error) {
+    console.error('Error al cargar configuración:', error);
+  }
+}
+
+async function guardarConfiguracion() {
+  const valores = {
+    nombre_negocio: document.getElementById('cfg-nombre').value.trim(),
+    empresa: document.getElementById('cfg-empresa').value.trim(),
+    cif: document.getElementById('cfg-cif').value.trim(),
+    promocion: document.getElementById('cfg-promo').value.trim(),
+    telefono: document.getElementById('cfg-telefono').value.trim(),
+    whatsapp: document.getElementById('cfg-whatsapp').value.trim(),
+    direccion: document.getElementById('cfg-direccion').value.trim(),
+    horario: document.getElementById('cfg-horario').value.trim(),
+    ticket_footer: document.getElementById('cfg-ticket-footer').value.trim(),
+    stripe_habilitado: document.getElementById('cfg-stripe').checked ? 'true' : 'false'
+  };
+
+  try {
+    // Upsert: inserta o actualiza cada clave
+    const payload = Object.keys(valores).map(clave => ({ clave, valor: valores[clave] }));
+    await fetchSupabase('/rest/v1/configuracion', {
+      method: 'POST',
+      headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify(payload)
+    });
+    document.getElementById('stripe-status-text').textContent = valores.stripe_habilitado === 'true' ? 'Activado' : 'Desactivado';
+    mostrarAlerta('Configuración guardada correctamente.');
+  } catch (error) {
+    mostrarAlerta('Error al guardar configuración: ' + error.message, 'error');
+  }
+}
+
+// ============================================================
+//  RESEÑAS (panel admin)
+// ============================================================
+async function cargarResenas() {
+  try {
+    const data = await fetchSupabase('/rest/v1/resenas?select=*&order=fecha.desc');
+    renderizarResenasAdmin(data || []);
+  } catch (error) {
+    mostrarAlerta('Error al cargar reseñas: ' + error.message, 'error');
+  }
+}
+
+function renderizarResenasAdmin(resenas) {
+  const cont = document.getElementById('lista-resenas-admin');
+  if (!resenas.length) {
+    cont.innerHTML = '<p style="color:#999">No hay reseñas todavía.</p>';
+    return;
+  }
+  cont.innerHTML = resenas.map(r => {
+    const estrellas = '★'.repeat(r.estrellas) + '☆'.repeat(5 - r.estrellas);
+    const fecha = r.fecha ? new Date(r.fecha).toLocaleDateString('es-ES') : '';
+    return `
+      <div style="border-bottom:1px solid #eee;padding:15px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <strong>${esc(r.nombre)}</strong>
+            <span style="color:#f1c40f;margin-left:10px;">${estrellas}</span>
+            <small style="color:#999;margin-left:10px;">${fecha}</small>
+          </div>
+          <div>
+            <span class="badge ${r.aprobada ? 'badge-listo' : 'badge-pendiente'}">${r.aprobada ? 'Publicada' : 'Pendiente'}</span>
+          </div>
+        </div>
+        <p style="margin:8px 0;font-style:italic;">"${esc(r.comentario)}"</p>
+        <div style="display:flex;gap:8px;">
+          ${!r.aprobada ? `<button class="btn" style="width:auto;padding:6px 12px;font-size:0.8rem;background:#27ae60;" onclick="aprobarResena(${r.id}, true)">✅ Aprobar</button>` : ''}
+          ${r.aprobada ? `<button class="btn" style="width:auto;padding:6px 12px;font-size:0.8rem;background:#f39c12;" onclick="aprobarResena(${r.id}, false)">🚫 Ocultar</button>` : ''}
+          <button class="btn" style="width:auto;padding:6px 12px;font-size:0.8rem;background:#e74c3c;" onclick="eliminarResena(${r.id})">🗑️ Eliminar</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function aprobarResena(id, aprobar) {
+  try {
+    await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ aprobada: aprobar })
+    });
+    mostrarAlerta(aprobar ? 'Reseña publicada.' : 'Reseña ocultada.');
+    cargarResenas();
+  } catch (error) {
+    mostrarAlerta('Error: ' + error.message, 'error');
+  }
+}
+
+async function eliminarResena(id) {
+  if (!confirm('¿Eliminar esta reseña definitivamente?')) return;
+  try {
+    await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, { method: 'DELETE' });
+    mostrarAlerta('Reseña eliminada.');
+    cargarResenas();
+  } catch (error) {
+    mostrarAlerta('Error al eliminar: ' + error.message, 'error');
+  }
+}
+
+// ============================================================
+//  TOGGLE STRIPE (texto en vivo)
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  const stripeCheck = document.getElementById('cfg-stripe');
+  if (stripeCheck) {
+    stripeCheck.addEventListener('change', () => {
+      document.getElementById('stripe-status-text').textContent =
+        stripeCheck.checked ? 'Activado' : 'Desactivado';
+    });
+  }
+});
   </script>
 </body>
 </html>
