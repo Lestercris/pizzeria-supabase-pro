@@ -14,10 +14,8 @@
     .connection-status { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
     .dot { width: 12px; height: 12px; border-radius: 50%; background-color: #27ae60; box-shadow: 0 0 10px #27ae60; }
 
-    /* Contenedor de las tarjetas de pedidos */
     .grid-pedidos { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; padding: 20px; overflow-y: auto; height: 100%; align-content: start; }
 
-    /* Tarjetas */
     .tarjeta { background-color: #2c3e50; border-radius: 12px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.5); display: flex; flex-direction: column; border-top: 8px solid #e74c3c; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
     .tarjeta:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.7); }
     .tarjeta.en-preparacion { border-top-color: #f1c40f; }
@@ -37,7 +35,6 @@
     .btn-terminar { background-color: #27ae60; color: white; }
     .btn-terminar:hover { background-color: #219150; }
 
-    /* Ventana Modal de Detalles */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
     .modal-content { background: #2c3e50; width: 100%; max-width: 600px; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border-top: 10px solid #c0392b; animation: aparecer 0.3s ease; }
     @keyframes aparecer { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -68,16 +65,14 @@
     <div class="clock" id="reloj">00:00:00</div>
   </header>
 
-  <div class="grid-pedidos" id="contenedor-pedidos">
-    <!-- Aquí se inyectan las tarjetas -->
-  </div>
+  <div class="grid-pedidos" id="contenedor-pedidos"></div>
   
   <div class="empty-state" id="empty-state" style="display: none;">
     <h2>¡Todo al día! 🍕</h2>
     <p>No hay pedidos pendientes en este momento.</p>
   </div>
 
-  <!-- VENTANA MODAL PARA VER DETALLES -->
+  <!-- VENTANA MODAL PARA VER DETALLES (Solo productos) -->
   <div class="modal-overlay" id="modal-detalles" onclick="cerrarModal(event)">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -86,24 +81,20 @@
       </div>
       <div class="modal-body">
         <div class="detalle-grupo">
-          <h3>🛒 Productos</h3>
+          <h3>🛒 PRODUCTOS A PREPARAR</h3>
           <ul class="detalle-lista" id="modal-productos"></ul>
         </div>
-        <div class="detalle-grupo">
-          <h3>👤 Datos del Cliente</h3>
-          <p id="modal-cliente"></p>
-        </div>
-        <div class="detalle-grupo">
-          <h3>📍 Dirección de Entrega</h3>
-          <p id="modal-direccion"></p>
-        </div>
-        <div class="detalle-grupo">
-          <h3>📞 Teléfono</h3>
-          <p id="modal-telefono"></p>
-        </div>
-        <div class="detalle-grupo">
-          <h3>⏰ Hora del Pedido</h3>
-          <p id="modal-hora"></p>
+        
+        <!-- Ya NO mostramos cliente, teléfono ni dirección -->
+        <div style="display: flex; justify-content: space-between; margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+          <div class="detalle-grupo">
+            <h3>⏰ HORA</h3>
+            <p id="modal-hora"></p>
+          </div>
+          <div class="detalle-grupo">
+            <h3>📦 TIPO</h3>
+            <p id="modal-tipo" style="font-weight: bold; color: #f1c40f;"></p>
+          </div>
         </div>
       </div>
     </div>
@@ -115,12 +106,10 @@
 
     let pedidosGlobal = [];
 
-    // Reloj
     setInterval(() => {
       document.getElementById('reloj').textContent = new Date().toLocaleTimeString('es-ES');
     }, 1000);
 
-    // Obtener pedidos
     async function obtenerPedidos() {
       try {
         const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos?select=*&estado=in.(Pendiente,En preparación)&order=fecha.asc', {
@@ -130,11 +119,9 @@
         if (!response.ok) throw new Error('Error de red');
         
         const pedidos = await response.json();
-        
         document.getElementById('status-dot').style.backgroundColor = '#27ae60';
         document.getElementById('status-text').textContent = 'Conectado';
         
-        // Si cambia la cantidad de pedidos o el estado de alguno, volvemos a pintar
         pedidosGlobal = pedidos;
         renderizarPedidos(pedidos);
 
@@ -191,7 +178,6 @@
       }).join('');
     }
 
-    // Abrir la ventana de detalles
     function abrirModal(orderId) {
       const pedido = pedidosGlobal.find(p => p.order_id === orderId);
       if (!pedido) return;
@@ -199,27 +185,25 @@
       const hora = pedido.fecha ? new Date(pedido.fecha).toLocaleString('es-ES') : '--:--';
       
       document.getElementById('modal-ticket').textContent = pedido.order_id;
-      document.getElementById('modal-cliente').textContent = pedido.nombre_cliente || 'No especificado';
-      document.getElementById('modal-direccion').textContent = pedido.direccion || 'Recogida en tienda';
-      document.getElementById('modal-telefono').textContent = pedido.telefono || 'No especificado';
       document.getElementById('modal-hora').textContent = hora;
       
+      // Determinamos si es envío o recogida
+      const esEnvio = pedido.direccion && pedido.direccion.trim() !== '' && pedido.direccion.toLowerCase() !== 'recogida en tienda';
+      document.getElementById('modal-tipo').textContent = esEnvio ? 'PARA LLEVAR 🛵' : 'RECOGER EN TIENDA 🏪';
+
       const items = pedido.detalle ? pedido.detalle.split(',').map(item => `<li>${item.trim()}</li>`).join('') : '<li>Sin detalle</li>';
       document.getElementById('modal-productos').innerHTML = items;
 
       document.getElementById('modal-detalles').style.display = 'flex';
     }
 
-    // Cerrar la ventana
     function cerrarModal(event) {
       if (event.target.id === 'modal-detalles') {
         document.getElementById('modal-detalles').style.display = 'none';
       }
     }
 
-    // Cambiar estado (Versión Optimista)
     async function cambiarEstado(orderId, nuevoEstado) {
-      // 1. Actualización visual instantánea
       if (nuevoEstado === 'Listo') {
          pedidosGlobal = pedidosGlobal.filter(p => p.order_id !== orderId);
       } else {
@@ -228,7 +212,6 @@
       }
       renderizarPedidos(pedidosGlobal);
 
-      // 2. Guardado en Supabase
       try {
         const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos?order_id=eq.' + orderId, {
           method: 'PATCH',
@@ -240,9 +223,7 @@
           body: JSON.stringify({ estado: nuevoEstado })
         });
 
-        if (!response.ok) {
-          throw new Error('Fallo en Supabase');
-        }
+        if (!response.ok) throw new Error('Fallo en Supabase');
         
       } catch (error) {
         console.error("Error al guardar en BD:", error);
@@ -251,9 +232,8 @@
       }
     }
 
-    // Iniciar el ciclo
     obtenerPedidos();
-    setInterval(obtenerPedidos, 10000); // Cada 10 segundos
+    setInterval(obtenerPedidos, 10000);
 
   </script>
 </body>
