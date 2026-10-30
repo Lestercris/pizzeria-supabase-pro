@@ -578,6 +578,93 @@
         mostrarMensaje('Error de conexión al procesar el pedido.', 'error');
         btn.textContent = 'Pagar y Enviar Pedido'; btn.disabled = false; 
       }
+    }    async function procesarPedido() {
+      const nombre = document.getElementById('nombre').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const telefono = document.getElementById('telefono').value.trim();
+      const direccion = document.getElementById('direccion').value.trim();
+      const notas = document.getElementById('notas').value.trim();
+      const btn = document.getElementById('btn-pagar');
+
+      if (!nombre || !email) { mostrarMensaje('Por favor, completa tu nombre y email.', 'error'); return; }
+      
+      const items = Object.keys(carrito).map(function (id) { return { id: id, cantidad: carrito[id].cantidad }; });
+      if (items.length === 0) { mostrarMensaje('Tu carrito está vacío.', 'error'); return; }
+      
+      btn.disabled = true; btn.textContent = 'Procesando...';
+
+      let total = 0, detalle = [];
+      Object.keys(carrito).forEach(id => {
+        const item = carrito[id], subtotal = precioNum(item.producto.Precio) * item.cantidad;
+        total += subtotal; 
+        
+        let textoItem = `${item.cantidad}x ${item.producto.Nombre}`;
+        if (item.producto.Ingredientes && item.producto.Ingredientes.trim() !== '') {
+          textoItem += ` [${item.producto.Ingredientes.trim()}]`;
+        }
+        if (notas) {
+          textoItem += ` (Nota: ${notas})`;
+        }
+        detalle.push(textoItem);
+      });
+
+      try {
+        const orderId = 'PED-' + Date.now();
+        const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos', {
+          method: 'POST',
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            order_id: orderId, nombre_cliente: nombre, email_cliente: email,
+            telefono: telefono, direccion: direccion, detalle: detalle.join(', '), total: total, estado: 'Pendiente'
+          })
+        });
+
+        if (!response.ok) throw new Error('Error al guardar');
+
+        let resumenWsp = detalle.map(d => `👉 ${d}`).join('\n');
+        const configRes = await fetch(SUPABASE_URL + '/rest/v1/configuracion?select=valor&clave=eq.whatsapp', { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY } });
+        const configData = await configRes.json();
+        const telefonoNegocio = configData.length > 0 ? configData[0].valor : '34600000000';
+
+        // --- MENSAJE ELEGANTE PARA WHATSAPP ---
+        const mensajeWsp = 
+          `🍕 *NUEVO PEDIDO WEB* 🍕\n` +
+          `----------------------\n` +
+          `🎫 *Ticket:* \n` +
+          `*${orderId}*\n\n` +
+          `🛒 *DETALLE DEL PEDIDO:*\n` +
+          `${resumenWsp}\n\n` +
+          `💰 *TOTAL:* ${moneda(total)}\n\n` +
+          `👤 *DATOS DEL CLIENTE:*\n` +
+          `📝 Nombre: ${nombre}\n` +
+          `📞 Teléfono: ${telefono || 'No especificado'}\n` +
+          `📍 Dirección: ${direccion || 'Recogida en tienda'}\n\n` +
+          `----------------------\n` +
+          `💬 _Os escribo para coordinar el pago._\n` +
+          `😊 _¡Gracias por elegirnos!_`;
+
+        const msg = encodeURIComponent(mensajeWsp);
+        const numLimpio = telefonoNegocio.replace(/\D/g, ''); 
+        
+        mostrarMensaje('¡Pedido registrado! Abriendo WhatsApp...', 'ok');
+        
+        carrito = {}; 
+        renderCarrito(); 
+        document.getElementById('nombre').value = '';
+        document.getElementById('email').value = '';
+        document.getElementById('telefono').value = '';
+        document.getElementById('direccion').value = '';
+        document.getElementById('notas').value = '';
+
+        btn.textContent = 'Pagar y Enviar Pedido'; btn.disabled = true; 
+
+        // 🔥 ABRIMOS WHATSAPP INMEDIATAMENTE (SIN setTimeout) PARA EVITAR BLOQUEOS EN MÓVILES
+        window.open(`https://api.whatsapp.com/send?phone=${numLimpio}&text=${msg}`, '_blank');
+
+      } catch (error) {
+        mostrarMensaje('Error de conexión al procesar el pedido.', 'error');
+        btn.textContent = 'Pagar y Enviar Pedido'; btn.disabled = false; 
+      }
     }
     async function cargarResenasPublicas() {
       try {
