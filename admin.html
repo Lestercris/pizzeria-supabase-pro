@@ -202,7 +202,7 @@
   </div>
 
   <div id="ticket-impresion" style="display: none;"></div>
-  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script>
     const SUPABASE_URL = 'https://afarkzyxssgcpmnquqdp.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMzI2NTUsImV4cCI6MjEwODcwODY1NX0.J7gSycaeum0bUzx9tss5OM4WfPUt5BswqxnSEI0RgiY';
@@ -435,7 +435,7 @@
     async function cambiarEstadoPedido(orderId, nuevoEstado) {
       try { await fetchSupabase(`/rest/v1/pedidos?order_id=eq.${encodeURIComponent(orderId)}`, { method: 'PATCH', body: JSON.stringify({ estado: nuevoEstado }) }); mostrarAlerta('Estado actualizado.'); cargarPedidos(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
     }
-    async function imprimirTicket(orderId) {
+          async function imprimirTicket(orderId) {
       const pedido = pedidosGlobal.find(p => p.order_id === orderId); 
       if (!pedido) return;
       
@@ -445,7 +445,7 @@
         cfgData.forEach(item => { config[item.clave] = item.valor; }); 
       } catch (e) {}
 
-      // Construimos un diseño limpio estilo ticket real
+      // Construimos el ticket
       const ticketHTML = `
         <div style="font-family: 'Courier New', Courier, monospace; width: 72mm; margin: 0 auto; color: #000; line-height: 1.2; font-size: 12px;">
           <div style="text-align: center; margin-bottom: 10px;">
@@ -474,7 +474,8 @@
           ${config.ticket_footer ? `<div style="text-align: center; font-size: 10px; margin-top: 15px;">${esc(config.ticket_footer)}</div>` : ''}
           
           <div style="text-align: center; margin-top: 15px;">
-            <svg id="barcode-ticket" style="max-width: 100%;"></svg>
+            <!-- Aquí irá el QR -->
+            <div id="qrcode-ticket" style="display: flex; justify-content: center;"></div>
           </div>
         </div>`;
 
@@ -482,23 +483,28 @@
       cont.innerHTML = ticketHTML; 
       cont.style.display = 'block';
       
-      // Generar código de barras con tamaño controlado
-      if (window.JsBarcode) { 
+      // Generar el Código QR
+      if (window.QRCode) { 
         try { 
-          JsBarcode('#barcode-ticket', pedido.order_id, { 
-            format: 'CODE128', 
-            width: 1.5, 
-            height: 40, 
-            displayValue: true, 
-            fontSize: 10,
-            margin: 0
-          }); 
-        } catch (e) { console.error(e); } 
+          new QRCode(document.getElementById("qrcode-ticket"), {
+            text: pedido.order_id,
+            width: 80,
+            height: 80,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+          });
+        } catch (e) { console.error("Error al generar QR:", e); } 
       }
-        setTimeout(() => { 
+      
+      // Imprimir y ocultar
+      setTimeout(() => { 
         window.print(); 
-        setTimeout(() => { cont.style.display = 'none'; }, 500); 
-      }, 200);
+        setTimeout(() => { 
+          cont.style.display = 'none'; 
+          cont.innerHTML = ''; // Limpiamos el HTML para que no se quede el QR pegado
+        }, 500); 
+      }, 300);
     }
      async function cargarConfiguracion() {
       try {
