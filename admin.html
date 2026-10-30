@@ -384,10 +384,17 @@
         mostrarAlerta('Imagen subida.');
       } catch (error) { mostrarAlerta('Error imagen: ' + error.message, 'error'); }
     }
-          async function cargarPedidos() {
-      try { const data = await fetchSupabase('/rest/v1/pedidos?select=*&order=fecha.desc'); pedidosGlobal = data || []; paginaPedidosActual = 1; renderizarPedidosAdmin(); } catch (error) { mostrarAlerta('Error pedidos: ' + error.message, 'error'); }
+             async function cargarPedidos() {
+      try { 
+        const data = await fetchSupabase('/rest/v1/pedidos?select=*&order=fecha.desc'); 
+        pedidosGlobal = data || []; 
+        paginaPedidosActual = 1; 
+        renderizarPedidosAdmin(); 
+        mostrarAlerta('Pedidos actualizados.');
+      } catch (error) { 
+        mostrarAlerta('Error al cargar pedidos: ' + error.message, 'error'); 
+      }
     }
-
     function renderizarPedidosAdmin() {
       const tbody = document.getElementById('tabla-pedidos-body');
       if (!pedidosGlobal.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay pedidos.</td></tr>'; document.getElementById('paginacion-pedidos').style.display = 'none'; return; }
@@ -704,6 +711,7 @@
         }
       });
     }
+      <script src="backup.js"></script>
   </script>
 </body>
 </html>
