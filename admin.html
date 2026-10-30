@@ -519,24 +519,134 @@
     async function aprobarResena(id, aprobar) { try { await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify({ aprobada: aprobar }) }); mostrarAlerta(aprobar ? 'Publicada.' : 'Ocultada.'); cargarResenas(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } }
     function eliminarResena(id) { confirmarAccion('Eliminar Reseña', '¿Borrar esta reseña definitivamente?', async () => { try { await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, { method: 'DELETE' }); mostrarAlerta('Eliminada.'); cargarResenas(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } }); }
 
-    async function cargarUsuarios() {
+        async function cargarUsuarios() {
       try {
-        const authRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, { headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY } });
-        if (!authRes.ok) throw new Error('Error Auth'); const authUsers = await authRes.json(); const perfiles = await fetchSupabase('/rest/v1/perfiles?select=*');
-        usuariosGlobal = authUsers.users.map(u => { const perfil = perfiles.find(p => p.email === u.email); return { id: u.id, email: u.email, nombre: perfil ? perfil.nombre : 'Sin nombre', rol: perfil ? perfil.rol : 'empleado' }; });
+        // 1. Obtenemos los usuarios de Auth (con la Service Key)
+        const authRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, { 
+          headers: { 
+            'apikey': SUPABASE_SERVICE_KEY, 
+            'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY 
+          } 
+        });
+        
+        if (!authRes.ok) throw new Error('Error Auth');
+        
+        const authUsers = await authRes.json(); 
+        
+        // 2. Obtenemos los perfiles (nombre, rol, teléfono)
+        const perfiles = await fetchSupabase('/rest/v1/perfiles?select=*');
+        
+        // 3. Cruzamos los datos e incluimos el teléfono
+        usuariosGlobal = authUsers.users.map(u => { 
+          const perfil = perfiles.find(p => p.email === u.email); 
+          return { 
+            id: u.id, 
+            email: u.email, 
+            nombre: perfil ? perfil.nombre : 'Sin nombre', 
+            rol: perfil ? perfil.rol : 'empleado',
+            telefono: perfil ? perfil.telefono : ''
+          }; 
+        });
+
         const tbody = document.getElementById('tabla-usuarios-body');
-        if (!usuariosGlobal.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No hay usuarios.</td></tr>'; return; }
-        tbody.innerHTML = usuariosGlobal.map(u => `<tr style="border-bottom:1px solid #eee;"><td style="padding:12px; font-weight:bold;">${u.nombre}</td><td style="padding:12px;">${u.email}</td><td style="padding:12px;"><span style="background:#cce5ff; color:#004085; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold;">${u.rol.toUpperCase()}</span></td><td style="padding:12px;"><button onclick="cambiarPassword('${u.id}')" style="padding:5px 10px;border:none;border-radius:6px;background:#f39c12;color:white;cursor:pointer;margin-right:5px;">🔑 Cambiar Clave</button><button onclick="eliminarUsuario('${u.id}', '${u.email}')" style="padding:5px 10px;border:none;border-radius:6px;background:#e74c3c;color:white;cursor:pointer;">🗑️ Eliminar</button></td></tr>`).join('');
-      } catch (error) { document.getElementById('tabla-usuarios-body').innerHTML = `<tr><td colspan="4" style="color:red;text-align:center;">Error: ${error.message}</td></tr>`; }
+        
+        if (!usuariosGlobal.length) { 
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px;">No hay usuarios.</td></tr>'; 
+          return; 
+        }
+
+        // 4. Dibujamos la tabla con los botones bonitos (Editar, Clave, Eliminar)
+        tbody.innerHTML = usuariosGlobal.map(u => `
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:12px; font-weight:bold;">${u.nombre}</td>
+            <td style="padding:12px;">${u.email}</td>
+            <td style="padding:12px;">
+              <span style="background:#cce5ff; color:#004085; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold;">
+                ${u.rol.toUpperCase()}
+              </span>
+            </td>
+            <td style="padding:12px; display: flex; gap: 5px; flex-wrap: wrap;">
+              <button onclick="abrirModalEditarUsuario('${u.id}')" style="padding:5px 10px; border:none; border-radius:6px; background:#3498db; color:white; cursor:pointer;">✏️ Editar</button>
+              <button onclick="abrirModalPassword('${u.id}')" style="padding:5px 10px; border:none; border-radius:6px; background:#f39c12; color:white; cursor:pointer;">🔑 Clave</button>
+              ${u.email !== 'isahyles123@gmail.com' ? `<button onclick="eliminarUsuario('${u.id}', '${u.email}')" style="padding:5px 10px; border:none; border-radius:6px; background:#e74c3c; color:white; cursor:pointer;">🗑️ Eliminar</button>` : ''}
+            </td>
+          </tr>
+        `).join('');
+
+      } catch (error) { 
+        document.getElementById('tabla-usuarios-body').innerHTML = `
+          <tr><td colspan="4" style="color:red; text-align:center; padding:15px;">Error: ${error.message}</td></tr>
+        `; 
+      }
+    }
+       // 1. Abrir modal de contraseña
+    function abrirModalPassword(userId) {
+      document.getElementById('pass-user-id').value = userId;
+      document.getElementById('pass-nueva').value = '';
+      document.getElementById('modal-password').style.display = 'flex';
     }
 
-    async function cambiarPassword(userId) { const nuevaPass = prompt("Ingresa la nueva contraseña (mínimo 6 caracteres):"); if (!nuevaPass || nuevaPass.length < 6) { return; } try { const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, { method: 'PUT', headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ password: nuevaPass }) }); if (!res.ok) throw new Error('Error'); mostrarAlerta('Contraseña actualizada.'); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } }
+    // 2. Guardar la nueva contraseña
+    async function guardarNuevaPassword() {
+      const userId = document.getElementById('pass-user-id').value;
+      const nuevaPass = document.getElementById('pass-nueva').value;
 
-    function eliminarUsuario(userId, email) {
-      if (email === 'isahyles123@gmail.com') { mostrarAlerta('No puedes eliminar al Súper Admin.', 'error'); return; }
-      confirmarAccion('Eliminar Usuario', `¿Seguro que quieres eliminar a ${email}?`, async () => { try { const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, { method: 'DELETE', headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY } }); if (!res.ok) throw new Error('Error'); await fetchSupabase(`/rest/v1/perfiles?id=eq.${userId}`, { method: 'DELETE' }); mostrarAlerta('Usuario eliminado.'); cargarUsuarios(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } });
+      if (!nuevaPass || nuevaPass.length < 6) {
+        mostrarAlerta('La contraseña debe tener al menos 6 caracteres.', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
+          method: 'PUT',
+          headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: nuevaPass })
+        });
+        if (!res.ok) throw new Error('Error al actualizar');
+        document.getElementById('modal-password').style.display = 'none';
+        mostrarAlerta('Contraseña actualizada correctamente.');
+      } catch (error) {
+        mostrarAlerta('Error: ' + error.message, 'error');
+      }
     }
 
+    // 3. Abrir modal para editar datos del empleado
+    function abrirModalEditarUsuario(userId) {
+      const u = usuariosGlobal.find(x => x.id === userId);
+      if (!u) return;
+      
+      document.getElementById('edit-user-id').value = u.id;
+      document.getElementById('edit-user-name').value = u.nombre === 'Sin nombre' ? '' : u.nombre;
+      document.getElementById('edit-user-phone').value = u.telefono || '';
+      document.getElementById('edit-user-role').value = u.rol;
+      
+      document.getElementById('modal-editar-usuario').style.display = 'flex';
+    }
+
+    // 4. Guardar la edición del empleado
+    async function guardarEdicionUsuario() {
+      const userId = document.getElementById('edit-user-id').value;
+      const nombre = document.getElementById('edit-user-name').value.trim();
+      const telefono = document.getElementById('edit-user-phone').value.trim();
+      const rol = document.getElementById('edit-user-role').value;
+
+      if (!nombre) {
+        mostrarAlerta('El nombre es obligatorio.', 'error');
+        return;
+      }
+
+      try {
+        await fetchSupabase(`/rest/v1/perfiles?id=eq.${userId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ nombre, telefono, rol })
+        });
+        document.getElementById('modal-editar-usuario').style.display = 'none';
+        mostrarAlerta('Datos del empleado actualizados.');
+        cargarUsuarios();
+      } catch (error) {
+        mostrarAlerta('Error al editar: ' + error.message, 'error');
+      }
+    }
     async function crearEmpleado() {
       const nombre = document.getElementById('new-user-name').value.trim(); const email = document.getElementById('new-user-email').value.trim(); const pass = document.getElementById('new-user-pass').value; const telefono = document.getElementById('new-user-phone').value.trim(); const rol = document.getElementById('new-user-role').value;
       if (!nombre || !email || !pass) { mostrarAlerta('Nombre, email y contraseña son obligatorios.', 'error'); return; }
