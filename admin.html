@@ -12,12 +12,9 @@
     
     .sidebar { width: 260px; background: #2c3e50; color: white; padding: 20px; display: flex; flex-direction: column; }
     .sidebar h2 { text-align: center; margin-bottom: 15px; font-size: 1.5rem; color: #f1c40f; }
-    
-    /* Perfil de usuario en el sidebar */
     .user-profile { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; margin-bottom: 20px; text-align: center; border-left: 4px solid #f1c40f; }
     .user-profile p { font-size: 0.9rem; margin: 0; }
     .user-profile .rol { font-size: 0.75rem; color: #bdc3c7; text-transform: uppercase; font-weight: bold; }
-
     .sidebar button { background: none; border: none; color: white; padding: 12px 15px; text-align: left; font-size: 1rem; cursor: pointer; border-radius: 8px; transition: 0.3s; margin-bottom: 5px; }
     .sidebar button:hover, .sidebar button.active { background: var(--primary); }
     .sidebar .logout { margin-top: auto; color: #e74c3c; }
@@ -25,7 +22,6 @@
     .hidden-panel { display: none; }
 
     .main-content { flex: 1; padding: 30px; overflow-y: auto; }
-    
     #login-screen { position: fixed; inset: 0; background: rgba(44, 62, 80, 0.95); display: flex; align-items: center; justify-content: center; z-index: 9999; }
     .login-box { background: white; padding: 40px; border-radius: 15px; width: 100%; max-width: 400px; text-align: center; }
     .login-box h2 { color: var(--primary); margin-bottom: 20px; }
@@ -37,49 +33,6 @@
     button.btn { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; transition: 0.3s; }
     button.btn:hover { background: #a93226; }
     button.btn-success { background: var(--secondary); }
-
-    .grid-productos, .grid-slider { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-    .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
-    .card img { width: 100%; height: 150px; object-fit: cover; background: #eee; }
-    .card-body { padding: 15px; flex: 1; display: flex; flex-direction: column; }
-    .card-body h3 { font-size: 1.1rem; margin-bottom: 5px; color: var(--primary); }
-    .card-body .price { font-size: 1.2rem; font-weight: bold; color: var(--secondary); margin-bottom: 10px; }
-    .card-actions { display: flex; gap: 10px; margin-top: auto; }
-    .card-actions button { flex: 1; padding: 8px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; color: white; }
-    .btn-edit { background: #3498db; }
-    .btn-delete { background: #e74c3c; }
-
-    .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
-    .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-    input:checked + .slider { background-color: var(--secondary); }
-    input:checked + .slider:before { transform: translateX(26px); }
-
-    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; }
-    .modal-content { background: white; padding: 30px; border-radius: 12px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
-    .alert { padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none; font-weight: 500; }
-    .alert-success { background: #d4edda; color: #155724; }
-    .alert-error { background: #f8d7da; color: #721c24; }
-    
-    input[type="file"] { padding: 10px; background: #f8f9fa; border: 1px dashed #ccc; cursor: pointer; }
-    .img-preview { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; display: none; }
-
-    .tabla-pedidos { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-    .tabla-pedidos th, .tabla-pedidos td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 0.9rem; }
-    .tabla-pedidos th { background: #2c3e50; color: white; font-weight: 500; }
-    .tabla-pedidos tr:hover { background: #f9f9f9; }
-    .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
-    .badge-pendiente { background: #fff3cd; color: #856404; }
-    .badge-preparacion { background: #cce5ff; color: #004085; }
-    .badge-listo { background: #d4edda; color: #155724; }
-    .badge-entregado { background: #d1ecf1; color: #0c5460; }
-
-    @media print {
-      body * { visibility: hidden; }
-      #ticket-impresion, #ticket-impresion * { visibility: visible; }
-      #ticket-impresion { position: absolute; left: 0; top: 0; width: 80mm; padding: 10px; font-family: 'Courier New', Courier, monospace; color: black; }
-    }
   </style>
 </head>
 <body>
@@ -91,51 +44,50 @@
       <input type="email" id="login-email" placeholder="Correo electrónico">
       <input type="password" id="login-pass" placeholder="Contraseña">
       <button class="btn" onclick="login()">Entrar al Panel</button>
-      <div id="login-msg" class="alert alert-error" style="margin-top: 15px;"></div>
+      <div id="login-msg" class="alert alert-error" style="margin-top: 15px; display: none; background: #f8d7da; color: #721c24; padding: 10px; border-radius: 8px;"></div>
     </div>
   </div>
-
-  <div class="sidebar hidden-panel" id="sidebar">
+    <div class="sidebar hidden-panel" id="sidebar">
     <h2 id="admin-header-title">🍕 Cargando...</h2>
-    
     <div class="user-profile">
       <p>Conectado como:</p>
       <p id="user-display-name" style="font-weight: bold; color: #f1c40f;">---</p>
       <p id="user-display-role" class="rol">---</p>
     </div>
-
     <button class="active" onclick="mostrarSeccion('productos', event)">📦 Productos</button>
     <button onclick="mostrarSeccion('pedidos', event)">📋 Pedidos</button>
     <button onclick="mostrarSeccion('slider', event)">🖼️ Slider</button>
     <button onclick="mostrarSeccion('resenas', event)">⭐ Reseñas</button>
-    
-    <button class="admin-only" onclick="mostrarSeccion('configuracion', event)">⚙️ Configuración</button>
-    <button class="admin-only" onclick="mostrarSeccion('usuarios', event)">👥 Usuarios</button>
-    
+    <button class="admin-only" id="btn-config" onclick="mostrarSeccion('configuracion', event)">⚙️ Configuración</button>
+    <button class="admin-only" id="btn-usuarios" onclick="mostrarSeccion('usuarios', event)">👥 Usuarios</button>
     <button class="logout" onclick="logout()">🚪 Cerrar Sesión</button>
   </div>
 
   <div class="main-content hidden-panel" id="main-panel">
-    <div id="alert-box" class="alert"></div>
+    <div id="alert-box" style="padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none; font-weight: 500;"></div>
 
     <div id="seccion-productos">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h1>Gestión de Productos</h1>
         <button class="btn btn-success" style="width: auto;" onclick="abrirModalNuevo()">+ Nuevo Producto</button>
       </div>
-      <div class="grid-productos" id="lista-productos"></div>
+      <div class="grid-productos" id="lista-productos" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;"></div>
     </div>
-
-    <div id="seccion-pedidos" style="display: none;">
+        <div id="seccion-pedidos" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h1>Gestión de Pedidos</h1>
         <button class="btn" style="width: auto; background: #3498db;" onclick="cargarPedidos()">🔄 Actualizar</button>
       </div>
       <div style="overflow-x: auto;">
-        <table class="tabla-pedidos">
-          <thead><tr><th>Ticket</th><th>Cliente</th><th>Detalle</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead>
+        <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+          <thead><tr style="background: #2c3e50; color: white;"><th style="padding: 12px; text-align: left;">Ticket</th><th style="padding: 12px; text-align: left;">Cliente</th><th style="padding: 12px; text-align: left;">Detalle</th><th style="padding: 12px; text-align: left;">Total</th><th style="padding: 12px; text-align: left;">Estado</th><th style="padding: 12px; text-align: left;">Acciones</th></tr></thead>
           <tbody id="tabla-pedidos-body"></tbody>
         </table>
+      </div>
+      <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;" id="paginacion-pedidos">
+        <button class="btn" style="width: auto; background: #95a5a6;" onclick="cambiarPaginaPedidos(-1)">« Anterior</button>
+        <span id="info-pagina-pedidos" style="font-weight: bold; align-self: center;">Página 1</span>
+        <button class="btn" style="width: auto; background: #95a5a6;" onclick="cambiarPaginaPedidos(1)">Siguiente »</button>
       </div>
     </div>
 
@@ -144,7 +96,7 @@
         <h1>Carrusel de Inicio</h1>
         <button class="btn btn-success" style="width: auto;" onclick="abrirModalSlide()">+ Nueva Imagen</button>
       </div>
-      <div class="grid-slider" id="lista-slides"></div>
+      <div class="grid-slider" id="lista-slides" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;"></div>
     </div>
 
     <div id="seccion-resenas" style="display: none;">
@@ -157,116 +109,87 @@
     <div id="seccion-configuracion" style="display: none;">
       <h1>Configuración de la Web</h1>
       <div style="background: white; padding: 25px; border-radius: 12px; max-width: 700px; margin-top: 20px;">
-        <label>Nombre del Negocio (Público)</label>
-        <input type="text" id="cfg-nombre">
-        <label>Razón Social / Empresa (Ticket)</label>
-        <input type="text" id="cfg-empresa">
-        <label>CIF / NIF</label>
-        <input type="text" id="cfg-cif">
-        <label>Promoción del Día</label>
-        <input type="text" id="cfg-promo">
+        <label>Nombre del Negocio (Público)</label><input type="text" id="cfg-nombre">
+        <label>Razón Social / Empresa (Ticket)</label><input type="text" id="cfg-empresa">
+        <label>CIF / NIF</label><input type="text" id="cfg-cif">
+        <label>Promoción del Día</label><input type="text" id="cfg-promo">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
           <div><label>Teléfono</label><input type="text" id="cfg-telefono"></div>
           <div><label>WhatsApp (solo números)</label><input type="text" id="cfg-whatsapp"></div>
         </div>
-        <label>Dirección</label>
-        <input type="text" id="cfg-direccion">
-        <label>Horario</label>
-        <input type="text" id="cfg-horario">
+        <label>Dirección</label><input type="text" id="cfg-direccion">
+        <label>Horario</label><input type="text" id="cfg-horario">
         <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
-        <label>Mensaje al pie del Ticket (Fidelización)</label>
-        <textarea id="cfg-ticket-footer" rows="3"></textarea>
+        <label>Mensaje al pie del Ticket</label><textarea id="cfg-ticket-footer" rows="3"></textarea>
         <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
         <label>Habilitar Stripe</label>
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
-          <label class="switch"><input type="checkbox" id="cfg-stripe"><span class="slider"></span></label>
+          <input type="checkbox" id="cfg-stripe" style="width: 20px; height: 20px;">
           <span id="stripe-status-text">Desactivado</span>
         </div>
         <button class="btn btn-success" onclick="guardarConfiguracion()">Guardar Configuración</button>
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+        <h3 style="margin-bottom: 15px; color: var(--primary);">Mantenimiento y Base de Datos</h3>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button class="btn" style="background: #3498db; width: auto;" onclick="descargarBackup()">💾 Descargar Backup</button>
+          <button class="btn" style="background: #f39c12; width: auto;" onclick="document.getElementById('file-restore').click()">📂 Restaurar</button>
+          <input type="file" id="file-restore" accept=".json" style="display: none;" onchange="restaurarBackup(this)">
+          <button class="btn" style="background: #e74c3c; width: auto;" onclick="limpiarBaseDeDatos()">🗑️ Limpiar BD</button>
+        </div>
       </div>
     </div>
 
-    <!-- NUEVA SECCIÓN DE USUARIOS CON TABLA Y EDICIÓN -->
     <div id="seccion-usuarios" style="display: none;">
       <h1>Gestión de Usuarios</h1>
-      
       <div style="background: white; padding: 25px; border-radius: 12px; max-width: 800px; margin-top: 20px; margin-bottom: 20px;">
         <h3 style="margin-bottom: 15px;">Crear Nuevo Empleado</h3>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-          <input type="text" id="new-user-name" placeholder="Nombre del empleado">
-          <input type="email" id="new-user-email" placeholder="Correo electrónico">
-          <input type="password" id="new-user-pass" placeholder="Contraseña temporal">
-          <input type="tel" id="new-user-phone" placeholder="Teléfono (Opcional)">
+          <input type="text" id="new-user-name" placeholder="Nombre"><input type="email" id="new-user-email" placeholder="Email">
+          <input type="password" id="new-user-pass" placeholder="Contraseña"><input type="tel" id="new-user-phone" placeholder="Teléfono (Opcional)">
         </div>
         <select id="new-user-role" style="margin-top: 15px;">
-          <option value="empleado">Empleado (Productos, Pedidos, Reseñas)</option>
-          <option value="cocina">Cocina (Solo Monitor)</option>
-          <option value="admin">Administrador (Control total)</option>
+          <option value="empleado">Empleado</option><option value="cocina">Cocina (Solo Monitor)</option><option value="admin">Administrador</option>
         </select>
         <button class="btn btn-success" style="margin-top: 15px;" onclick="crearEmpleado()">Crear Usuario</button>
       </div>
-
-      <h3>Usuarios Registrados</h3>
       <div style="overflow-x: auto; margin-top: 15px;">
-        <table class="tabla-pedidos">
-          <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Acciones</th></tr></thead>
+        <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 12px;">
+          <thead><tr style="background: #2c3e50; color: white;"><th style="padding: 12px;">Nombre</th><th style="padding: 12px;">Email</th><th style="padding: 12px;">Rol</th><th style="padding: 12px;">Acciones</th></tr></thead>
           <tbody id="tabla-usuarios-body"></tbody>
         </table>
       </div>
     </div>
   </div>
-
-  <!-- MODAL PRODUCTO -->
-  <div class="modal" id="modal-producto">
-    <div class="modal-content">
+    <div class="modal" id="modal-producto" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000;">
+    <div style="background: white; padding: 30px; border-radius: 12px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto;">
       <h2 id="modal-title" style="margin-bottom: 20px; color: var(--primary);">Nuevo Producto</h2>
       <input type="hidden" id="prod-id-original">
-      <label>ID del Producto (Automático)</label>
-      <input type="text" id="prod-id" readonly placeholder="Generado automáticamente" style="background: #f0f0f0; cursor: not-allowed;">
-      <label>Nombre</label>
-      <input type="text" id="prod-nombre" required>
+      <label>ID del Producto (Automático)</label><input type="text" id="prod-id" readonly placeholder="Generado automáticamente" style="background: #f0f0f0; cursor: not-allowed;">
+      <label>Nombre</label><input type="text" id="prod-nombre" required>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
         <div><label>Precio (€)</label><input type="number" id="prod-precio" step="0.01" required></div>
-        <div>
-          <label>Categoría</label>
-          <select id="prod-categoria">
-            <option value="Pizzas">Pizzas</option>
-            <option value="Entrantes">Entrantes</option>
-            <option value="Postres">Postres</option>
-            <option value="Bebidas">Bebidas</option>
-            <option value="Otros">Otros</option>
-          </select>
-        </div>
+        <div><label>Categoría</label><select id="prod-categoria"><option value="Pizzas">Pizzas</option><option value="Entrantes">Entrantes</option><option value="Postres">Postres</option><option value="Bebidas">Bebidas</option><option value="Otros">Otros</option></select></div>
       </div>
-      <label>Descripción</label>
-      <textarea id="prod-desc" rows="2"></textarea>
-      <label>Ingredientes</label>
-      <textarea id="prod-ingredientes" rows="2"></textarea>
-      <label>Imagen</label>
-      <img id="preview-prod" class="img-preview">
+      <label>Descripción</label><textarea id="prod-desc" rows="2"></textarea>
+      <label>Ingredientes</label><textarea id="prod-ingredientes" rows="2"></textarea>
+      <label>Imagen</label><img id="preview-prod" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; display: none;">
       <input type="file" id="file-prod" accept="image/*" onchange="subirImagenProducto(this)">
       <input type="hidden" id="prod-imagen">
       <label>Disponible en la Web</label>
-      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
-        <label class="switch"><input type="checkbox" id="prod-disponible" checked><span class="slider"></span></label>
-      </div>
+      <div style="margin-bottom: 20px;"><input type="checkbox" id="prod-disponible" checked style="width: 20px; height: 20px;"></div>
       <div style="display: flex; gap: 10px;">
         <button class="btn btn-success" onclick="guardarProducto()">Guardar</button>
-        <button class="btn" style="background: #95a5a6;" onclick="cerrarModal()">Cancelar</button>
+        <button class="btn" style="background: #95a5a6;" onclick="document.getElementById('modal-producto').style.display = 'none'">Cancelar</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL SLIDER -->
-  <div class="modal" id="modal-slider">
-    <div class="modal-content">
+  <div class="modal" id="modal-slider" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000;">
+    <div style="background: white; padding: 30px; border-radius: 12px; width: 100%; max-width: 500px;">
       <h2 style="margin-bottom: 20px; color: var(--primary);">Nueva Imagen del Slider</h2>
-      <label>Título (Opcional)</label>
-      <input type="text" id="slide-titulo">
-      <label>Subtítulo (Opcional)</label>
-      <input type="text" id="slide-subtitulo">
-      <label>Imagen</label>
-      <img id="preview-slide" class="img-preview">
+      <label>Título (Opcional)</label><input type="text" id="slide-titulo">
+      <label>Subtítulo (Opcional)</label><input type="text" id="slide-subtitulo">
+      <label>Imagen</label><img id="preview-slide" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; display: none;">
       <input type="file" id="file-slide" accept="image/*" onchange="subirImagenSlide(this)">
       <input type="hidden" id="slide-imagen">
       <div style="display: flex; gap: 10px; margin-top: 20px;">
@@ -278,774 +201,308 @@
 
   <div id="ticket-impresion" style="display: none;"></div>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-
-  <script>
+    <script>
     const SUPABASE_URL = 'https://afarkzyxssgcpmnquqdp.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMzI2NTUsImV4cCI6MjEwODcwODY1NX0.J7gSycaeum0bUzx9tss5OM4WfPUt5BswqxnSEI0RgiY';
-    
-    // ⚠️ PEGA AQUÍ TU SERVICE_ROLE_KEY
     const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MzEzMjY1NSwiZXhwIjoyMTA4NzA4NjU1fQ.HmXW8r7uo9b5hohYLmi3koHLKHX-G9WTKBaSakKUO-w'; 
 
     let productosGlobal = [], slidesGlobal = [], pedidosGlobal = [], usuariosGlobal = [];
     let userRole = 'empleado';
-    let currentUserId = null;
+    let paginaPedidosActual = 1;
+    const pedidosPorPagina = 10;
+
+    function esc(txt) { return String(txt == null ? '' : txt).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+    function moneda(n) { return '€' + (Number(n) || 0).toFixed(2); }
+    function precioNum(valor) { if (typeof valor === 'number') return isFinite(valor) ? valor : 0; let s = String(valor == null ? '' : valor).replace(/[^\d.,-]/g, ''); if (!s) return 0; if (s.indexOf(',') > -1 && s.indexOf('.') > -1) { s = s.lastIndexOf(',') > s.lastIndexOf('.') ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, ''); } else { s = s.replace(',', '.'); } const n = parseFloat(s); return isNaN(n) ? 0 : n; }
 
     async function fetchSupabase(endpoint, options = {}, useServiceKey = false) {
       const key = useServiceKey ? SUPABASE_SERVICE_KEY : SUPABASE_ANON_KEY;
-      const headers = {
-        'apikey': key, 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json',
-        'Prefer': 'return=representation', ...options.headers
-      };
+      const headers = { 'apikey': key, 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...options.headers };
       const res = await fetch(SUPABASE_URL + endpoint, { ...options, headers });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || 'Error en la petición');
-      }
+      if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.message || 'Error en la petición'); }
       return res.json();
     }
 
     function mostrarAlerta(mensaje, tipo = 'success') {
       const box = document.getElementById('alert-box');
-      box.textContent = mensaje; box.className = `alert alert-${tipo}`; box.style.display = 'block';
+      box.textContent = mensaje; 
+      box.style.background = tipo === 'success' ? '#d4edda' : '#f8d7da';
+      box.style.color = tipo === 'success' ? '#155724' : '#721c24';
+      box.style.display = 'block';
       setTimeout(() => { box.style.display = 'none'; }, 4000);
     }
 
-        async function login() {
+    function confirmarAccion(titulo, mensaje, callback) {
+      const overlay = document.createElement('div');
+      overlay.style = 'position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 99999;';
+      overlay.innerHTML = `
+        <div style="background: white; padding: 30px; border-radius: 12px; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+          <h2 style="color: var(--primary); margin-bottom: 15px;">${titulo}</h2>
+          <p style="margin-bottom: 25px; color: #555; font-size: 1rem;">${mensaje}</p>
+          <div style="display: flex; gap: 10px; justify-content: center;">
+            <button style="background: #95a5a6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;" id="btn-confirm-no">Cancelar</button>
+            <button style="background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold;" id="btn-confirm-si">Aceptar</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      overlay.querySelector('#btn-confirm-no').onclick = () => overlay.remove();
+      overlay.querySelector('#btn-confirm-si').onclick = () => { overlay.remove(); callback(); };
+    }
+
+    // AQUÍ EMPIEZA EL LOGIN Y EL RESTO DE FUNCIONES...
+    async function login() {
       const email = document.getElementById('login-email').value.trim();
       const pass = document.getElementById('login-pass').value;
       const btn = document.querySelector('#login-screen button');
       btn.textContent = 'Verificando...';
-
       try {
-        // 1. Verificar credenciales en Supabase Auth
         const response = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
           method: 'POST', headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password: pass })
         });
         if (!response.ok) throw new Error('Credenciales incorrectas');
-        
         const authData = await response.json();
-        currentUserId = authData.user.id;
-
-        // 2. Buscar su perfil y rol en la base de datos
         const perfiles = await fetchSupabase(`/rest/v1/perfiles?email=eq.${email}`);
-        let nombreMostrar = email;
-        let rolReal = 'empleado'; // Rol por defecto
-
-        if (perfiles && perfiles.length > 0) {
-          rolReal = perfiles[0].rol || 'empleado';
-          nombreMostrar = perfiles[0].nombre || email;
-        }
-
-        // 3. REGLA DE ORO PROFESIONAL: El dueño siempre es Súper Admin
-        if (email === 'isahyles123@gmail.com') {
-          rolReal = 'admin'; 
-          nombreMostrar = nombreMostrar === email ? 'Súper Admin' : nombreMostrar;
-        }
-
+        let nombreMostrar = email, rolReal = 'empleado';
+        if (perfiles && perfiles.length > 0) { rolReal = perfiles[0].rol || 'empleado'; nombreMostrar = perfiles[0].nombre || email; }
+        if (email === 'isahyles123@gmail.com') { rolReal = 'admin'; nombreMostrar = nombreMostrar === email ? 'Súper Admin' : nombreMostrar; }
         userRole = rolReal;
-
-        // 4. Redirección para el rol de Cocina
-        if (userRole === 'cocina') {
-          window.location.href = 'cocina.html';
-          return;
-        }
-
-        // 5. Pintar la interfaz según los privilegios automáticamente
+        if (userRole === 'cocina') { window.location.href = 'cocina.html'; return; }
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('sidebar').classList.remove('hidden-panel');
         document.getElementById('main-panel').classList.remove('hidden-panel');
-        
-        // Mostrar datos del usuario
         document.getElementById('user-display-name').textContent = nombreMostrar;
         document.getElementById('user-display-role').textContent = userRole;
-
-        // AUTOCONFIGURACIÓN VISUAL: El sistema decide qué mostrar
-        const botonesAdmin = document.querySelectorAll('.admin-only');
-        
-        if (userRole === 'admin') {
-          // Si es admin, forzamos a que se vean los botones de configuración y usuarios
-          botonesAdmin.forEach(el => el.style.display = 'block');
-        } else {
-          // Si es empleado, los ocultamos
-          botonesAdmin.forEach(el => el.style.display = 'none');
-        }
-        
-        // Cargar los datos del panel
-        cargarProductos(); 
-        cargarConfiguracion();
-        
+        document.querySelectorAll('.admin-only').forEach(el => el.style.display = (userRole === 'admin') ? 'block' : 'none');
+        cargarProductos(); cargarConfiguracion(); cargarPedidos(); cargarSlides(); cargarResenas(); cargarUsuarios();
       } catch (error) {
         document.getElementById('login-msg').textContent = error.message;
-        document.getElementById('login-msg').style.display = 'block'; 
-        btn.textContent = 'Entrar al Panel';
+        document.getElementById('login-msg').style.display = 'block'; btn.textContent = 'Entrar al Panel';
       }
     }
+
     function logout() { location.reload(); }
 
     function mostrarSeccion(id, event) {
-      ['productos', 'pedidos', 'slider', 'configuracion', 'usuarios', 'resenas'].forEach(sec => {
-        document.getElementById(`seccion-${sec}`).style.display = sec === id ? 'block' : 'none';
-      });
+      ['productos', 'pedidos', 'slider', 'configuracion', 'usuarios', 'resenas'].forEach(sec => { document.getElementById(`seccion-${sec}`).style.display = sec === id ? 'block' : 'none'; });
       document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active'));
       if(event) event.target.classList.add('active');
-      if(id === 'resenas') cargarResenas();
-      if(id === 'pedidos') cargarPedidos();
-      if(id === 'slider') cargarSlides();
-      if(id === 'usuarios') cargarUsuarios();
+      if(id === 'resenas') cargarResenas(); if(id === 'pedidos') cargarPedidos(); if(id === 'slider') cargarSlides(); if(id === 'usuarios') cargarUsuarios();
     }
 
-    // ... (Las funciones de productos, slider, pedidos, ticket y configuración se mantienen exactamente igual) ...
-    // (Omito pegarlas aquí para no hacer el mensaje gigante, pero al copiar el bloque de abajo, ya están incluidas)
+    async function cargarProductos() { try { const data = await fetchSupabase('/rest/v1/productos?select=*&order=id.desc'); productosGlobal = data || []; renderizarProductos(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } }
+    function renderizarProductos() {
+      const cont = document.getElementById('lista-productos');
+      if (!productosGlobal.length) { cont.innerHTML = '<p style="color:#999">No hay productos.</p>'; return; }
+      cont.innerHTML = productosGlobal.map(p => `<div style="background:white; border-radius:12px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.05); display:flex; flex-direction:column;"><img src="${p.imagen_url || ''}" style="width:100%; height:150px; object-fit:cover; background:#eee;"><div style="padding:15px;"><h3 style="color:var(--primary);">${esc(p.nombre)}</h3><div style="font-weight:bold; color:var(--secondary); margin-bottom:10px;">${moneda(precioNum(p.precio))}</div><div style="display:flex; gap:10px;"><button onclick="editarProducto('${p.id}')" style="flex:1; padding:8px; border:none; border-radius:6px; background:#3498db; color:white; cursor:pointer;">✏️ Editar</button><button onclick="eliminarProducto('${p.id}')" style="flex:1; padding:8px; border:none; border-radius:6px; background:#e74c3c; color:white; cursor:pointer;">🗑️ Borrar</button></div></div></div>`).join('');
+    }
 
-    // === NUEVAS FUNCIONES DE GESTIÓN DE USUARIOS ===
+    function abrirModalNuevo() { document.getElementById('modal-title').textContent = 'Nuevo Producto'; document.getElementById('prod-id-original').value = ''; document.getElementById('prod-id').value = 'Automático'; document.getElementById('prod-nombre').value = ''; document.getElementById('prod-precio').value = ''; document.getElementById('prod-categoria').value = 'Pizzas'; document.getElementById('prod-desc').value = ''; document.getElementById('prod-ingredientes').value = ''; document.getElementById('prod-imagen').value = ''; document.getElementById('prod-disponible').checked = true; document.getElementById('preview-prod').style.display = 'none'; document.getElementById('modal-producto').style.display = 'flex'; }
+
+    function editarProducto(id) {
+      const p = productosGlobal.find(x => String(x.id) === String(id)); if (!p) return;
+      document.getElementById('modal-title').textContent = 'Editar Producto'; document.getElementById('prod-id-original').value = p.id; document.getElementById('prod-id').value = p.id; document.getElementById('prod-nombre').value = p.nombre || ''; document.getElementById('prod-precio').value = p.precio || ''; document.getElementById('prod-categoria').value = p.categoria || 'Pizzas'; document.getElementById('prod-desc').value = p.descripcion || ''; document.getElementById('prod-ingredientes').value = p.ingredientes || ''; document.getElementById('prod-imagen').value = p.imagen_url || ''; document.getElementById('prod-disponible').checked = !!p.disponible;
+      if (p.imagen_url) { document.getElementById('preview-prod').src = p.imagen_url; document.getElementById('preview-prod').style.display = 'block'; } else { document.getElementById('preview-prod').style.display = 'none'; }
+      document.getElementById('modal-producto').style.display = 'flex';
+    }
+
+    async function guardarProducto() {
+      const idOriginal = document.getElementById('prod-id-original').value; const nombre = document.getElementById('prod-nombre').value.trim(); const precio = precioNum(document.getElementById('prod-precio').value); const categoria = document.getElementById('prod-categoria').value; const descripcion = document.getElementById('prod-desc').value.trim(); const ingredientes = document.getElementById('prod-ingredientes').value.trim(); const imagen_url = document.getElementById('prod-imagen').value.trim(); const disponible = document.getElementById('prod-disponible').checked;
+      if (!nombre || precio <= 0) { mostrarAlerta('El nombre y un precio válido son obligatorios.', 'error'); return; }
+      const payload = { nombre, precio, categoria, descripcion, ingredientes, imagen_url, disponible };
+      try {
+        if (idOriginal) { await fetchSupabase(`/rest/v1/productos?id=eq.${idOriginal}`, { method: 'PATCH', body: JSON.stringify(payload) }); mostrarAlerta('Producto actualizado.'); } else { await fetchSupabase('/rest/v1/productos', { method: 'POST', body: JSON.stringify(payload) }); mostrarAlerta('Producto creado.'); }
+        document.getElementById('modal-producto').style.display = 'none'; cargarProductos();
+      } catch (error) { mostrarAlerta('Error al guardar: ' + error.message, 'error'); }
+    }
+
+    function eliminarProducto(id) { confirmarAccion('Eliminar Producto', '¿Seguro que quieres eliminar este producto?', async () => { try { await fetchSupabase(`/rest/v1/productos?id=eq.${id}`, { method: 'DELETE' }); mostrarAlerta('Producto eliminado.'); cargarProductos(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } }); }
+
+    async function subirImagenProducto(input) {
+      const file = input.files[0]; if (!file) return;
+     // try { const ext = (file
+            const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      const fileName = `prod_${Date.now()}.${ext}`;
+      const res = await fetch(`${SUPABASE_URL}/storage/v1/object/productos/${fileName}`, {
+        method: 'POST', headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY, 'Content-Type': file.type, 'x-upsert': 'true' }, body: file
+      });
+      if (!res.ok) throw new Error('Error al subir');
+      const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/productos/${fileName}`;
+      document.getElementById('prod-imagen').value = publicUrl;
+      document.getElementById('preview-prod').src = publicUrl; document.getElementById('preview-prod').style.display = 'block';
+      mostrarAlerta('Imagen subida.');
+    } catch (error) { mostrarAlerta('Error al subir imagen: ' + error.message, 'error'); }
+    }
+
+    async function cargarSlides() { try { const data = await fetchSupabase('/rest/v1/slides?select=*&order=orden.asc'); slidesGlobal = data || []; renderizarSlides(); } catch (error) { mostrarAlerta('Error slider: ' + error.message, 'error'); } }
+
+    function renderizarSlides() {
+      const cont = document.getElementById('lista-slides');
+      if (!slidesGlobal.length) { cont.innerHTML = '<p style="color:#999">No hay imágenes.</p>'; return; }
+      cont.innerHTML = slidesGlobal.map(s => `<div style="background:white; border-radius:12px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.05);"><img src="${s.imagen_url}" style="width:100%; height:150px; object-fit:cover;"><div style="padding:15px;"><h3 style="color:var(--primary);">${esc(s.titulo || 'Sin título')}</h3><button onclick="eliminarSlide('${s.id}')" style="width:100%; padding:8px; border:none; border-radius:6px; background:#e74c3c; color:white; cursor:pointer; margin-top:10px;">🗑️ Borrar</button></div></div>`).join('');
+    }
+
+    function abrirModalSlide() {
+      document.getElementById('slide-titulo').value = ''; document.getElementById('slide-subtitulo').value = ''; document.getElementById('slide-imagen').value = '';
+      document.getElementById('preview-slide').style.display = 'none';
+      document.getElementById('modal-slider').style.display = 'flex';
+    }
+
+    async function guardarSlide() {
+      const titulo = document.getElementById('slide-titulo').value.trim(); const subtitulo = document.getElementById('slide-subtitulo').value.trim(); const imagen_url = document.getElementById('slide-imagen').value.trim();
+      if (!imagen_url) { mostrarAlerta('Sube una imagen.', 'error'); return; }
+      try { await fetchSupabase('/rest/v1/slides', { method: 'POST', body: JSON.stringify({ titulo, subtitulo, imagen_url, activo: true, orden: slidesGlobal.length }) }); document.getElementById('modal-slider').style.display = 'none'; mostrarAlerta('Imagen añadida.'); cargarSlides(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
+    }
+
+    function eliminarSlide(id) { confirmarAccion('Eliminar Imagen', '¿Quitar esta imagen?', async () => { try { await fetchSupabase(`/rest/v1/slides?id=eq.${id}`, { method: 'DELETE' }); mostrarAlerta('Eliminada.'); cargarSlides(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } }); }
+
+    async function subirImagenSlide(input) {
+      const file = input.files[0]; if (!file) return;
+      try {
+        const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+        const fileName = `slide_${Date.now()}.${ext}`;
+        const res = await fetch(`${SUPABASE_URL}/storage/v1/object/slides/${fileName}`, {
+          method: 'POST', headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY, 'Content-Type': file.type, 'x-upsert': 'true' }, body: file
+        });
+        if (!res.ok) throw new Error('Error al subir');
+        const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/slides/${fileName}`;
+        document.getElementById('slide-imagen').value = publicUrl;
+        document.getElementById('preview-slide').src = publicUrl; document.getElementById('preview-slide').style.display = 'block';
+        mostrarAlerta('Imagen subida.');
+      } catch (error) { mostrarAlerta('Error imagen: ' + error.message, 'error'); }
+    }
+          async function cargarPedidos() {
+      try { const data = await fetchSupabase('/rest/v1/pedidos?select=*&order=fecha.desc'); pedidosGlobal = data || []; paginaPedidosActual = 1; renderizarPedidosAdmin(); } catch (error) { mostrarAlerta('Error pedidos: ' + error.message, 'error'); }
+    }
+
+    function renderizarPedidosAdmin() {
+      const tbody = document.getElementById('tabla-pedidos-body');
+      if (!pedidosGlobal.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay pedidos.</td></tr>'; document.getElementById('paginacion-pedidos').style.display = 'none'; return; }
+      const inicio = (paginaPedidosActual - 1) * pedidosPorPagina;
+      const pedidosPagina = pedidosGlobal.slice(inicio, inicio + pedidosPorPagina);
+
+      tbody.innerHTML = pedidosPagina.map(p => {
+        const estadoClase = { 'Pendiente': 'background:#fff3cd; color:#856404', 'En preparación': 'background:#cce5ff; color:#004085', 'Listo': 'background:#d4edda; color:#155724', 'Entregado': 'background:#d1ecf1; color:#0c5460' }[p.estado] || 'background:#fff3cd; color:#856404';
+        return `<tr style="border-bottom: 1px solid #eee;">
+          <td style="padding:12px; font-weight:bold;">${esc(p.order_id)}</td>
+          <td style="padding:12px;">${esc(p.nombre_cliente)}<br><small>${esc(p.telefono || '')}</small></td>
+          <td style="padding:12px; max-width:280px; font-size:0.8rem;">${esc(p.detalle)}</td>
+          <td style="padding:12px; font-weight:bold; color:#27ae60;">${moneda(precioNum(p.total))}</td>
+          <td style="padding:12px;"><span style="padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold; ${estadoClase}">${esc(p.estado)}</span></td>
+          <td style="padding:12px;">
+            <select onchange="cambiarEstadoPedido('${esc(p.order_id)}', this.value)" style="padding:5px; font-size:0.8rem; margin-bottom:5px; width:100%;">
+              <option value="Pendiente" ${p.estado==='Pendiente'?'selected':''}>Pendiente</option>
+              <option value="En preparación" ${p.estado==='En preparación'?'selected':''}>En preparación</option>
+              <option value="Listo" ${p.estado==='Listo'?'selected':''}>Listo</option>
+              <option value="Entregado" ${p.estado==='Entregado'?'selected':''}>Entregado</option>
+            </select>
+            <button onclick="imprimirTicket('${esc(p.order_id)}')" style="width:100%; padding:5px; border:none; border-radius:5px; background:#3498db; color:white; cursor:pointer;">🖨️ Ticket</button>
+          </td>
+        </tr>`;
+      }).join('');
+
+      const totalPaginas = Math.ceil(pedidosGlobal.length / pedidosPorPagina);
+      document.getElementById('paginacion-pedidos').style.display = 'flex';
+      document.getElementById('info-pagina-pedidos').textContent = `Página ${paginaPedidosActual} de ${totalPaginas}`;
+    }
+
+    function cambiarPaginaPedidos(dir) {
+      const totalPaginas = Math.ceil(pedidosGlobal.length / pedidosPorPagina);
+      const nueva = paginaPedidosActual + dir;
+      if (nueva >= 1 && nueva <= totalPaginas) { paginaPedidosActual = nueva; renderizarPedidosAdmin(); }
+    }
+
+    async function cambiarEstadoPedido(orderId, nuevoEstado) {
+      try { await fetchSupabase(`/rest/v1/pedidos?order_id=eq.${encodeURIComponent(orderId)}`, { method: 'PATCH', body: JSON.stringify({ estado: nuevoEstado }) }); mostrarAlerta('Estado actualizado.'); cargarPedidos(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
+    }
+
+    async function imprimirTicket(orderId) {
+      const pedido = pedidosGlobal.find(p => p.order_id === orderId); if (!pedido) return;
+      let config = {};
+      try { const cfgData = await fetchSupabase('/rest/v1/configuracion?select=*'); cfgData.forEach(item => { config[item.clave] = item.valor; }); } catch (e) {}
+
+      const ticketHTML = `
+        <div style="text-align:center;">
+          <h2 style="margin:0;font-size:16px;">${esc(config.empresa || config.nombre_negocio || 'Mi Negocio')}</h2>
+          ${config.cif ? `<p style="margin:2px 0;font-size:11px;">CIF: ${esc(config.cif)}</p>` : ''}
+          ${config.direccion ? `<p style="margin:2px 0;font-size:11px;">${esc(config.direccion)}</p>` : ''}
+          ${config.telefono ? `<p style="margin:2px 0;font-size:11px;">Tel: ${esc(config.telefono)}</p>` : ''}
+        </div>
+        <hr style="border:none;border-top:1px dashed #000;margin:8px 0;">
+        <p style="margin:2px 0;font-size:11px;">Ticket: <strong>${esc(pedido.order_id)}</strong></p>
+        <p style="margin:2px 0;font-size:11px;">Cliente: ${esc(pedido.nombre_cliente)}</p>
+        <hr style="border:none;border-top:1px dashed #000;margin:8px 0;">
+        <div style="font-size:11px;">${(pedido.detalle || '').split(',').map(i => `<p style="margin:2px 0;">${esc(i.trim())}</p>`).join('')}</div>
+        <hr style="border:none;border-top:1px dashed #000;margin:8px 0;">
+        <p style="margin:2px 0;font-size:14px;text-align:right;"><strong>TOTAL: ${moneda(precioNum(pedido.total))}</strong></p>
+        ${config.ticket_footer ? `<p style="text-align:center;font-size:10px;margin:4px 0;">${esc(config.ticket_footer)}</p>` : ''}
+        <div style="text-align:center;margin-top:10px;"><svg id="barcode-ticket"></svg></div>`;
+
+      const cont = document.getElementById('ticket-impresion');
+      cont.innerHTML = ticketHTML; cont.style.display = 'block';
+      if (window.JsBarcode) { try { JsBarcode('#barcode-ticket', pedido.order_id, { format: 'CODE128', width: 1.2, height: 40, displayValue: true, fontSize: 10 }); } catch (e) {} }
+      setTimeout(() => { window.print(); setTimeout(() => { cont.style.display = 'none'; }, 500); }, 200);
+    }
+          async function cargarConfiguracion() {
+      try {
+        const data = await fetchSupabase('/rest/v1/configuracion?select=*');
+        const config = {}; (data || []).forEach(item => { config[item.clave] = item.valor; });
+        document.getElementById('cfg-nombre').value = config.nombre_negocio || ''; document.getElementById('cfg-empresa').value = config.empresa || ''; document.getElementById('cfg-cif').value = config.cif || ''; document.getElementById('cfg-promo').value = config.promocion || ''; document.getElementById('cfg-telefono').value = config.telefono || ''; document.getElementById('cfg-whatsapp').value = config.whatsapp || ''; document.getElementById('cfg-direccion').value = config.direccion || ''; document.getElementById('cfg-horario').value = config.horario || ''; document.getElementById('cfg-ticket-footer').value = config.ticket_footer || '';
+        const stripeOn = config.stripe_habilitado === 'true'; document.getElementById('cfg-stripe').checked = stripeOn; document.getElementById('stripe-status-text').textContent = stripeOn ? 'Activado' : 'Desactivado';
+        if (config.nombre_negocio) document.getElementById('admin-header-title').textContent = '🍕 ' + config.nombre_negocio;
+      } catch (error) { console.error(error); }
+    }
+
+    async function guardarConfiguracion() {
+      const valores = { nombre_negocio: document.getElementById('cfg-nombre').value.trim(), empresa: document.getElementById('cfg-empresa').value.trim(), cif: document.getElementById('cfg-cif').value.trim(), promocion: document.getElementById('cfg-promo').value.trim(), telefono: document.getElementById('cfg-telefono').value.trim(), whatsapp: document.getElementById('cfg-whatsapp').value.trim(), direccion: document.getElementById('cfg-direccion').value.trim(), horario: document.getElementById('cfg-horario').value.trim(), ticket_footer: document.getElementById('cfg-ticket-footer').value.trim(), stripe_habilitado: document.getElementById('cfg-stripe').checked ? 'true' : 'false' };
+      try { const payload = Object.keys(valores).map(clave => ({ clave, valor: valores[clave] })); await fetchSupabase('/rest/v1/configuracion', { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' }, body: JSON.stringify(payload) }); document.getElementById('stripe-status-text').textContent = valores.stripe_habilitado === 'true' ? 'Activado' : 'Desactivado'; mostrarAlerta('Configuración guardada.'); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
+    }
+
+    async function cargarResenas() { try { const data = await fetchSupabase('/rest/v1/resenas?select=*&order=fecha.desc'); renderizarResenasAdmin(data || []); } catch (error) { mostrarAlerta('Error reseñas: ' + error.message, 'error'); } }
+
+    function renderizarResenasAdmin(resenas) {
+      const cont = document.getElementById('lista-resenas-admin');
+      if (!resenas.length) { cont.innerHTML = '<p style="color:#999">No hay reseñas.</p>'; return; }
+      cont.innerHTML = resenas.map(r => `<div style="border-bottom:1px solid #eee;padding:15px 0;"><div style="display:flex;justify-content:space-between;align-items:center;"><div><strong>${esc(r.nombre)}</strong><span style="color:#f1c40f;margin-left:10px;">${'★'.repeat(r.estrellas) + '☆'.repeat(5 - r.estrellas)}</span><small style="color:#999;margin-left:10px;">${new Date(r.fecha).toLocaleDateString('es-ES')}</small></div><div><span style="background:${r.aprobada ? '#d4edda' : '#fff3cd'}; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold;">${r.aprobada ? 'Publicada' : 'Pendiente'}</span></div></div><p style="margin:8px 0;font-style:italic;">"${esc(r.comentario)}"</p><div style="display:flex;gap:8px;">${!r.aprobada ? `<button onclick="aprobarResena('${r.id}', true)" style="padding:6px 12px;border:none;border-radius:6px;background:#27ae60;color:white;cursor:pointer;">✅ Aprobar</button>` : `<button onclick="aprobarResena('${r.id}', false)" style="padding:6px 12px;border:none;border-radius:6px;background:#f39c12;color:white;cursor:pointer;">🚫 Ocultar</button>`}<button onclick="eliminarResena('${r.id}')" style="padding:6px 12px;border:none;border-radius:6px;background:#e74c3c;color:white;cursor:pointer;">🗑️ Eliminar</button></div></div>`).join('');
+    }
+
+    async function aprobarResena(id, aprobar) { try { await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify({ aprobada: aprobar }) }); mostrarAlerta(aprobar ? 'Publicada.' : 'Ocultada.'); cargarResenas(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } }
+    function eliminarResena(id) { confirmarAccion('Eliminar Reseña', '¿Borrar esta reseña definitivamente?', async () => { try { await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, { method: 'DELETE' }); mostrarAlerta('Eliminada.'); cargarResenas(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } }); }
 
     async function cargarUsuarios() {
       try {
-        // Obtenemos los usuarios desde Auth usando el Service Key
-        const authRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
-          headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY }
-        });
-        if (!authRes.ok) throw new Error('Error al cargar usuarios de Auth');
-        const authUsers = await authRes.json();
-        
-        // Obtenemos los perfiles (roles) de nuestra base de datos
-        const perfiles = await fetchSupabase('/rest/v1/perfiles?select=*');
-        
-        // Cruzamos los datos
-        usuariosGlobal = authUsers.users.map(u => {
-          const perfil = perfiles.find(p => p.email === u.email);
-          return {
-            id: u.id,
-            email: u.email,
-            nombre: perfil ? perfil.nombre : 'Sin nombre',
-            rol: perfil ? perfil.rol : 'empleado',
-            telefono: perfil ? perfil.telefono : ''
-          };
-        });
-
+        const authRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, { headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY } });
+        if (!authRes.ok) throw new Error('Error Auth'); const authUsers = await authRes.json(); const perfiles = await fetchSupabase('/rest/v1/perfiles?select=*');
+        usuariosGlobal = authUsers.users.map(u => { const perfil = perfiles.find(p => p.email === u.email); return { id: u.id, email: u.email, nombre: perfil ? perfil.nombre : 'Sin nombre', rol: perfil ? perfil.rol : 'empleado' }; });
         const tbody = document.getElementById('tabla-usuarios-body');
-        if (usuariosGlobal.length === 0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No hay usuarios.</td></tr>'; return; }
-
-        tbody.innerHTML = usuariosGlobal.map(u => `
-          <tr>
-            <td style="font-weight: bold;">${u.nombre}</td>
-            <td>${u.email}</td>
-            <td><span class="badge badge-preparacion">${u.rol.toUpperCase()}</span></td>
-            <td>
-              <button class="btn" style="width: auto; padding: 5px 10px; font-size: 0.8rem; background: #f39c12;" onclick="cambiarPassword('${u.id}')">🔑 Cambiar Clave</button>
-              <button class="btn" style="width: auto; padding: 5px 10px; font-size: 0.8rem; background: #e74c3c;" onclick="eliminarUsuario('${u.id}', '${u.email}')">🗑️ Eliminar</button>
-            </td>
-          </tr>
-        `).join('');
-
-      } catch (error) {
-        document.getElementById('tabla-usuarios-body').innerHTML = `<tr><td colspan="4" style="color:red; text-align: center;">Error: ${error.message}</td></tr>`;
-      }
+        if (!usuariosGlobal.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No hay usuarios.</td></tr>'; return; }
+        tbody.innerHTML = usuariosGlobal.map(u => `<tr style="border-bottom:1px solid #eee;"><td style="padding:12px; font-weight:bold;">${u.nombre}</td><td style="padding:12px;">${u.email}</td><td style="padding:12px;"><span style="background:#cce5ff; color:#004085; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold;">${u.rol.toUpperCase()}</span></td><td style="padding:12px;"><button onclick="cambiarPassword('${u.id}')" style="padding:5px 10px;border:none;border-radius:6px;background:#f39c12;color:white;cursor:pointer;margin-right:5px;">🔑 Cambiar Clave</button><button onclick="eliminarUsuario('${u.id}', '${u.email}')" style="padding:5px 10px;border:none;border-radius:6px;background:#e74c3c;color:white;cursor:pointer;">🗑️ Eliminar</button></td></tr>`).join('');
+      } catch (error) { document.getElementById('tabla-usuarios-body').innerHTML = `<tr><td colspan="4" style="color:red;text-align:center;">Error: ${error.message}</td></tr>`; }
     }
 
-    async function cambiarPassword(userId) {
-      const nuevaPass = prompt("Ingresa la nueva contraseña para este usuario (mínimo 6 caracteres):");
-      if (!nuevaPass || nuevaPass.length < 6) {
-        if(nuevaPass !== null) alert('La contraseña debe tener al menos 6 caracteres.');
-        return;
-      }
+    async function cambiarPassword(userId) { const nuevaPass = prompt("Ingresa la nueva contraseña (mínimo 6 caracteres):"); if (!nuevaPass || nuevaPass.length < 6) { return; } try { const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, { method: 'PUT', headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ password: nuevaPass }) }); if (!res.ok) throw new Error('Error'); mostrarAlerta('Contraseña actualizada.'); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } }
 
+    function eliminarUsuario(userId, email) {
+      if (email === 'isahyles123@gmail.com') { mostrarAlerta('No puedes eliminar al Súper Admin.', 'error'); return; }
+      confirmarAccion('Eliminar Usuario', `¿Seguro que quieres eliminar a ${email}?`, async () => { try { const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, { method: 'DELETE', headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY } }); if (!res.ok) throw new Error('Error'); await fetchSupabase(`/rest/v1/perfiles?id=eq.${userId}`, { method: 'DELETE' }); mostrarAlerta('Usuario eliminado.'); cargarUsuarios(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } });
+    }
+
+    async function crearEmpleado() {
+      const nombre = document.getElementById('new-user-name').value.trim(); const email = document.getElementById('new-user-email').value.trim(); const pass = document.getElementById('new-user-pass').value; const telefono = document.getElementById('new-user-phone').value.trim(); const rol = document.getElementById('new-user-role').value;
+      if (!nombre || !email || !pass) { mostrarAlerta('Nombre, email y contraseña son obligatorios.', 'error'); return; }
       try {
-        const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
-          method: 'PUT',
-          headers: {
-            'apikey': SUPABASE_SERVICE_KEY,
-            'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ password: nuevaPass })
-        });
-
-        if (!res.ok) throw new Error('Error al actualizar contraseña');
-        mostrarAlerta('Contraseña actualizada correctamente.');
-      } catch (error) {
-        mostrarAlerta('Error: ' + error.message, 'error');
-      }
+        const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, { method: 'POST', headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: pass, email_confirm: true }) });
+        if (!res.ok) throw new Error('Email inválido o ya existe.'); const newUser = await res.json();
+        await fetchSupabase('/rest/v1/perfiles', { method: 'POST', body: JSON.stringify({ id: newUser.id, nombre, email, rol, telefono }) });
+        mostrarAlerta('Usuario creado.'); document.getElementById('new-user-name').value = ''; document.getElementById('new-user-email').value = ''; document.getElementById('new-user-pass').value = ''; cargarUsuarios();
+      } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
     }
 
-    async function eliminarUsuario(userId, email) {
-      if (email === 'isahyles123@gmail.com') {
-        alert('No puedes eliminar al Súper Administrador principal.');
-        return;
-      }
-      if (!confirm(`¿Estás seguro de eliminar al usuario ${email}? Esta acción no se puede deshacer.`)) return;
+    async function descargarBackup() { try { mostrarAlerta('Generando backup...', 'success'); const tablas = ['productos', 'pedidos', 'slides', 'resenas', 'configuracion']; let backupData = {}; for (const tabla of tablas) { backupData[tabla] = await fetchSupabase(`/rest/v1/${tabla}?select=*`); } const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `backup_pizzeria_${new Date().toISOString().split('T')[0]}.json`; a.click(); URL.revokeObjectURL(url); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } }
 
-      try {
-        // Eliminar de Auth
-        const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
-          method: 'DELETE',
-          headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY }
-        });
-        if (!res.ok) throw new Error('Error al eliminar de Auth');
+    function restaurarBackup(input) { const file = input.files[0]; if (!file) return; confirmarAccion('Restaurar Backup', '¿Sobrescribir los datos actuales?', () => { const reader = new FileReader(); reader.onload = async (e) => { try { const data = JSON.parse(e.target.result); for (const tabla in data) { await fetchSupabase(`/rest/v1/${tabla}`, { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify(data[tabla]) }); } mostrarAlerta('Backup restaurado.'); cargarProductos(); cargarPedidos(); cargarSlides(); cargarResenas(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } }; reader.readAsText(file); }); }
 
-        // Eliminar de Perfiles
-        await fetchSupabase(`/rest/v1/perfiles?id=eq.${userId}`, { method: 'DELETE' });
-        
-        mostrarAlerta('Usuario eliminado correctamente.');
-        cargarUsuarios();
-      } catch (error) {
-        mostrarAlerta('Error al eliminar: ' + error.message, 'error');
-      }
-    }
-
-    // ============================================================
-//  FUNCIONES QUE FALTABAN EN EL PANEL DE ADMINISTRACIÓN
-//  (Productos, Slider, Pedidos, Ticket, Configuración, Reseñas)
-// ============================================================
-
-// ---------- UTILIDADES ----------
-function esc(txt) {
-  return String(txt == null ? '' : txt).replace(/[&<>"']/g, c => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  }[c]));
-}
-
-function moneda(n) { return '€' + (Number(n) || 0).toFixed(2); }
-
-function precioNum(valor) {
-  if (typeof valor === 'number') return isFinite(valor) ? valor : 0;
-  let s = String(valor == null ? '' : valor).replace(/[^\d.,-]/g, '');
-  if (!s) return 0;
-  if (s.indexOf(',') > -1 && s.indexOf('.') > -1) {
-    s = s.lastIndexOf(',') > s.lastIndexOf('.')
-      ? s.replace(/\./g, '').replace(',', '.')
-      : s.replace(/,/g, '');
-  } else {
-    s = s.replace(',', '.');
-  }
-  const n = parseFloat(s);
-  return isNaN(n) ? 0 : n;
-}
-
-// ============================================================
-//  PRODUCTOS
-// ============================================================
-async function cargarProductos() {
-  try {
-    const data = await fetchSupabase('/rest/v1/productos?select=*&order=id.desc');
-    productosGlobal = data || [];
-    renderizarProductos();
-  } catch (error) {
-    mostrarAlerta('Error al cargar productos: ' + error.message, 'error');
-  }
-}
-
-function renderizarProductos() {
-  const cont = document.getElementById('lista-productos');
-  if (!productosGlobal.length) {
-    cont.innerHTML = '<p style="color:#999">No hay productos todavía. Crea el primero.</p>';
-    return;
-  }
-  cont.innerHTML = productosGlobal.map(p => {
-    const img = p.imagen_url || 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="150"><rect width="100%" height="100%" fill="#eee"/><text x="150" y="80" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#aaa">Sin imagen</text></svg>');
-    return `
-      <div class="card">
-        <img src="${esc(img)}" alt="${esc(p.nombre)}" onerror="this.src='data:image/svg+xml;charset=UTF-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22150%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23eee%22/%3E%3C/svg%3E'">
-        <div class="card-body">
-          <h3>${esc(p.nombre)}</h3>
-          <div class="price">${moneda(precioNum(p.precio))}</div>
-          <p style="font-size:0.8rem;color:#777;margin-bottom:8px;">${esc(p.categoria || 'Otros')} · ${p.disponible ? '✅ Disponible' : '❌ Oculto'}</p>
-          <div class="card-actions">
-            <button class="btn-edit" onclick="editarProducto(${p.id})">✏️ Editar</button>
-            <button class="btn-delete" onclick="eliminarProducto(${p.id})">🗑️ Borrar</button>
-          </div>
-        </div>
-      </div>`;
-  }).join('');
-}
-
-function abrirModalNuevo() {
-  document.getElementById('modal-title').textContent = 'Nuevo Producto';
-  document.getElementById('prod-id-original').value = '';
-  document.getElementById('prod-id').value = 'Se generará automáticamente';
-  document.getElementById('prod-nombre').value = '';
-  document.getElementById('prod-precio').value = '';
-  document.getElementById('prod-categoria').value = 'Pizzas';
-  document.getElementById('prod-desc').value = '';
-  document.getElementById('prod-ingredientes').value = '';
-  document.getElementById('prod-imagen').value = '';
-  document.getElementById('prod-disponible').checked = true;
-  const prev = document.getElementById('preview-prod');
-  prev.src = ''; prev.style.display = 'none';
-  document.getElementById('modal-producto').style.display = 'flex';
-}
-
-function editarProducto(id) {
-  const p = productosGlobal.find(x => Number(x.id) === Number(id));
-  if (!p) return;
-  document.getElementById('modal-title').textContent = 'Editar Producto';
-  document.getElementById('prod-id-original').value = p.id;
-  document.getElementById('prod-id').value = p.id;
-  document.getElementById('prod-nombre').value = p.nombre || '';
-  document.getElementById('prod-precio').value = p.precio || '';
-  document.getElementById('prod-categoria').value = p.categoria || 'Pizzas';
-  document.getElementById('prod-desc').value = p.descripcion || '';
-  document.getElementById('prod-ingredientes').value = p.ingredientes || '';
-  document.getElementById('prod-imagen').value = p.imagen_url || '';
-  document.getElementById('prod-disponible').checked = !!p.disponible;
-  const prev = document.getElementById('preview-prod');
-  if (p.imagen_url) { prev.src = p.imagen_url; prev.style.display = 'block'; }
-  else { prev.src = ''; prev.style.display = 'none'; }
-  document.getElementById('modal-producto').style.display = 'flex';
-}
-
-function cerrarModal() {
-  document.getElementById('modal-producto').style.display = 'none';
-}
-
-async function guardarProducto() {
-  const idOriginal = document.getElementById('prod-id-original').value;
-  const nombre = document.getElementById('prod-nombre').value.trim();
-  const precio = precioNum(document.getElementById('prod-precio').value);
-  const categoria = document.getElementById('prod-categoria').value;
-  const descripcion = document.getElementById('prod-desc').value.trim();
-  const ingredientes = document.getElementById('prod-ingredientes').value.trim();
-  const imagen_url = document.getElementById('prod-imagen').value.trim();
-  const disponible = document.getElementById('prod-disponible').checked;
-
-  if (!nombre || precio <= 0) {
-    mostrarAlerta('El nombre y un precio válido son obligatorios.', 'error');
-    return;
-  }
-
-  const payload = { nombre, precio, categoria, descripcion, ingredientes, imagen_url, disponible };
-
-  try {
-    if (idOriginal) {
-      await fetchSupabase(`/rest/v1/productos?id=eq.${idOriginal}`, {
-        method: 'PATCH',
-        body: JSON.stringify(payload)
-      });
-      mostrarAlerta('Producto actualizado correctamente.');
-    } else {
-      await fetchSupabase('/rest/v1/productos', {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      });
-      mostrarAlerta('Producto creado correctamente.');
-    }
-    cerrarModal();
-    cargarProductos();
-  } catch (error) {
-    mostrarAlerta('Error al guardar: ' + error.message, 'error');
-  }
-}
-
-async function eliminarProducto(id) {
-  if (!confirm('¿Seguro que quieres eliminar este producto?')) return;
-  try {
-    await fetchSupabase(`/rest/v1/productos?id=eq.${id}`, { method: 'DELETE' });
-    mostrarAlerta('Producto eliminado.');
-    cargarProductos();
-  } catch (error) {
-    mostrarAlerta('Error al eliminar: ' + error.message, 'error');
-  }
-}
-
-// Subida de imagen de producto a Storage
-async function subirImagenProducto(input) {
-  const file = input.files && input.files[0];
-  if (!file) return;
-  try {
-    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-    const fileName = `prod_${Date.now()}.${ext}`;
-    const url = `${SUPABASE_URL}/storage/v1/object/productos/${fileName}`;
-
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_SERVICE_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY,
-        'Content-Type': file.type || 'application/octet-stream',
-        'x-upsert': 'true'
-      },
-      body: file
-    });
-    if (!res.ok) throw new Error('No se pudo subir la imagen');
-
-    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/productos/${fileName}`;
-    document.getElementById('prod-imagen').value = publicUrl;
-    const prev = document.getElementById('preview-prod');
-    prev.src = publicUrl; prev.style.display = 'block';
-    mostrarAlerta('Imagen subida correctamente.');
-  } catch (error) {
-    mostrarAlerta('Error al subir imagen: ' + error.message, 'error');
-  }
-}
-
-// ============================================================
-//  SLIDER
-// ============================================================
-async function cargarSlides() {
-  try {
-    const data = await fetchSupabase('/rest/v1/slides?select=*&order=orden.asc');
-    slidesGlobal = data || [];
-    renderizarSlides();
-  } catch (error) {
-    mostrarAlerta('Error al cargar slider: ' + error.message, 'error');
-  }
-}
-
-function renderizarSlides() {
-  const cont = document.getElementById('lista-slides');
-  if (!slidesGlobal.length) {
-    cont.innerHTML = '<p style="color:#999">No hay imágenes en el slider.</p>';
-    return;
-  }
-  cont.innerHTML = slidesGlobal.map(s => `
-    <div class="card">
-      <img src="${esc(s.imagen_url)}" alt="${esc(s.titulo || '')}">
-      <div class="card-body">
-        <h3>${esc(s.titulo || 'Sin título')}</h3>
-        <p style="font-size:0.8rem;color:#777;margin-bottom:8px;">${esc(s.subtitulo || '')}</p>
-        <p style="font-size:0.8rem;color:#777;margin-bottom:8px;">${s.activo ? '✅ Activo' : '❌ Inactivo'} · Orden: ${s.orden || 0}</p>
-        <div class="card-actions">
-          <button class="btn-delete" onclick="eliminarSlide(${s.id})">🗑️ Borrar</button>
-        </div>
-      </div>
-    </div>
-  `).join('');
-}
-
-function abrirModalSlide() {
-  document.getElementById('slide-titulo').value = '';
-  document.getElementById('slide-subtitulo').value = '';
-  document.getElementById('slide-imagen').value = '';
-  const prev = document.getElementById('preview-slide');
-  prev.src = ''; prev.style.display = 'none';
-  document.getElementById('modal-slider').style.display = 'flex';
-}
-
-async function guardarSlide() {
-  const titulo = document.getElementById('slide-titulo').value.trim();
-  const subtitulo = document.getElementById('slide-subtitulo').value.trim();
-  const imagen_url = document.getElementById('slide-imagen').value.trim();
-
-  if (!imagen_url) {
-    mostrarAlerta('Debes subir una imagen para el slider.', 'error');
-    return;
-  }
-
-  try {
-    await fetchSupabase('/rest/v1/slides', {
-      method: 'POST',
-      body: JSON.stringify({ titulo, subtitulo, imagen_url, activo: true, orden: slidesGlobal.length })
-    });
-    document.getElementById('modal-slider').style.display = 'none';
-    mostrarAlerta('Imagen añadida al slider.');
-    cargarSlides();
-  } catch (error) {
-    mostrarAlerta('Error al guardar slide: ' + error.message, 'error');
-  }
-}
-
-async function eliminarSlide(id) {
-  if (!confirm('¿Eliminar esta imagen del slider?')) return;
-  try {
-    await fetchSupabase(`/rest/v1/slides?id=eq.${id}`, { method: 'DELETE' });
-    mostrarAlerta('Imagen eliminada.');
-    cargarSlides();
-  } catch (error) {
-    mostrarAlerta('Error al eliminar: ' + error.message, 'error');
-  }
-}
-
-async function subirImagenSlide(input) {
-  const file = input.files && input.files[0];
-  if (!file) return;
-  try {
-    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-    const fileName = `slide_${Date.now()}.${ext}`;
-    const url = `${SUPABASE_URL}/storage/v1/object/slides/${fileName}`;
-
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_SERVICE_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY,
-        'Content-Type': file.type || 'application/octet-stream',
-        'x-upsert': 'true'
-      },
-      body: file
-    });
-    if (!res.ok) throw new Error('No se pudo subir la imagen');
-
-    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/slides/${fileName}`;
-    document.getElementById('slide-imagen').value = publicUrl;
-    const prev = document.getElementById('preview-slide');
-    prev.src = publicUrl; prev.style.display = 'block';
-    mostrarAlerta('Imagen subida correctamente.');
-  } catch (error) {
-    mostrarAlerta('Error al subir imagen: ' + error.message, 'error');
-  }
-}
-
-// ============================================================
-//  PEDIDOS
-// ============================================================
-async function cargarPedidos() {
-  try {
-    const data = await fetchSupabase('/rest/v1/pedidos?select=*&order=fecha.desc');
-    pedidosGlobal = data || [];
-    renderizarPedidosAdmin();
-  } catch (error) {
-    mostrarAlerta('Error al cargar pedidos: ' + error.message, 'error');
-  }
-}
-
-function renderizarPedidosAdmin() {
-  const tbody = document.getElementById('tabla-pedidos-body');
-  if (!pedidosGlobal.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay pedidos.</td></tr>';
-    return;
-  }
-  tbody.innerHTML = pedidosGlobal.map(p => {
-    const estadoClase = {
-      'Pendiente': 'badge-pendiente',
-      'En preparación': 'badge-preparacion',
-      'Listo': 'badge-listo',
-      'Entregado': 'badge-entregado'
-    }[p.estado] || 'badge-pendiente';
-
-    return `
-      <tr>
-        <td style="font-weight:bold;">${esc(p.order_id)}</td>
-        <td>${esc(p.nombre_cliente)}<br><small>${esc(p.telefono || '')}</small></td>
-        <td style="max-width:280px;font-size:0.8rem;">${esc(p.detalle)}</td>
-        <td style="font-weight:bold;color:#27ae60;">${moneda(precioNum(p.total))}</td>
-        <td><span class="badge ${estadoClase}">${esc(p.estado)}</span></td>
-        <td>
-          <select onchange="cambiarEstadoPedido('${esc(p.order_id)}', this.value)" style="padding:5px;font-size:0.8rem;">
-            <option value="Pendiente" ${p.estado==='Pendiente'?'selected':''}>Pendiente</option>
-            <option value="En preparación" ${p.estado==='En preparación'?'selected':''}>En preparación</option>
-            <option value="Listo" ${p.estado==='Listo'?'selected':''}>Listo</option>
-            <option value="Entregado" ${p.estado==='Entregado'?'selected':''}>Entregado</option>
-          </select>
-          <button class="btn" style="width:auto;padding:5px 10px;font-size:0.8rem;background:#3498db;margin-top:5px;" onclick="imprimirTicket('${esc(p.order_id)}')">🖨️ Ticket</button>
-        </td>
-      </tr>`;
-  }).join('');
-}
-
-async function cambiarEstadoPedido(orderId, nuevoEstado) {
-  try {
-    await fetchSupabase(`/rest/v1/pedidos?order_id=eq.${encodeURIComponent(orderId)}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ estado: nuevoEstado })
-    });
-    mostrarAlerta('Estado actualizado.');
-    cargarPedidos();
-  } catch (error) {
-    mostrarAlerta('Error al actualizar estado: ' + error.message, 'error');
-  }
-}
-
-// ============================================================
-//  TICKET (impresión)
-// ============================================================
-async function imprimirTicket(orderId) {
-  const pedido = pedidosGlobal.find(p => p.order_id === orderId);
-  if (!pedido) return;
-
-  let config = {};
-  try {
-    const cfgData = await fetchSupabase('/rest/v1/configuracion?select=*');
-    cfgData.forEach(item => { config[item.clave] = item.valor; });
-  } catch (e) { /* sin config, seguimos */ }
-
-  const empresa = config.empresa || config.nombre_negocio || 'Mi Negocio';
-  const cif = config.cif || '';
-  const direccion = config.direccion || '';
-  const telefono = config.telefono || '';
-  const footerMsg = config.ticket_footer || '';
-
-  const items = (pedido.detalle || '').split(',').map(i => i.trim()).filter(Boolean);
-
-  const ticketHTML = `
-    <div style="text-align:center;">
-      <h2 style="margin:0;font-size:16px;">${esc(empresa)}</h2>
-      ${cif ? `<p style="margin:2px 0;font-size:11px;">CIF: ${esc(cif)}</p>` : ''}
-      ${direccion ? `<p style="margin:2px 0;font-size:11px;">${esc(direccion)}</p>` : ''}
-      ${telefono ? `<p style="margin:2px 0;font-size:11px;">Tel: ${esc(telefono)}</p>` : ''}
-    </div>
-    <hr style="border:none;border-top:1px dashed #000;margin:8px 0;">
-    <p style="margin:2px 0;font-size:11px;">Ticket: <strong>${esc(pedido.order_id)}</strong></p>
-    <p style="margin:2px 0;font-size:11px;">Fecha: ${pedido.fecha ? new Date(pedido.fecha).toLocaleString('es-ES') : ''}</p>
-    <p style="margin:2px 0;font-size:11px;">Cliente: ${esc(pedido.nombre_cliente)}</p>
-    ${pedido.telefono ? `<p style="margin:2px 0;font-size:11px;">Tel: ${esc(pedido.telefono)}</p>` : ''}
-    ${pedido.direccion ? `<p style="margin:2px 0;font-size:11px;">Dir: ${esc(pedido.direccion)}</p>` : ''}
-    <hr style="border:none;border-top:1px dashed #000;margin:8px 0;">
-    <div style="font-size:11px;">
-      ${items.map(i => `<p style="margin:2px 0;">${esc(i)}</p>`).join('')}
-    </div>
-    <hr style="border:none;border-top:1px dashed #000;margin:8px 0;">
-    <p style="margin:2px 0;font-size:14px;text-align:right;"><strong>TOTAL: ${moneda(precioNum(pedido.total))}</strong></p>
-    ${footerMsg ? `<hr style="border:none;border-top:1px dashed #000;margin:8px 0;"><p style="text-align:center;font-size:10px;margin:4px 0;">${esc(footerMsg)}</p>` : ''}
-    <div style="text-align:center;margin-top:10px;">
-      <svg id="barcode-ticket"></svg>
-    </div>
-  `;
-
-  const cont = document.getElementById('ticket-impresion');
-  cont.innerHTML = ticketHTML;
-  cont.style.display = 'block';
-
-  // Generar código de barras si la librería está cargada
-  if (window.JsBarcode) {
-    try {
-      JsBarcode('#barcode-ticket', pedido.order_id, {
-        format: 'CODE128', width: 1.2, height: 40, displayValue: true, fontSize: 10
-      });
-    } catch (e) { /* ignorar */ }
-  }
-
-  setTimeout(() => {
-    window.print();
-    setTimeout(() => { cont.style.display = 'none'; }, 500);
-  }, 200);
-}
-
-// ============================================================
-//  CONFIGURACIÓN
-// ============================================================
-async function cargarConfiguracion() {
-  try {
-    const data = await fetchSupabase('/rest/v1/configuracion?select=*');
-    const config = {};
-    (data || []).forEach(item => { config[item.clave] = item.valor; });
-
-    document.getElementById('cfg-nombre').value = config.nombre_negocio || '';
-    document.getElementById('cfg-empresa').value = config.empresa || '';
-    document.getElementById('cfg-cif').value = config.cif || '';
-    document.getElementById('cfg-promo').value = config.promocion || '';
-    document.getElementById('cfg-telefono').value = config.telefono || '';
-    document.getElementById('cfg-whatsapp').value = config.whatsapp || '';
-    document.getElementById('cfg-direccion').value = config.direccion || '';
-    document.getElementById('cfg-horario').value = config.horario || '';
-    document.getElementById('cfg-ticket-footer').value = config.ticket_footer || '';
-
-    const stripeOn = config.stripe_habilitado === 'true';
-    document.getElementById('cfg-stripe').checked = stripeOn;
-    document.getElementById('stripe-status-text').textContent = stripeOn ? 'Activado' : 'Desactivado';
-  } catch (error) {
-    console.error('Error al cargar configuración:', error);
-  }
-}
-
-async function guardarConfiguracion() {
-  const valores = {
-    nombre_negocio: document.getElementById('cfg-nombre').value.trim(),
-    empresa: document.getElementById('cfg-empresa').value.trim(),
-    cif: document.getElementById('cfg-cif').value.trim(),
-    promocion: document.getElementById('cfg-promo').value.trim(),
-    telefono: document.getElementById('cfg-telefono').value.trim(),
-    whatsapp: document.getElementById('cfg-whatsapp').value.trim(),
-    direccion: document.getElementById('cfg-direccion').value.trim(),
-    horario: document.getElementById('cfg-horario').value.trim(),
-    ticket_footer: document.getElementById('cfg-ticket-footer').value.trim(),
-    stripe_habilitado: document.getElementById('cfg-stripe').checked ? 'true' : 'false'
-  };
-
-  try {
-    // Upsert: inserta o actualiza cada clave
-    const payload = Object.keys(valores).map(clave => ({ clave, valor: valores[clave] }));
-    await fetchSupabase('/rest/v1/configuracion', {
-      method: 'POST',
-      headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' },
-      body: JSON.stringify(payload)
-    });
-    document.getElementById('stripe-status-text').textContent = valores.stripe_habilitado === 'true' ? 'Activado' : 'Desactivado';
-    mostrarAlerta('Configuración guardada correctamente.');
-  } catch (error) {
-    mostrarAlerta('Error al guardar configuración: ' + error.message, 'error');
-  }
-}
-
-// ============================================================
-//  RESEÑAS (panel admin)
-// ============================================================
-async function cargarResenas() {
-  try {
-    const data = await fetchSupabase('/rest/v1/resenas?select=*&order=fecha.desc');
-    renderizarResenasAdmin(data || []);
-  } catch (error) {
-    mostrarAlerta('Error al cargar reseñas: ' + error.message, 'error');
-  }
-}
-
-function renderizarResenasAdmin(resenas) {
-  const cont = document.getElementById('lista-resenas-admin');
-  if (!resenas.length) {
-    cont.innerHTML = '<p style="color:#999">No hay reseñas todavía.</p>';
-    return;
-  }
-  cont.innerHTML = resenas.map(r => {
-    const estrellas = '★'.repeat(r.estrellas) + '☆'.repeat(5 - r.estrellas);
-    const fecha = r.fecha ? new Date(r.fecha).toLocaleDateString('es-ES') : '';
-    return `
-      <div style="border-bottom:1px solid #eee;padding:15px 0;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <div>
-            <strong>${esc(r.nombre)}</strong>
-            <span style="color:#f1c40f;margin-left:10px;">${estrellas}</span>
-            <small style="color:#999;margin-left:10px;">${fecha}</small>
-          </div>
-          <div>
-            <span class="badge ${r.aprobada ? 'badge-listo' : 'badge-pendiente'}">${r.aprobada ? 'Publicada' : 'Pendiente'}</span>
-          </div>
-        </div>
-        <p style="margin:8px 0;font-style:italic;">"${esc(r.comentario)}"</p>
-        <div style="display:flex;gap:8px;">
-          ${!r.aprobada ? `<button class="btn" style="width:auto;padding:6px 12px;font-size:0.8rem;background:#27ae60;" onclick="aprobarResena(${r.id}, true)">✅ Aprobar</button>` : ''}
-          ${r.aprobada ? `<button class="btn" style="width:auto;padding:6px 12px;font-size:0.8rem;background:#f39c12;" onclick="aprobarResena(${r.id}, false)">🚫 Ocultar</button>` : ''}
-          <button class="btn" style="width:auto;padding:6px 12px;font-size:0.8rem;background:#e74c3c;" onclick="eliminarResena(${r.id})">🗑️ Eliminar</button>
-        </div>
-      </div>`;
-  }).join('');
-}
-
-async function aprobarResena(id, aprobar) {
-  try {
-    await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ aprobada: aprobar })
-    });
-    mostrarAlerta(aprobar ? 'Reseña publicada.' : 'Reseña ocultada.');
-    cargarResenas();
-  } catch (error) {
-    mostrarAlerta('Error: ' + error.message, 'error');
-  }
-}
-
-async function eliminarResena(id) {
-  if (!confirm('¿Eliminar esta reseña definitivamente?')) return;
-  try {
-    await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, { method: 'DELETE' });
-    mostrarAlerta('Reseña eliminada.');
-    cargarResenas();
-  } catch (error) {
-    mostrarAlerta('Error al eliminar: ' + error.message, 'error');
-  }
-}
-
-// ============================================================
-//  TOGGLE STRIPE (texto en vivo)
-// ============================================================
-document.addEventListener('DOMContentLoaded', () => {
-  const stripeCheck = document.getElementById('cfg-stripe');
-  if (stripeCheck) {
-    stripeCheck.addEventListener('change', () => {
-      document.getElementById('stripe-status-text').textContent =
-        stripeCheck.checked ? 'Activado' : 'Desactivado';
-    });
-  }
-});
+    function limpiarBaseDeDatos() { confirmarAccion('¡CUIDADO!', 'Esto borrará TODOS los pedidos y productos. Irreversible.', async () => { try { const tablas = ['productos', 'pedidos', 'slides', 'resenas']; for (const tabla of tablas) { await fetchSupabase(`/rest/v1/${tabla}?id=gt.0`, { method: 'DELETE' }); } mostrarAlerta('Base de datos limpia.'); cargarProductos(); cargarPedidos(); cargarSlides(); cargarResenas(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); } }); }
   </script>
 </body>
 </html>
