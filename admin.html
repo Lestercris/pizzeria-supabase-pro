@@ -428,35 +428,72 @@
     async function cambiarEstadoPedido(orderId, nuevoEstado) {
       try { await fetchSupabase(`/rest/v1/pedidos?order_id=eq.${encodeURIComponent(orderId)}`, { method: 'PATCH', body: JSON.stringify({ estado: nuevoEstado }) }); mostrarAlerta('Estado actualizado.'); cargarPedidos(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
     }
-
     async function imprimirTicket(orderId) {
-      const pedido = pedidosGlobal.find(p => p.order_id === orderId); if (!pedido) return;
+      const pedido = pedidosGlobal.find(p => p.order_id === orderId); 
+      if (!pedido) return;
+      
       let config = {};
-      try { const cfgData = await fetchSupabase('/rest/v1/configuracion?select=*'); cfgData.forEach(item => { config[item.clave] = item.valor; }); } catch (e) {}
+      try { 
+        const cfgData = await fetchSupabase('/rest/v1/configuracion?select=*'); 
+        cfgData.forEach(item => { config[item.clave] = item.valor; }); 
+      } catch (e) {}
 
+      // Construimos un diseño limpio estilo ticket real
       const ticketHTML = `
-        <div style="text-align:center;">
-          <h2 style="margin:0;font-size:16px;">${esc(config.empresa || config.nombre_negocio || 'Mi Negocio')}</h2>
-          ${config.cif ? `<p style="margin:2px 0;font-size:11px;">CIF: ${esc(config.cif)}</p>` : ''}
-          ${config.direccion ? `<p style="margin:2px 0;font-size:11px;">${esc(config.direccion)}</p>` : ''}
-          ${config.telefono ? `<p style="margin:2px 0;font-size:11px;">Tel: ${esc(config.telefono)}</p>` : ''}
-        </div>
-        <hr style="border:none;border-top:1px dashed #000;margin:8px 0;">
-        <p style="margin:2px 0;font-size:11px;">Ticket: <strong>${esc(pedido.order_id)}</strong></p>
-        <p style="margin:2px 0;font-size:11px;">Cliente: ${esc(pedido.nombre_cliente)}</p>
-        <hr style="border:none;border-top:1px dashed #000;margin:8px 0;">
-        <div style="font-size:11px;">${(pedido.detalle || '').split(',').map(i => `<p style="margin:2px 0;">${esc(i.trim())}</p>`).join('')}</div>
-        <hr style="border:none;border-top:1px dashed #000;margin:8px 0;">
-        <p style="margin:2px 0;font-size:14px;text-align:right;"><strong>TOTAL: ${moneda(precioNum(pedido.total))}</strong></p>
-        ${config.ticket_footer ? `<p style="text-align:center;font-size:10px;margin:4px 0;">${esc(config.ticket_footer)}</p>` : ''}
-        <div style="text-align:center;margin-top:10px;"><svg id="barcode-ticket"></svg></div>`;
+        <div style="font-family: 'Courier New', Courier, monospace; width: 72mm; margin: 0 auto; color: #000; line-height: 1.2; font-size: 12px;">
+          <div style="text-align: center; margin-bottom: 10px;">
+            <h2 style="margin: 0; font-size: 16px; font-weight: bold;">${esc(config.empresa || config.nombre_negocio || 'MI NEGOCIO')}</h2>
+            ${config.cif ? `<p style="margin: 2px 0;">CIF: ${esc(config.cif)}</p>` : ''}
+            ${config.direccion ? `<p style="margin: 2px 0;">${esc(config.direccion)}</p>` : ''}
+            ${config.telefono ? `<p style="margin: 2px 0;">Tel: ${esc(config.telefono)}</p>` : ''}
+          </div>
+          
+          <div style="border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 6px 0; margin-bottom: 10px;">
+            <p style="margin: 2px 0;">Ticket: <strong>${esc(pedido.order_id)}</strong></p>
+            <p style="margin: 2px 0;">Fecha: ${new Date(pedido.fecha || Date.now()).toLocaleString('es-ES')}</p>
+            <p style="margin: 2px 0;">Cliente: ${esc(pedido.nombre_cliente)}</p>
+            ${pedido.telefono ? `<p style="margin: 2px 0;">Tel: ${esc(pedido.telefono)}</p>` : ''}
+            ${pedido.direccion ? `<p style="margin: 2px 0;">Dir: ${esc(pedido.direccion)}</p>` : ''}
+          </div>
+          
+          <div style="margin-bottom: 10px;">
+            ${(pedido.detalle || '').split(',').map(i => `<div style="margin-bottom: 4px;">${esc(i.trim())}</div>`).join('')}
+          </div>
+          
+          <div style="border-top: 1px dashed #000; padding-top: 6px; text-align: right; font-weight: bold; font-size: 14px;">
+            TOTAL: ${moneda(precioNum(pedido.total))}
+          </div>
+          
+          ${config.ticket_footer ? `<div style="text-align: center; font-size: 10px; margin-top: 15px;">${esc(config.ticket_footer)}</div>` : ''}
+          
+          <div style="text-align: center; margin-top: 15px;">
+            <svg id="barcode-ticket" style="max-width: 100%;"></svg>
+          </div>
+        </div>`;
 
       const cont = document.getElementById('ticket-impresion');
-      cont.innerHTML = ticketHTML; cont.style.display = 'block';
-      if (window.JsBarcode) { try { JsBarcode('#barcode-ticket', pedido.order_id, { format: 'CODE128', width: 1.2, height: 40, displayValue: true, fontSize: 10 }); } catch (e) {} }
-      setTimeout(() => { window.print(); setTimeout(() => { cont.style.display = 'none'; }, 500); }, 200);
+      cont.innerHTML = ticketHTML; 
+      cont.style.display = 'block';
+      
+      // Generar código de barras con tamaño controlado
+      if (window.JsBarcode) { 
+        try { 
+          JsBarcode('#barcode-ticket', pedido.order_id, { 
+            format: 'CODE128', 
+            width: 1.5, 
+            height: 40, 
+            displayValue: true, 
+            fontSize: 10,
+            margin: 0
+          }); 
+        } catch (e) { console.error(e); } 
+      }
+        setTimeout(() => { 
+        window.print(); 
+        setTimeout(() => { cont.style.display = 'none'; }, 500); 
+      }, 200);
     }
-          async function cargarConfiguracion() {
+     async function cargarConfiguracion() {
       try {
         const data = await fetchSupabase('/rest/v1/configuracion?select=*');
         const config = {}; (data || []).forEach(item => { config[item.clave] = item.valor; });
