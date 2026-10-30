@@ -263,7 +263,7 @@
   <script>
     const SUPABASE_URL = 'https://afarkzyxssgcpmnquqdp.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMzI2NTUsImV4cCI6MjEwODcwODY1NX0.J7gSycaeum0bUzx9tss5OM4WfPUt5BswqxnSEI0RgiY';
-    const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmYXJrenl4c3NnY3BtbnF1cWRwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MzEzMjY1NSwiZXhwIjoyMTA4NzA4NjU1fQ.HmXW8r7uo9b5hohYLmi3koHLKHX-G9WTKBaSakKUO-w'; 
+    const SUPABASE_SERVICE_KEY = 'PEGA_AQUI_TU_SERVICE_ROLE_KEY'; 
 
     let productosGlobal = [], slidesGlobal = [], pedidosGlobal = [];
     let userRole = 'empleado';
@@ -457,4 +457,223 @@
       if (!data.imagen_url) return mostrarAlerta('Debes subir una imagen.', 'error');
       try {
         await fetchSupabase('/rest/v1/slides', { method: 'POST', body: JSON.stringify(data) });
-        document.getElementById('modal-slider').
+        document.getElementById('modal-slider').style.display = 'none'; cargarSlides(); mostrarAlerta('Imagen añadida.');
+      } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
+    }
+
+    async function eliminarSlide(id) {
+      if (!confirm('¿Eliminar imagen?')) return;
+      await fetchSupabase(`/rest/v1/slides?id=eq.${id}`, { method: 'DELETE' }); cargarSlides(); mostrarAlerta('Imagen eliminada.');
+    }
+
+    // PEDIDOS
+    async function cargarPedidos() {
+      try {
+        const pedidos = await fetchSupabase('/rest/v1/pedidos?select=*&order=fecha.desc&limit=50');
+        pedidosGlobal = pedidos;
+        const tbody = document.getElementById('tabla-pedidos-body');
+        if (pedidos.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No hay pedidos.</td></tr>'; return; }
+
+        tbody.innerHTML = pedidos.map(p => {
+          let badgeClass = 'badge-pendiente';
+          if (p.estado === 'En preparación') badgeClass = 'badge-preparacion';
+          if (p.estado === 'Listo') badgeClass = 'badge-listo';
+          if (p.estado === 'Entregado') badgeClass = 'badge-entregado';
+          return `
+            <tr>
+              <td style="font-weight: bold;">${p.order_id}</td>
+              <td>${p.nombre_cliente}<br><small>${p.telefono || ''}</small></td>
+              <td>${p.detalle}</td>
+              <td style="font-weight: bold;">${Number(p.total).toFixed(2)} €</td>
+              <td><span class="badge ${badgeClass}">${p.estado}</span></td>
+              <td>
+                <button class="btn" style="width: auto; padding: 5px 10px; font-size: 0.8rem; background: #3498db;" onclick="imprimirTicket('${p.order_id}')">🖨️ Imprimir</button>
+                <button class="btn" style="width: auto; padding: 5px 10px; font-size: 0.8rem; background: #25D366;" onclick="contactarWhatsApp('${p.telefono}', '${p.order_id}', '${p.estado}')">💬 WhatsApp</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (error) { document.getElementById('tabla-pedidos-body').innerHTML = '<tr><td colspan="6" style="color:red; text-align: center; padding: 20px;">Error al cargar pedidos.</td></tr>'; }
+    }
+
+    // IMPRIMIR TICKET (CENTRADO Y LLAMATIVO)
+    async function imprimirTicket(orderId) {
+      const pedido = pedidosGlobal.find(p => p.order_id === orderId);
+      if (!pedido) return;
+
+      let config = {};
+      try { const res = await fetchSupabase('/rest/v1/configuracion?select=*'); res.forEach(item => config[item.clave] = item.valor); } catch (e) {}
+
+      const nombreEmpresa = config.empresa || config.nombre_negocio || 'MI RESTAURANTE';
+      const cif = config.cif || 'CIF no configurado';
+      const telefono = config.telefono || '';
+      const direccion = config.direccion || '';
+      const fecha = pedido.fecha ? new Date(pedido.fecha).toLocaleString('es-ES') : '--/--/---- --:--';
+      const items = pedido.detalle.split(',').map(item => `<div style="margin-bottom: 5px;">- ${item.trim()}</div>`).join('');
+      
+      const ticketHTML = `
+        <div style="text-align: center; margin-bottom: 10px;">
+          <h2 style="margin: 0; font-size: 1.4rem;">${nombreEmpresa}</h2>
+          ${direccion ? `<p style="margin: 2px 0;">${direccion}</p>` : ''}
+          ${telefono ? `<p style="margin: 2px 0;">Tel: ${telefono}</p>` : ''}
+          <p style="margin: 2px 0;">CIF: ${cif}</p>
+        </div>
+        <hr style="border-top: 1px dashed #000; margin: 10px 0;">
+        <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
+          <span>Ticket: ${pedido.order_id}</span>
+          <span>${fecha}</span>
+        </div>
+        <hr style="border-top: 1px dashed #000; margin: 10px 0;">
+        <div style="font-size: 0.9rem;">
+          <strong>Cliente:</strong> ${pedido.nombre_cliente}<br>
+          <strong>Teléfono:</strong> ${pedido.telefono || 'N/A'}<br>
+          <strong>Dirección:</strong> ${pedido.direccion || 'Recogida en tienda'}
+        </div>
+        <hr style="border-top: 1px dashed #000; margin: 10px 0;">
+        <div style="font-size: 1rem; margin-bottom: 10px;">${items}</div>
+        <hr style="border-top: 1px dashed #000; margin: 10px 0;">
+        <div style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: bold;">
+          <span>TOTAL:</span><span>${Number(pedido.total).toFixed(2)} €</span>
+        </div>
+        <hr style="border-top: 1px dashed #000; margin: 10px 0;">
+        
+        <div style="text-align: center; margin-top: 15px;">
+          <svg id="barcode-ticket" style="display: block; margin: 0 auto;"></svg>
+        </div>
+        
+        <div style="text-align: center; font-size: 0.9rem; margin-top: 20px; font-weight: bold;">
+          ¡VUELVE PRONTO! 🍕<br>
+          <span style="font-size: 0.8rem; font-weight: normal;">Presenta este ticket y obtén un 10% de descuento en tu próxima compra.</span>
+        </div>
+      `;
+
+      document.getElementById('ticket-impresion').innerHTML = ticketHTML;
+      document.getElementById('ticket-impresion').style.display = 'block';
+      
+      setTimeout(() => {
+        JsBarcode("#barcode-ticket", pedido.order_id, { format: "CODE128", lineColor: "#000", width: 2, height: 40, displayValue: true, fontSize: 14, margin: 0 });
+        window.print();
+        document.getElementById('ticket-impresion').style.display = 'none';
+      }, 200);
+    }
+
+    function contactarWhatsApp(telefono, orderId, estado) {
+      if (!telefono) return alert('Sin teléfono.');
+      const numLimpio = telefono.replace(/\D/g, '');
+      let msg = `Hola, sobre tu pedido *${orderId}*: `;
+      if (estado === 'En preparación') msg += `ya está en el horno. 🍕`;
+      else if (estado === 'Listo') msg += `está listo. 🛵`;
+      else if (estado === 'Entregado') msg += `¡esperamos que lo disfrutes! 😊`;
+      else msg += `contactamos contigo.`;
+      window.open(`https://wa.me/${numLimpio}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    // CONFIGURACIÓN
+    async function cargarConfiguracion() {
+      try {
+        const data = await fetchSupabase('/rest/v1/configuracion?select=*');
+        const config = {}; data.forEach(item => config[item.clave] = item.valor);
+        if(document.getElementById('cfg-nombre')) document.getElementById('cfg-nombre').value = config.nombre_negocio || '';
+        if(document.getElementById('cfg-empresa')) document.getElementById('cfg-empresa').value = config.empresa || '';
+        if(document.getElementById('cfg-cif')) document.getElementById('cfg-cif').value = config.cif || '';
+        if(document.getElementById('cfg-promo')) document.getElementById('cfg-promo').value = config.promocion || '';
+        if(document.getElementById('cfg-telefono')) document.getElementById('cfg-telefono').value = config.telefono || '';
+        if(document.getElementById('cfg-whatsapp')) document.getElementById('cfg-whatsapp').value = config.whatsapp || '';
+        if(document.getElementById('cfg-direccion')) document.getElementById('cfg-direccion').value = config.direccion || '';
+        if(document.getElementById('cfg-horario')) document.getElementById('cfg-horario').value = config.horario || '';
+        if(document.getElementById('cfg-stripe')) document.getElementById('cfg-stripe').checked = (config.stripe_habilitado === 'true');
+
+        const headerTitle = document.getElementById('admin-header-title');
+        if (config.nombre_negocio) {
+          if (headerTitle) headerTitle.textContent = '🍕 ' + config.nombre_negocio;
+          document.title = 'Panel - ' + config.nombre_negocio;
+          const loginTitle = document.getElementById('login-title');
+          if (loginTitle) loginTitle.textContent = 'Panel - ' + config.nombre_negocio;
+        } else {
+          if (headerTitle) headerTitle.textContent = '🍕 Mi Negocio';
+        }
+      } catch (error) { console.error("Error config:", error); }
+    }
+
+    document.getElementById('cfg-stripe')?.addEventListener('change', (e) => {
+      document.getElementById('stripe-status-text').textContent = e.target.checked ? 'Activado' : 'Desactivado';
+    });
+
+    async function guardarConfiguracion() {
+      const configs = [
+        { clave: 'nombre_negocio', valor: document.getElementById('cfg-nombre').value.trim() },
+        { clave: 'empresa', valor: document.getElementById('cfg-empresa').value.trim() },
+        { clave: 'cif', valor: document.getElementById('cfg-cif').value.trim() },
+        { clave: 'promocion', valor: document.getElementById('cfg-promo').value.trim() },
+        { clave: 'telefono', valor: document.getElementById('cfg-telefono').value.trim() },
+        { clave: 'whatsapp', valor: document.getElementById('cfg-whatsapp').value.trim() },
+        { clave: 'direccion', valor: document.getElementById('cfg-direccion').value.trim() },
+        { clave: 'horario', valor: document.getElementById('cfg-horario').value.trim() },
+        { clave: 'stripe_habilitado', valor: document.getElementById('cfg-stripe').checked ? 'true' : 'false' }
+      ];
+      try {
+        for (const c of configs) {
+          const res = await fetch(SUPABASE_URL + '/rest/v1/configuracion', {
+            method: 'POST', headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
+            body: JSON.stringify(c)
+          });
+          if (!res.ok) throw new Error('Error al guardar');
+        }
+        mostrarAlerta('Configuración guardada.'); cargarConfiguracion(); 
+      } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
+    }
+
+    // RESEÑAS
+    async function cargarResenas() {
+      try {
+        const resenas = await fetchSupabase('/rest/v1/resenas?select=*&order=fecha.desc');
+        const cont = document.getElementById('lista-resenas-admin');
+        if (resenas.length === 0) { cont.innerHTML = '<p>No hay reseñas.</p>'; return; }
+        cont.innerHTML = resenas.map(r => `
+          <div style="border-bottom: 1px solid #eee; padding: 15px 0;">
+            <div style="display: flex; justify-content: space-between;"><strong>${r.nombre}</strong><span style="color: #f1c40f;">${'★'.repeat(r.estrellas)}${'☆'.repeat(5-r.estrellas)}</span></div>
+            <p style="font-size: 0.9rem; margin: 5px 0; color: #555;">"${r.comentario}"</p>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+              <span style="font-size: 0.8rem; background: ${r.aprobada ? '#d4edda' : '#fff3cd'}; padding: 3px 8px; border-radius: 4px;">${r.aprobada ? 'Publicada' : 'Pendiente'}</span>
+              ${!r.aprobada ? `<button class="btn" style="width: auto; padding: 5px 10px; font-size: 0.8rem; background: #27ae60;" onclick="aprobarResena(${r.id})">Aprobar</button>` : ''}
+              <button class="btn" style="width: auto; padding: 5px 10px; font-size: 0.8rem; background: #e74c3c;" onclick="eliminarResena(${r.id})">Eliminar</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (error) { document.getElementById('lista-resenas-admin').innerHTML = `<p style="color:red">Error al cargar.</p>`; }
+    }
+
+    async function aprobarResena(id) { await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify({ aprobada: true }) }); cargarResenas(); mostrarAlerta('Reseña publicada.'); }
+    async function eliminarResena(id) { if (!confirm('¿Eliminar?')) return; await fetchSupabase(`/rest/v1/resenas?id=eq.${id}`, { method: 'DELETE' }); cargarResenas(); mostrarAlerta('Eliminada.'); }
+
+    // USUARIOS (CON TELÉFONO Y NUEVOS ROLES)
+    async function crearEmpleado() {
+      if (userRole !== 'admin') return mostrarAlerta('No tienes permisos', 'error');
+      const nombre = document.getElementById('new-user-name').value.trim();
+      const email = document.getElementById('new-user-email').value.trim();
+      const pass = document.getElementById('new-user-pass').value;
+      const telefono = document.getElementById('new-user-phone').value.trim();
+      const rol = document.getElementById('new-user-role').value;
+      if (!email || !pass) return mostrarAlerta('Email y contraseña requeridos', 'error');
+
+      try {
+        const authRes = await fetch(SUPABASE_URL + '/auth/v1/admin/users', {
+          method: 'POST', headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password: pass, email_confirm: true })
+        });
+        if (!authRes.ok) throw new Error('Error al crear usuario');
+        const userData = await authRes.json();
+
+        await fetchSupabase('/rest/v1/perfiles', {
+          method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates' },
+          body: JSON.stringify({ id: userData.id, email: email, rol: rol, nombre: nombre, telefono: telefono })
+        }, true);
+
+        mostrarAlerta(`Empleado ${nombre} creado.`);
+        document.getElementById('new-user-name').value = ''; document.getElementById('new-user-email').value = '';
+        document.getElementById('new-user-pass').value = ''; document.getElementById('new-user-phone').value = '';
+      } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
+    }
+  </script>
+</body>
+</html>
