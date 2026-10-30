@@ -482,7 +482,9 @@
       if (ids.length === 0) { 
         cont.innerHTML = '<p class="carrito-vacio">El carrito está vacío</p>'; 
         document.getElementById('total').textContent = moneda(0); 
+        <input type="text" id="notas" placeholder="Observaciones (Ej: Sin cebolla, extra queso)">
         document.getElementById('btn-pagar').disabled = true; return; 
+        
       }
       let total = 0, html = '';
       ids.forEach(function (id) {
@@ -500,6 +502,7 @@
       const email = document.getElementById('email').value.trim();
       const telefono = document.getElementById('telefono').value.trim();
       const direccion = document.getElementById('direccion').value.trim();
+      const notas = document.getElementById('notas').value.trim();
       const btn = document.getElementById('btn-pagar');
 
       if (!nombre || !email) { mostrarMensaje('Por favor, completa tu nombre y email.', 'error'); return; }
@@ -509,10 +512,25 @@
       
       btn.disabled = true; btn.textContent = 'Procesando...';
 
-      let total = 0, detalle = [];
-      Object.keys(carrito).forEach(id => {
+       let total = 0, detalle = [];
+       Object.keys(carrito).forEach(id => {
         const item = carrito[id], subtotal = precioNum(item.producto.Precio) * item.cantidad;
-        total += subtotal; detalle.push(`${item.cantidad}x ${item.producto.Nombre}`);
+        total += subtotal; 
+        
+        // 1. Empezamos con el nombre y la cantidad
+        let textoItem = `${item.cantidad}x ${item.producto.Nombre}`;
+        
+        // 2. Añadimos los ingredientes de la pizza si los tiene
+        if (item.producto.Ingredientes && item.producto.Ingredientes.trim() !== '') {
+          textoItem += ` [${item.producto.Ingredientes.trim()}]`;
+        }
+        
+        // 3. 🔥 Si el cliente escribió notas (sin cebolla, etc.), las añadimos
+        if (notas) {
+          textoItem += ` (Nota: ${notas})`;
+        }
+        
+        detalle.push(textoItem);
       });
 
       try {
