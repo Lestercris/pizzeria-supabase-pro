@@ -384,7 +384,7 @@
       if (p.imagen_url) { document.getElementById('preview-prod').src = p.imagen_url; document.getElementById('preview-prod').style.display = 'block'; } else { document.getElementById('preview-prod').style.display = 'none'; }
       document.getElementById('modal-producto').style.display = 'flex';
     }
-         async function guardarProducto() {
+        async function guardarProducto() {
       const idOriginal = document.getElementById('prod-id-original').value; 
       const nombre = document.getElementById('prod-nombre').value.trim(); 
       const precio = precioNum(document.getElementById('prod-precio').value); 
@@ -393,30 +393,32 @@
       const ingredientes = document.getElementById('prod-ingredientes').value.trim(); 
       const imagen_url = document.getElementById('prod-imagen').value.trim(); 
       
-      // 🔥 FORZAMOS EL BOOLEANO: Si el checkbox está marcado, es true; si no, es false.
-      const checkbox = document.getElementById('prod-disponible');
-      const disponible = checkbox.checked ? true : false; 
+      // 🔥 LA MAGIA ESTÁ AQUÍ: Leemos el checkbox de forma directa
+      const checkboxElement = document.getElementById('prod-disponible');
+      const disponible = checkboxElement.checked; 
+
+      // 🔥 ESTO ES PARA QUE VEAS EN LA CONSOLA QUÉ ESTÁ PASANDO
+      console.log("Estado del checkbox al guardar:", disponible);
 
       if (!nombre || precio <= 0) { 
         mostrarAlerta('Nombre y precio obligatorios.', 'error'); 
         return; 
       }
 
-      // Creamos el objeto con tipos estrictos
       const payload = { 
-        nombre: String(nombre), 
-        precio: Number(precio), 
-        categoria: String(categoria), 
-        descripcion: String(descripcion), 
-        ingredientes: String(ingredientes), 
-        imagen_url: String(imagen_url), 
-        disponible: Boolean(disponible) // 🔥 Forzado a booleano
+        nombre: nombre, 
+        precio: precio, 
+        categoria: categoria, 
+        descripcion: descripcion, 
+        ingredientes: ingredientes, 
+        imagen_url: imagen_url, 
+        disponible: disponible // Enviamos el valor real
       };
 
       try { 
         if (idOriginal) { 
-          // Usamos el fetch directo con JSON.stringify para asegurar el formato
-          const res = await fetch(`${SUPABASE_URL}/rest/v1/productos?id=eq.${idOriginal}`, {
+          // Usamos PATCH directo
+          const response = await fetch(`${SUPABASE_URL}/rest/v1/productos?id=eq.${idOriginal}`, {
             method: 'PATCH',
             headers: { 
               'apikey': SUPABASE_ANON_KEY, 
@@ -426,11 +428,12 @@
             },
             body: JSON.stringify(payload)
           });
-          if (!res.ok) throw new Error('Error al actualizar en Supabase');
+
+          if (!response.ok) throw new Error('Error al actualizar en Supabase');
           
           mostrarAlerta('Producto actualizado.'); 
         } else { 
-          const res = await fetch(`${SUPABASE_URL}/rest/v1/productos`, {
+          const response = await fetch(`${SUPABASE_URL}/rest/v1/productos`, {
             method: 'POST',
             headers: { 
               'apikey': SUPABASE_ANON_KEY, 
@@ -440,7 +443,8 @@
             },
             body: JSON.stringify(payload)
           });
-          if (!res.ok) throw new Error('Error al crear en Supabase');
+          
+          if (!response.ok) throw new Error('Error al crear en Supabase');
           
           mostrarAlerta('Producto creado.'); 
         } 
@@ -448,7 +452,7 @@
         document.getElementById('modal-producto').style.display = 'none'; 
         cargarProductos(); 
       } catch (error) { 
-        mostrarAlerta('Error: ' + error.message, 'error'); 
+        mostrarAlerta('Error al guardar: ' + error.message, 'error'); 
       }
     }
     async function subirImagenProducto(input) { 
