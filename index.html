@@ -276,7 +276,7 @@
       }
     }
     
- async function cargarConfig() {
+    async function cargarConfig() {
       // 1. Textos por defecto por si falla el internet
       let config = {
         nombre_negocio: 'Pizzería Hermanos Rivas',
@@ -301,9 +301,12 @@
         console.warn("No se pudo conectar a la configuración. Usando datos por defecto.", error);
       }
 
-      // 3. Actualizamos la web con los datos (sean reales o los por defecto)
+      // 3. Actualizamos las variables globales de forma segura
       stripeHabilitado = !!(config.stripe_habilitado === 'true');
+      window.stripePublicKey = config.stripe_public_key || '';
+      window.stripePaymentUrl = config.stripe_payment_url || '';
 
+      // 4. Actualizamos la web con los datos (sean reales o los por defecto)
       if (config.promocion && config.promocion.trim() !== '') {
         const banner = document.createElement('div');
         banner.className = 'promo-banner';
@@ -349,7 +352,7 @@
           mapaContainer.style.display = 'block';
         }
       }
-    }
+    }   
     async function cargarSlides() {
       try {
         const response = await fetch(SUPABASE_URL + '/rest/v1/slides?select=*&activo=eq.true&order=orden', {
@@ -519,7 +522,6 @@
         document.getElementById('btn-pagar').textContent = 'Pagar y Enviar Pedido';
       }
     }
-   
         async function procesarPedido() {
       const nombre = document.getElementById('nombre').value.trim();
       const email = document.getElementById('email').value.trim();
@@ -562,13 +564,15 @@
       try {
         const orderId = 'PED-' + Date.now();
         
-        // 1. Guardar en Supabase
+        // 1. Guardar en Supabase (El estado ahora es dinámico)
         const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos', {
           method: 'POST',
           headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
           body: JSON.stringify({
             order_id: orderId, nombre_cliente: nombre, email_cliente: email,
-            telefono: telefono, direccion: direccion, detalle: detalle.join(', '), total: total, estado: 'Pendiente'
+            telefono: telefono, direccion: direccion, detalle: detalle.join(', '), total: total, 
+            // 🔥 AQUÍ ESTÁ EL CAMBIO: Estado Pagado si es Stripe, Pendiente si es WhatsApp
+            estado: stripeHabilitado ? 'Pagado' : 'Pendiente' 
           })
         });
 
@@ -576,35 +580,37 @@
 
         // 2. Bifurcación de pago
         if (stripeHabilitado) {
-          // FLUJO CON TARJETA (STRIPE)
-          mostrarMensaje('Redirigiendo a la pasarela de pago segura...', 'ok');
+          mostrarMensaje('Pedido guardado. Redirigiendo al pago seguro...', 'ok');
           
           setTimeout(() => {
-             alert('Pedido guardado. Aquí se abriría la pasarela de pago de Stripe.');
-             carrito = {}; 
-             renderCarrito(); 
+             // Comprobación segura para evitar errores si no hay URL o falla la conexión
+             if (typeof window.stripePaymentUrl !== 'undefined' && window.stripePaymentUrl) {
+                window.location.href = window.stripePaymentUrl;
+             } else {
+                alert('Pedido guardado. Falta configurar la URL de pago de Stripe en el panel de administración.');
+                carrito = {}; 
+                renderCarrito(); 
+             }
           }, 1500);
 
         } else {
-          // FLUJO CON WHATSAPP
-          let resumenWsp = detalle.map(d => `👉 ${d}`).join('\n');
-          const configRes = await fetch(SUPABASE_URL + '/rest/v1/configuracion?select=valor&clave=eq.whatsapp', { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY } });
-          const configData = await configRes.json();
-          const telefonoNegocio = configData.length > 0 && configData[0].valor ? configData[0].valor : '34600000000';
+               // FLUJO CON WHATSAPP
+        const configRes = await fetch(SUPABASE_URL + '/rest/v1/configuracion?select=valor&clave=eq.whatsapp', { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY } });
+        const configData = await configRes.json();
+        const telefonoNegocio = configData.length > 0 && configData[0].valor ? configData[0].valor : '34600000000';
 
-          const mensajeWsp = 
-            `🍕 *NUEVO PEDIDO WEB* 🍕\n` +
-            `----------------------\n` +
-            `🎫 *Ticket:* *${orderId}*\n\n` +
-            `🛒 *DETALLE:*\n${resumenWsp}\n\n` +
-            `💰 *TOTAL:* ${moneda(total)}\n\n` +
-            `👤 *CLIENTE:*\n📝 ${nombre}\n📞 ${telefono || 'No especificado'}\n📍 ${direccion || 'Recogida en tienda'}\n\n` +
-            `💬 _Os escribo para coordinar el pago._`;
+        const mensajeWsp = 
+          `🍕 *NUEVO PEDIDO WEB* 🍕\n` +
+          `----------------------\n` +
+          `🎫 *Ticket:* *${orderId}*\n` +
+          `💰 *TOTAL:* ${moneda(total)}\n\n` +
+          `👤 *CLIENTE:*\n📝 ${nombre}\n📞 ${telefono || 'No especificado'}\n📍 ${direccion || 'Recogida en tienda'}\n\n` +
+          `💬 _Os escribo para coordinar el pago._\n` +
+          `⚠️ _(Las pizzas están guardadas en el sistema)_`;
 
-          const msg = encodeURIComponent(mensajeWsp);
-          const numLimpio = telefonoNegocio.replace(/\D/g, ''); 
-          
-          mostrarMensaje('¡Pedido guardado! Si WhatsApp no se abre, pulsa el icono verde.', 'ok');
+        const msg = encodeURIComponent(mensajeWsp);
+        const numLimpio = telefonoNegocio.replace(/\D/g, ''); 
+        mostrarMensaje('¡Pedido guardado! Si WhatsApp no se abre, pulsa el icono verde.', 'ok');          
           
           carrito = {}; 
           renderCarrito(); 
@@ -624,13 +630,12 @@
       } finally {
         btn.disabled = false; 
         btn.style.background = '#27ae60';
-        // Si el carrito se ha vaciado, el botón vuelve a su estado original
         if (Object.keys(carrito).length === 0) {
             btn.textContent = 'Añade productos al carrito';
             btn.disabled = true;
         }
       }
-    }   
+    }
     async function cargarResenasPublicas() {
       try {
         const response = await fetch(SUPABASE_URL + '/rest/v1/resenas?select=*&aprobada=eq.true&order=fecha.desc&limit=5', {
@@ -648,9 +653,17 @@
         cont.innerHTML = data.map(r => {
           const estrellas = '★'.repeat(r.estrellas) + '☆'.repeat(5 - r.estrellas);
           const fechaFormateada = new Date(r.fecha).toLocaleDateString('es-ES');
-          return `<div class="resena"><div class="estrellas">${estrellas}</div><p>"${r.comentario}"</p><small style="color: #95a5a6; font-size: 0.75rem;">- ${r.nombre} (${fechaFormateada})</small></div>`;
+          
+          // 🔥 Aplicamos esc() para sanitizar el nombre y el comentario
+          return `<div class="resena">
+            <div class="estrellas">${estrellas}</div>
+            <p>"${esc(r.comentario)}"</p>
+            <small style="color: #95a5a6; font-size: 0.75rem;">- ${esc(r.nombre)} (${fechaFormateada})</small>
+          </div>`;
         }).join('');
-      } catch (error) { console.error("Error reseñas:", error); }
+      } catch (error) { 
+        console.error("Error reseñas:", error); 
+      }
     }
     async function enviarResena(btn) {
       const nombre = document.getElementById('res-nombre').value.trim();
