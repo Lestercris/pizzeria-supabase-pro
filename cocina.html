@@ -255,7 +255,6 @@
         document.getElementById('status-text').textContent = 'Desconectado';
       }
     }
-
     function renderizarPedidos(pedidos) {
       const contenedor = document.getElementById('contenedor-pedidos');
       const emptyState = document.getElementById('empty-state');
@@ -282,11 +281,20 @@
 
         let botonera = '';
         if (esDeOtro) {
-          botonera = `<button class="btn-accion btn-bloqueado">Lo prepara ${p.cocinero}</button>`;
+          botonera = `
+            <button class="btn-accion btn-bloqueado" style="flex:2;">Lo prepara ${p.cocinero}</button>
+            <button class="btn-accion" style="flex:1; background:#3498db;" onclick="imprimirComanda('${p.order_id}', event)">🖨️</button>
+          `;
         } else if (esMio) {
-          botonera = `<button class="btn-accion btn-terminar" onclick="cambiarEstado('${p.order_id}', 'Listo', event)">✅ TERMINADO</button>`;
+          botonera = `
+            <button class="btn-accion btn-terminar" style="flex:2;" onclick="cambiarEstado('${p.order_id}', 'Listo', event)">✅ TERMINADO</button>
+            <button class="btn-accion" style="flex:1; background:#3498db;" onclick="imprimirComanda('${p.order_id}', event)">🖨️</button>
+          `;
         } else {
-          botonera = `<button class="btn-accion btn-empezar" onclick="tomarPedido('${p.order_id}', event)">▶ PREPARAR</button>`;
+          botonera = `
+            <button class="btn-accion btn-empezar" style="flex:2;" onclick="tomarPedido('${p.order_id}', event)">▶ PREPARAR</button>
+            <button class="btn-accion" style="flex:1; background:#3498db;" onclick="imprimirComanda('${p.order_id}', event)">🖨️</button>
+          `;
         }
 
         return `
@@ -312,7 +320,61 @@
         `;
       }).join('');
     }
+    async function imprimirComanda(orderId, event) {
+      if (event) event.stopPropagation();
+      
+      const pedido = pedidosGlobal.find(p => p.order_id === orderId);
+      if (!pedido) return;
 
+      const hora = pedido.fecha ? new Date(pedido.fecha).toLocaleString('es-ES') : '--:--';
+      const items = pedido.detalle ? pedido.detalle.split(',').map(i => `<p style="margin: 4px 0; font-size: 14px;">${i.trim()}</p>`).join('') : '';
+
+      // Creamos un iframe oculto para imprimir sin salir de la pantalla de cocina
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'absolute';
+      iframe.style.width = '0px';
+      iframe.style.height = '0px';
+      iframe.style.border = 'none';
+      document.body.appendChild(iframe);
+
+      const doc = iframe.contentWindow.document;
+      doc.open();
+      doc.write(`
+        <html>
+          <head>
+            <title>Comanda ${orderId}</title>
+            <style>
+              body { font-family: 'Courier New', Courier, monospace; width: 72mm; margin: 0 auto; color: #000; }
+              h2 { text-align: center; font-size: 16px; margin-bottom: 5px; }
+              .hora { text-align: center; font-size: 12px; margin-bottom: 15px; }
+              .items { border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 10px 0; margin-bottom: 10px; }
+              .footer { text-align: center; font-size: 10px; margin-top: 20px; }
+            </style>
+          </head>
+          <body>
+            <h2>COMANDA COCINA</h2>
+            <div class="hora">Ticket: <strong>${orderId}</strong></div>
+            <div class="hora">Hora: ${hora}</div>
+            
+            <div class="items">
+              ${items}
+            </div>
+            
+            <div class="footer">
+              --- FIN DE COMANDA ---
+            </div>
+          </body>
+        </html>
+      `);
+      doc.close();
+
+      // Esperamos un momento a que cargue y lanzamos la impresión
+      setTimeout(() => {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        setTimeout(() => { document.body.removeChild(iframe); }, 1000);
+      }, 500);
+    }
     async function tomarPedido(orderId, event) {
       event.stopPropagation();
       if (!miNombre) return;
