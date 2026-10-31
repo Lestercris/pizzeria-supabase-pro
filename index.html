@@ -705,6 +705,28 @@
       msg.textContent = texto; 
       msg.className = 'mensaje ' + tipo; 
     }
+        window.addEventListener('DOMContentLoaded', async function () { 
+      // 1. Ponemos el año
+      document.getElementById('year').textContent = new Date().getFullYear();
+      
+      // 2. Cargamos la configuración (nombre, teléfono, etc.)
+      try {
+        await cargarConfig(); 
+      } catch (e) {
+        console.warn("La configuración no cargó a tiempo.");
+      }
+
+      // 3. Cargamos los productos (El menú de pizzas)
+      try {
+        await cargarProductos(); 
+      } catch (e) {
+        document.getElementById('catalogo').innerHTML = '<p style="color:#999; text-align:center; padding: 20px;">No se pudo cargar el menú. Revisa tu conexión.</p>';
+      }
+
+      // 4. Cargamos reseñas y slider
+      try { await cargarResenasPublicas(); } catch (e) { console.warn("Error reseñas"); }
+      try { await cargarSlides(); } catch (e) { console.warn("Error slider"); }
+    });
   </script>
 </body>
 </html>
