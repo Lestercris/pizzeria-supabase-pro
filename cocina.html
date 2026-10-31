@@ -191,12 +191,12 @@
       }
     }
     // FUNCIÓN PARA CERRAR SESIÓN Y VOLVER AL LOGIN
-    async function cerrarSesionCocina() {
-      // Borramos el nombre guardado en local para que la próxima vez pida seleccionar
+     async function cerrarSesionCocina() {
+      // Borramos el nombre guardado en local
       localStorage.removeItem('cocina_nombre');
       
-      // Redirigimos al login (asegúrate de que el archivo se llame index.html o admin.html)
-      window.location.href = 'index.html'; 
+      // 🔥 Redirigimos al login del panel de administración
+      window.location.href = 'admin.html'; 
     }
 
     function cambiarCocinero() {
@@ -232,11 +232,12 @@
       document.getElementById('reloj').textContent = new Date().toLocaleTimeString('es-ES');
     }, 1000);
 
-    async function obtenerPedidos() {
+        async function obtenerPedidos() {
       if (!miNombre) return;
 
       try {
-        const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos?select=*&estado=in.(Pendiente,En preparación)&order=fecha.asc', {
+        // 🔥 AÑADIDO 'Pagado' a la lista de estados
+        const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos?select=*&estado=in.(Pagado,Pendiente,En preparación)&order=fecha.asc', {
           headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
         });
         
@@ -255,6 +256,14 @@
         document.getElementById('status-text').textContent = 'Desconectado';
       }
     }
+
+    // 🔥 NUEVA FUNCIÓN DE SEGURIDAD (XSS)
+    function esc(txt) { 
+      return String(txt == null ? '' : txt).replace(/[&<>"']/g, function (c) { 
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; 
+      }); 
+    }
+
     function renderizarPedidos(pedidos) {
       const contenedor = document.getElementById('contenedor-pedidos');
       const emptyState = document.getElementById('empty-state');
@@ -277,34 +286,36 @@
 
         const hora = p.fecha ? new Date(p.fecha).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'}) : '--:--';
         const itemsArray = p.detalle ? p.detalle.split(',') : [];
-        const items = itemsArray.map(item => `<li>🔸 ${item.trim()}</li>`).join('');
+        
+        // 🔥 APLICAMOS esc() AQUÍ
+        const items = itemsArray.map(item => `<li>🔸 ${esc(item.trim())}</li>`).join('');
 
         let botonera = '';
         if (esDeOtro) {
           botonera = `
-            <button class="btn-accion btn-bloqueado" style="flex:2;">Lo prepara ${p.cocinero}</button>
-            <button class="btn-accion" style="flex:1; background:#3498db;" onclick="imprimirComanda('${p.order_id}', event)">🖨️</button>
+            <button class="btn-accion btn-bloqueado" style="flex:2;">Lo prepara ${esc(p.cocinero)}</button>
+            <button class="btn-accion" style="flex:1; background:#3498db;" onclick="imprimirComanda('${esc(p.order_id)}', event)">🖨️</button>
           `;
         } else if (esMio) {
           botonera = `
-            <button class="btn-accion btn-terminar" style="flex:2;" onclick="cambiarEstado('${p.order_id}', 'Listo', event)">✅ TERMINADO</button>
-            <button class="btn-accion" style="flex:1; background:#3498db;" onclick="imprimirComanda('${p.order_id}', event)">🖨️</button>
+            <button class="btn-accion btn-terminar" style="flex:2;" onclick="cambiarEstado('${esc(p.order_id)}', 'Listo', event)">✅ TERMINADO</button>
+            <button class="btn-accion" style="flex:1; background:#3498db;" onclick="imprimirComanda('${esc(p.order_id)}', event)">🖨️</button>
           `;
         } else {
           botonera = `
-            <button class="btn-accion btn-empezar" style="flex:2;" onclick="tomarPedido('${p.order_id}', event)">▶ PREPARAR</button>
-            <button class="btn-accion" style="flex:1; background:#3498db;" onclick="imprimirComanda('${p.order_id}', event)">🖨️</button>
+            <button class="btn-accion btn-empezar" style="flex:2;" onclick="tomarPedido('${esc(p.order_id)}', event)">▶ PREPARAR</button>
+            <button class="btn-accion" style="flex:1; background:#3498db;" onclick="imprimirComanda('${esc(p.order_id)}', event)">🖨️</button>
           `;
         }
 
         return `
-          <div class="tarjeta ${claseBorde}" onclick="abrirModal('${p.order_id}')">
+          <div class="tarjeta ${claseBorde}" onclick="abrirModal('${esc(p.order_id)}')">
             <div class="tarjeta-header">
               <div>
-                <h2>${p.order_id}</h2>
+                <h2>${esc(p.order_id)}</h2>
                 <div class="hora">Llegada: ${hora}</div>
               </div>
-              ${p.cocinero ? `<div style="font-size:0.8rem; background:#3498db; padding:2px 8px; border-radius:4px;">${p.cocinero}</div>` : ''}
+              ${p.cocinero ? `<div style="font-size:0.8rem; background:#3498db; padding:2px 8px; border-radius:4px;">${esc(p.cocinero)}</div>` : ''}
             </div>
             
             <div class="tarjeta-body">
@@ -320,14 +331,15 @@
         `;
       }).join('');
     }
-    async function imprimirComanda(orderId, event) {
+     async function imprimirComanda(orderId, event) {
       if (event) event.stopPropagation();
       
       const pedido = pedidosGlobal.find(p => p.order_id === orderId);
       if (!pedido) return;
 
       const hora = pedido.fecha ? new Date(pedido.fecha).toLocaleString('es-ES') : '--:--';
-      const items = pedido.detalle ? pedido.detalle.split(',').map(i => `<p style="margin: 4px 0; font-size: 14px;">${i.trim()}</p>`).join('') : '';
+      // 🔥 APLICAMOS esc() AQUÍ
+      const items = pedido.detalle ? pedido.detalle.split(',').map(i => `<p style="margin: 4px 0; font-size: 14px;">${esc(i.trim())}</p>`).join('') : '';
 
       // Creamos un iframe oculto para imprimir sin salir de la pantalla de cocina
       const iframe = document.createElement('iframe');
@@ -342,7 +354,7 @@
       doc.write(`
         <html>
           <head>
-            <title>Comanda ${orderId}</title>
+            <title>Comanda ${esc(orderId)}</title>
             <style>
               body { font-family: 'Courier New', Courier, monospace; width: 72mm; margin: 0 auto; color: #000; }
               h2 { text-align: center; font-size: 16px; margin-bottom: 5px; }
@@ -353,7 +365,7 @@
           </head>
           <body>
             <h2>COMANDA COCINA</h2>
-            <div class="hora">Ticket: <strong>${orderId}</strong></div>
+            <div class="hora">Ticket: <strong>${esc(orderId)}</strong></div>
             <div class="hora">Hora: ${hora}</div>
             
             <div class="items">
@@ -376,9 +388,10 @@
       }, 500);
     }
     async function tomarPedido(orderId, event) {
-      event.stopPropagation();
+      if (event) event.stopPropagation();
       if (!miNombre) return;
 
+      // Actualización visual inmediata (Optimista)
       pedidosGlobal = pedidosGlobal.map(p => {
         if (p.order_id === orderId) return { ...p, estado: 'En preparación', cocinero: miNombre };
         return p;
@@ -386,38 +399,39 @@
       renderizarPedidos(pedidosGlobal);
 
       try {
-        const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos?order_id=eq.' + orderId, {
+        const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos?order_id=eq.' + encodeURIComponent(orderId), {
           method: 'PATCH',
           headers: { 
             'apikey': SUPABASE_ANON_KEY, 
             'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 
             'Content-Type': 'application/json',
-            'Prefer': 'return=representation'
+            'Prefer': 'return=minimal' // 🔥 Optimización: no devolver datos innecesarios
           },
           body: JSON.stringify({ estado: 'En preparación', cocinero: miNombre })
         });
 
         if (!response.ok) throw new Error('Error al actualizar');
       } catch (error) {
-        alert('Error al tomar el pedido.');
-        obtenerPedidos();
+        alert('Error al tomar el pedido. Revisa tu conexión.');
+        obtenerPedidos(); // Si falla, recargamos para restaurar el estado real
       }
     }
-
-    async function cambiarEstado(orderId, nuevoEstado, event) {
+       async function cambiarEstado(orderId, nuevoEstado, event) {
       if (event) event.stopPropagation();
       
+      // Quitamos la tarjeta visualmente al instante
       pedidosGlobal = pedidosGlobal.filter(p => p.order_id !== orderId);
       renderizarPedidos(pedidosGlobal);
 
       try {
-        const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos?order_id=eq.' + orderId, {
+        // 🔥 Optimización: encodeURIComponent y return=minimal
+        const response = await fetch(SUPABASE_URL + '/rest/v1/pedidos?order_id=eq.' + encodeURIComponent(orderId), {
           method: 'PATCH',
           headers: { 
             'apikey': SUPABASE_ANON_KEY, 
             'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 
             'Content-Type': 'application/json',
-            'Prefer': 'return=representation'
+            'Prefer': 'return=minimal' 
           },
           body: JSON.stringify({ estado: nuevoEstado })
         });
@@ -434,13 +448,16 @@
       if (!pedido) return;
 
       const hora = pedido.fecha ? new Date(pedido.fecha).toLocaleString('es-ES') : '--:--';
-      document.getElementById('modal-ticket').textContent = pedido.order_id;
+      
+      // 🔥 Seguridad XSS: Aplicamos esc()
+      document.getElementById('modal-ticket').textContent = esc(pedido.order_id);
       document.getElementById('modal-hora').textContent = hora;
       
       const esEnvio = pedido.direccion && pedido.direccion.trim() !== '' && pedido.direccion.toLowerCase() !== 'recogida en tienda';
       document.getElementById('modal-tipo').textContent = esEnvio ? 'PARA LLEVAR 🛵' : 'RECOGER EN TIENDA 🏪';
 
-      const items = pedido.detalle ? pedido.detalle.split(',').map(item => `<li>${item.trim()}</li>`).join('') : '<li>Sin detalle</li>';
+      // 🔥 Seguridad XSS: Aplicamos esc()
+      const items = pedido.detalle ? pedido.detalle.split(',').map(item => `<li>${esc(item.trim())}</li>`).join('') : '<li>Sin detalle</li>';
       document.getElementById('modal-productos').innerHTML = items;
 
       document.getElementById('modal-detalles').style.display = 'flex';
