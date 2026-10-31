@@ -383,22 +383,38 @@
       if (p.imagen_url) { document.getElementById('preview-prod').src = p.imagen_url; document.getElementById('preview-prod').style.display = 'block'; } else { document.getElementById('preview-prod').style.display = 'none'; }
       document.getElementById('modal-producto').style.display = 'flex';
     }
-    async function guardarProducto() {
-      const idOriginal = document.getElementById('prod-id-original').value; const nombre = document.getElementById('prod-nombre').value.trim(); const precio = precioNum(document.getElementById('prod-precio').value); const categoria = document.getElementById('prod-categoria').value; const descripcion = document.getElementById('prod-desc').value.trim(); const ingredientes = document.getElementById('prod-ingredientes').value.trim(); const imagen_url = document.getElementById('prod-imagen').value.trim(); const disponible = document.getElementById('prod-disponible').checked;
-      if (!nombre || precio <= 0) { mostrarAlerta('Nombre y precio obligatorios.', 'error'); return; }
+     async function guardarProducto() {
+      const idOriginal = document.getElementById('prod-id-original').value; 
+      const nombre = document.getElementById('prod-nombre').value.trim(); 
+      const precio = precioNum(document.getElementById('prod-precio').value); 
+      const categoria = document.getElementById('prod-categoria').value; 
+      const descripcion = document.getElementById('prod-desc').value.trim(); 
+      const ingredientes = document.getElementById('prod-ingredientes').value.trim(); 
+      const imagen_url = document.getElementById('prod-imagen').value.trim(); 
+      
+      // 🔥 FORZAMOS EL BOOLEANO ESTRICTO
+      const disponible = document.getElementById('prod-disponible').checked === true; 
+
+      if (!nombre || precio <= 0) { 
+        mostrarAlerta('Nombre y precio obligatorios.', 'error'); 
+        return; 
+      }
+
       const payload = { nombre, precio, categoria, descripcion, ingredientes, imagen_url, disponible };
-      try { if (idOriginal) { await fetchSupabase(`/rest/v1/productos?id=eq.${idOriginal}`, { method: 'PATCH', body: JSON.stringify(payload) }); mostrarAlerta('Actualizado.'); } else { await fetchSupabase('/rest/v1/productos', { method: 'POST', body: JSON.stringify(payload) }); mostrarAlerta('Creado.'); } document.getElementById('modal-producto').style.display = 'none'; cargarProductos(); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
-    }
-        function eliminarProducto(id) { 
-      confirmarAccion('Eliminar Producto', '¿Seguro que quieres eliminar este producto?', async () => { 
-        try { 
-          await fetchSupabase(`/rest/v1/productos?id=eq.${id}`, { method: 'DELETE' }); 
-          mostrarAlerta('Producto eliminado.'); 
-          cargarProductos(); 
-        } catch (error) { 
-          mostrarAlerta('Error: ' + error.message, 'error'); 
+
+      try { 
+        if (idOriginal) { 
+          await fetchSupabase(`/rest/v1/productos?id=eq.${idOriginal}`, { method: 'PATCH', body: JSON.stringify(payload) }); 
+          mostrarAlerta('Producto actualizado.'); 
+        } else { 
+          await fetchSupabase('/rest/v1/productos', { method: 'POST', body: JSON.stringify(payload) }); 
+          mostrarAlerta('Producto creado.'); 
         } 
-      }); 
+        document.getElementById('modal-producto').style.display = 'none'; 
+        cargarProductos(); 
+      } catch (error) { 
+        mostrarAlerta('Error al guardar: ' + error.message, 'error'); 
+      }
     }
 
     async function subirImagenProducto(input) { 
