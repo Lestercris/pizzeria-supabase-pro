@@ -1,5 +1,5 @@
 // ==========================================
-// SISTEMA DE BACKUP Y RESTAURACIÓN
+// SISTEMA DE BACKUP Y RESTAURACIÓN (SEGURO)
 // ==========================================
 
 // 1. Descargar el Backup
@@ -7,11 +7,11 @@ async function descargarBackup() {
   try {
     mostrarAlerta('Generando archivo de backup...', 'success');
     
-    // Tablas que vamos a guardar
+    // Tablas que vamos a guardar (Excluimos 'perfiles' por seguridad)
     const tablas = ['productos', 'pedidos', 'slides', 'resenas', 'configuracion'];
     let backupData = {};
     
-    // Descargamos los datos de Supabase
+    // Descargamos los datos de Supabase usando la llave pública
     for (const tabla of tablas) {
       const data = await fetchSupabase(`/rest/v1/${tabla}?select=*`);
       backupData[tabla] = data;
@@ -35,9 +35,8 @@ async function descargarBackup() {
 // 2. Restaurar el Backup
 function restaurarBackup(input) {
   const file = input.files[0]; 
-  if (!file) return; // Si el usuario cancela, no hace nada
+  if (!file) return; 
 
-  // Usamos el modal bonito que ya tienes
   confirmarAccion('Restaurar Backup', '¿Seguro que quieres restaurar este backup? Se sobrescribirán los datos actuales.', () => {
     const reader = new FileReader();
     
@@ -46,30 +45,21 @@ function restaurarBackup(input) {
         const data = JSON.parse(e.target.result);
         mostrarAlerta('Restaurando base de datos...', 'success');
         
-        // Recorremos las tablas y metemos los datos
         for (const tabla in data) {
-          // 1. Borramos lo que hay actualmente (para no duplicar)
-          await fetch(`${SUPABASE_URL}/rest/v1/${tabla}?id=neq.0`, {
-            method: 'DELETE',
-            headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY }
-          });
+          // 1. Borramos lo que hay actualmente (Usando fetchSupabase, sin llaves secretas)
+          await fetchSupabase(`/rest/v1/${tabla}?id=neq.0`, { method: 'DELETE' });
 
           // 2. Insertamos los datos del archivo JSON
           if (data[tabla] && data[tabla].length > 0) {
-            await fetch(`${SUPABASE_URL}/rest/v1/${tabla}`, {
+            await fetchSupabase(`/rest/v1/${tabla}`, {
               method: 'POST',
-              headers: { 
-                'apikey': SUPABASE_SERVICE_KEY, 
-                'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY, 
-                'Content-Type': 'application/json'
-              },
               body: JSON.stringify(data[tabla])
             });
           }
         }
         
         mostrarAlerta('Backup restaurado con éxito.');
-        // Recargamos todas las secciones para que se vean los datos nuevos
+        // Recargamos todas las secciones
         if(typeof cargarProductos === 'function') cargarProductos(); 
         if(typeof cargarPedidos === 'function') cargarPedidos(); 
         if(typeof cargarSlides === 'function') cargarSlides(); 
@@ -92,15 +82,12 @@ function limpiarBaseDeDatos() {
       const tablas = ['pedidos', 'resenas', 'slides', 'productos'];
       
       for (const tabla of tablas) {
-        await fetch(`${SUPABASE_URL}/rest/v1/${tabla}?id=neq.0`, {
-          method: 'DELETE',
-          headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY }
-        });
+        // Usamos fetchSupabase (Sin llaves secretas)
+        await fetchSupabase(`/rest/v1/${tabla}?id=neq.0`, { method: 'DELETE' });
       }
       
       mostrarAlerta('Base de datos limpia correctamente.');
       
-      // Recargamos
       if(typeof cargarProductos === 'function') cargarProductos(); 
       if(typeof cargarPedidos === 'function') cargarPedidos(); 
       if(typeof cargarSlides === 'function') cargarSlides(); 
