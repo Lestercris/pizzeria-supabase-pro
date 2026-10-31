@@ -260,11 +260,12 @@
 
     function imagenesDe(p) { const raw = p.ImagenURL || p.Imagen || ''; return String(raw).split(',').map(function (u) { return u.trim(); }).filter(function (u) { return u !== ''; }); }
 
-    async function cargarProductos() {
+     async function cargarProductos() {
       try {
-        // 🔥 AÑADIDO '&t=' + Date.now() PARA ROMPER LA CACHÉ
-        const response = await fetch(SUPABASE_URL + '/rest/v1/productos?select=*&disponible=eq.true&t=' + Date.now(), {
-          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+        // 🔥 USAMOS cache: 'no-store' PARA EVITAR LA CACHÉ
+        const response = await fetch(SUPABASE_URL + '/rest/v1/productos?select=*&disponible=eq.true', {
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY },
+          cache: 'no-store'
         });
         const data = await response.json();
         productos = data.map(p => ({
@@ -288,9 +289,10 @@
 
       // 2. Intentamos buscar los datos reales en Supabase
       try {
-        // 🔥 AÑADIDO '&t=' + Date.now() PARA ROMPER LA CACHÉ
-        const response = await fetch(SUPABASE_URL + '/rest/v1/configuracion?select=*&t=' + Date.now(), {
-          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+        // 🔥 QUITAMOS EL &t= Y USAMOS cache: 'no-store'
+        const response = await fetch(SUPABASE_URL + '/rest/v1/configuracion?select=*', {
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY },
+          cache: 'no-store'
         });
         const data = await response.json();
         
@@ -354,7 +356,7 @@
         }
       }
     }
-   
+         
     async function cargarSlides() {
       try {
         const response = await fetch(SUPABASE_URL + '/rest/v1/slides?select=*&activo=eq.true&order=orden', {
@@ -638,11 +640,12 @@
         }
       }
     }
-     async function cargarResenasPublicas() {
+    async function cargarResenasPublicas() {
       try {
-        // 🔥 AÑADIDO '&t=' + Date.now() PARA ROMPER LA CACHÉ
-        const response = await fetch(SUPABASE_URL + '/rest/v1/resenas?select=*&aprobada=eq.true&order=fecha.desc&limit=5&t=' + Date.now(), {
-          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+        // 🔥 QUITAMOS EL &t= Y USAMOS cache: 'no-store'
+        const response = await fetch(SUPABASE_URL + '/rest/v1/resenas?select=*&aprobada=eq.true&order=fecha.desc&limit=5', {
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY },
+          cache: 'no-store'
         });
         const data = await response.json();
         const cont = document.getElementById('lista-resenas');
