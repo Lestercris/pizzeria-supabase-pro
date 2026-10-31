@@ -147,6 +147,17 @@
           <input type="checkbox" id="cfg-stripe" style="width: 20px; height: 20px;">
           <span id="stripe-status-text">Desactivado</span>
         </div>
+                <!-- 🔥 NUEVOS CAMPOS DE STRIPE -->
+        <div id="stripe-keys-container" style="display: none; margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px;">
+          <h4 style="margin-bottom: 10px; color: #555;">Configuración de Stripe</h4>
+          <label>Llave Pública de Stripe (Publishable Key)</label>
+          <input type="text" id="cfg-stripe-public" placeholder="pk_test_...">
+          <p style="font-size: 0.8rem; color: #888; margin-top: -10px; margin-bottom: 10px;">Esta llave es segura y se usa en el frontend.</p>
+          
+          <label>URL de Pago (Opcional)</label>
+          <input type="text" id="cfg-stripe-url" placeholder="https://buy.stripe.com/...">
+          <p style="font-size: 0.8rem; color: #888; margin-top: -10px;">Si usas Stripe Payment Links, pega el enlace aquí. Si está vacío, usaremos la integración API.</p>
+        </div>
         <button class="btn btn-success" onclick="guardarConfiguracion()">Guardar Configuración</button>
         <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
         <h3 style="margin-bottom: 15px; color: var(--primary);">Mantenimiento y Base de Datos</h3>
@@ -587,19 +598,79 @@
     }
 
     // CONFIGURACIÓN
-    async function cargarConfiguracion() {
+       async function cargarConfiguracion() {
       try {
         const data = await fetchSupabase('/rest/v1/configuracion?select=*');
-        const config = {}; (data || []).forEach(item => { config[item.clave] = item.valor; });
-        document.getElementById('cfg-nombre').value = config.nombre_negocio || ''; document.getElementById('cfg-empresa').value = config.empresa || ''; document.getElementById('cfg-cif').value = config.cif || ''; document.getElementById('cfg-promo').value = config.promocion || ''; document.getElementById('cfg-telefono').value = config.telefono || ''; document.getElementById('cfg-whatsapp').value = config.whatsapp || ''; document.getElementById('cfg-direccion').value = config.direccion || ''; document.getElementById('cfg-horario').value = config.horario || ''; document.getElementById('cfg-ticket-footer').value = config.ticket_footer || '';
-        const stripeOn = config.stripe_habilitado === 'true'; document.getElementById('cfg-stripe').checked = stripeOn; document.getElementById('stripe-status-text').textContent = stripeOn ? 'Activado' : 'Desactivado';
-        if (config.nombre_negocio) document.getElementById('admin-header-title').textContent = '🍕 ' + config.nombre_negocio;
-      } catch (error) { console.error(error); }
-    }
+        const config = {}; 
+        (data || []).forEach(item => { config[item.clave] = item.valor; });
+        
+        // Cargar los campos normales
+        document.getElementById('cfg-nombre').value = config.nombre_negocio || ''; 
+        document.getElementById('cfg-empresa').value = config.empresa || ''; 
+        document.getElementById('cfg-cif').value = config.cif || ''; 
+        document.getElementById('cfg-promo').value = config.promocion || ''; 
+        document.getElementById('cfg-telefono').value = config.telefono || ''; 
+        document.getElementById('cfg-whatsapp').value = config.whatsapp || ''; 
+        document.getElementById('cfg-direccion').value = config.direccion || ''; 
+        document.getElementById('cfg-horario').value = config.horario || ''; 
+        document.getElementById('cfg-ticket-footer').value = config.ticket_footer || '';
+        
+        // Cargar Stripe
+        const stripeOn = config.stripe_habilitado === 'true'; 
+        document.getElementById('cfg-stripe').checked = stripeOn; 
+        document.getElementById('stripe-status-text').textContent = stripeOn ? 'Activado' : 'Desactivado';
+        
+        // 🔥 Cargar llaves de Stripe y mostrar la caja si está activo
+        document.getElementById('cfg-stripe-public').value = config.stripe_public_key || '';
+        document.getElementById('cfg-stripe-url').value = config.stripe_payment_url || '';
+        
+        const stripeContainer = document.getElementById('stripe-keys-container');
+        if (stripeContainer) {
+            stripeContainer.style.display = stripeOn ? 'block' : 'none';
+        }
 
-    async function guardarConfiguracion() {
-      const valores = { nombre_negocio: document.getElementById('cfg-nombre').value.trim(), empresa: document.getElementById('cfg-empresa').value.trim(), cif: document.getElementById('cfg-cif').value.trim(), promocion: document.getElementById('cfg-promo').value.trim(), telefono: document.getElementById('cfg-telefono').value.trim(), whatsapp: document.getElementById('cfg-whatsapp').value.trim(), direccion: document.getElementById('cfg-direccion').value.trim(), horario: document.getElementById('cfg-horario').value.trim(), ticket_footer: document.getElementById('cfg-ticket-footer').value.trim(), stripe_habilitado: document.getElementById('cfg-stripe').checked ? 'true' : 'false' };
-      try { const payload = Object.keys(valores).map(clave => ({ clave, valor: valores[clave] })); await fetchSupabase('/rest/v1/configuracion', { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' }, body: JSON.stringify(payload) }); document.getElementById('stripe-status-text').textContent = valores.stripe_habilitado === 'true' ? 'Activado' : 'Desactivado'; mostrarAlerta('Configuración guardada.'); } catch (error) { mostrarAlerta('Error: ' + error.message, 'error'); }
+        if (config.nombre_negocio) document.getElementById('admin-header-title').textContent = '🍕 ' + config.nombre_negocio;
+        
+      } catch (error) { 
+        console.error(error); 
+      }
+    }
+       async function guardarConfiguracion() {
+      // 1. Recogemos todos los valores del formulario
+      const valores = { 
+        nombre_negocio: document.getElementById('cfg-nombre').value.trim(), 
+        empresa: document.getElementById('cfg-empresa').value.trim(), 
+        cif: document.getElementById('cfg-cif').value.trim(), 
+        promocion: document.getElementById('cfg-promo').value.trim(), 
+        telefono: document.getElementById('cfg-telefono').value.trim(), 
+        whatsapp: document.getElementById('cfg-whatsapp').value.trim(), 
+        direccion: document.getElementById('cfg-direccion').value.trim(), 
+        horario: document.getElementById('cfg-horario').value.trim(), 
+        ticket_footer: document.getElementById('cfg-ticket-footer').value.trim(), 
+        stripe_habilitado: document.getElementById('cfg-stripe').checked ? 'true' : 'false',
+        // 🔥 Nuevas llaves de Stripe
+        stripe_public_key: document.getElementById('cfg-stripe-public').value.trim(),
+        stripe_payment_url: document.getElementById('cfg-stripe-url').value.trim()
+      };
+
+      try { 
+        // 2. Preparamos el formato que espera Supabase
+        const payload = Object.keys(valores).map(clave => ({ clave, valor: valores[clave] })); 
+        
+        // 3. Guardamos en la base de datos
+        await fetchSupabase('/api/configuracion' || '/rest/v1/configuracion', { 
+          method: 'POST', 
+          headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' }, 
+          body: JSON.stringify(payload) 
+        }); 
+        
+        // 4. Actualizamos la interfaz
+        document.getElementById('stripe-status-text').textContent = valores.stripe_habilitado === 'true' ? 'Activado' : 'Desactivado'; 
+        mostrarAlerta('Configuración guardada correctamente.'); 
+        
+      } catch (error) { 
+        mostrarAlerta('Error al guardar: ' + error.message, 'error'); 
+      }
     }
 
     // RESEÑAS
@@ -851,6 +922,16 @@
         }
       });
     }
+     document.addEventListener('DOMContentLoaded', () => {
+      const stripeCheck = document.getElementById('cfg-stripe');
+      const stripeContainer = document.getElementById('stripe-keys-container');
+      if (stripeCheck && stripeContainer) {
+        stripeCheck.addEventListener('change', () => {
+          stripeContainer.style.display = stripeCheck.checked ? 'block' : 'none';
+          document.getElementById('stripe-status-text').textContent = stripeCheck.checked ? 'Activado' : 'Desactivado';
+        });
+      }
+    });
   </script>
 </body>
 </html>
