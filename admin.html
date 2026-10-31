@@ -464,14 +464,24 @@
       }
     }
 
-    function renderizarPedidosAdmin() {
+       function renderizarPedidosAdmin() {
       const tbody = document.getElementById('tabla-pedidos-body');
       if (!pedidosGlobal.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay pedidos.</td></tr>'; document.getElementById('paginacion-pedidos').style.display = 'none'; return; }
       const inicio = (paginaPedidosActual - 1) * pedidosPorPagina;
       const pedidosPagina = pedidosGlobal.slice(inicio, inicio + pedidosPorPagina);
 
       tbody.innerHTML = pedidosPagina.map(p => {
-        const estadoClase = { 'Pendiente': 'background:#fff3cd; color:#856404', 'En preparación': 'background:#cce5ff; color:#004085', 'Listo': 'background:#d4edda; color:#155724', 'Entregado': 'background:#d1ecf1; color:#0c5460' }[p.estado] || 'background:#fff3cd; color:#856404';
+        // 🔥 Nuevos colores para los nuevos estados
+        const estadoClase = { 
+          'Pendiente': 'background:#fff3cd; color:#856404', 
+          'Pagado': 'background:#d4edda; color:#155724', 
+          'En preparación': 'background:#cce5ff; color:#004085', 
+          'Listo': 'background:#d1ecf1; color:#0c5460', 
+          'En reparto': 'background:#e2e3e5; color:#383d41',
+          'Entregado': 'background:#27ae60; color:#ffffff', 
+          'Cancelado': 'background:#f8d7da; color:#721c24' 
+        }[p.estado] || 'background:#fff3cd; color:#856404';
+
         return `<tr style="border-bottom: 1px solid #eee;">
           <td style="padding:12px; font-weight:bold;">${esc(p.order_id)}</td>
           <td style="padding:12px;">${esc(p.nombre_cliente)}<br><small>${esc(p.telefono || '')}</small></td>
@@ -481,9 +491,12 @@
           <td style="padding:12px;">
             <select onchange="cambiarEstadoPedido('${esc(p.order_id)}', this.value)" style="padding:5px; font-size:0.8rem; margin-bottom:5px; width:100%;">
               <option value="Pendiente" ${p.estado==='Pendiente'?'selected':''}>Pendiente</option>
+              <option value="Pagado" ${p.estado==='Pagado'?'selected':''}>Pagado</option>
               <option value="En preparación" ${p.estado==='En preparación'?'selected':''}>En preparación</option>
               <option value="Listo" ${p.estado==='Listo'?'selected':''}>Listo</option>
+              <option value="En reparto" ${p.estado==='En reparto'?'selected':''}>En reparto</option>
               <option value="Entregado" ${p.estado==='Entregado'?'selected':''}>Entregado</option>
+              <option value="Cancelado" ${p.estado==='Cancelado'?'selected':''}>Cancelado</option>
             </select>
             <button onclick="imprimirTicket('${esc(p.order_id)}')" style="width:100%; padding:5px; border:none; border-radius:5px; background:#3498db; color:white; cursor:pointer;">🖨️ Ticket</button>
           </td>
