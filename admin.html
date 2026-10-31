@@ -379,10 +379,30 @@
       cont.innerHTML = productosGlobal.map(p => `<div class="card"><img src="${p.imagen_url || ''}"><div class="card-body"><h3>${esc(p.nombre)}</h3><div class="price">${moneda(precioNum(p.precio))}</div><div class="card-actions"><button class="btn-edit" onclick="editarProducto('${p.id}')" style="background:#3498db;">✏️ Editar</button><button class="btn-delete" onclick="eliminarProducto('${p.id}')" style="background:#e74c3c;">🗑️ Borrar</button></div></div></div>`).join('');
     }
     function abrirModalNuevo() { document.getElementById('modal-title').textContent = 'Nuevo Producto'; document.getElementById('prod-id-original').value = ''; document.getElementById('prod-id').value = 'Automático'; document.getElementById('prod-nombre').value = ''; document.getElementById('prod-precio').value = ''; document.getElementById('prod-categoria').value = 'Pizzas'; document.getElementById('prod-desc').value = ''; document.getElementById('prod-ingredientes').value = ''; document.getElementById('prod-imagen').value = ''; document.getElementById('prod-disponible').checked = true; document.getElementById('preview-prod').style.display = 'none'; document.getElementById('modal-producto').style.display = 'flex'; }
-    function editarProducto(id) {
-      const p = productosGlobal.find(x => String(x.id) === String(id)); if (!p) return;
-      document.getElementById('modal-title').textContent = 'Editar Producto'; document.getElementById('prod-id-original').value = p.id; document.getElementById('prod-id').value = p.id; document.getElementById('prod-nombre').value = p.nombre || ''; document.getElementById('prod-precio').value = p.precio || ''; document.getElementById('prod-categoria').value = p.categoria || 'Pizzas'; document.getElementById('prod-desc').value = p.descripcion || ''; document.getElementById('prod-ingredientes').value = p.ingredientes || ''; document.getElementById('prod-imagen').value = p.imagen_url || ''; document.getElementById('prod-disponible').checked = !!p.disponible;
-      if (p.imagen_url) { document.getElementById('preview-prod').src = p.imagen_url; document.getElementById('preview-prod').style.display = 'block'; } else { document.getElementById('preview-prod').style.display = 'none'; }
+  function editarProducto(id) {
+      const p = productosGlobal.find(x => String(x.id) === String(id)); 
+      if (!p) return;
+      
+      document.getElementById('modal-title').textContent = 'Editar Producto'; 
+      document.getElementById('prod-id-original').value = p.id; 
+      document.getElementById('prod-id').value = p.id; 
+      document.getElementById('prod-nombre').value = p.nombre || ''; 
+      document.getElementById('prod-precio').value = p.precio || ''; 
+      document.getElementById('prod-categoria').value = p.categoria || 'Pizzas'; 
+      document.getElementById('prod-desc').value = p.descripcion || ''; 
+      document.getElementById('prod-ingredientes').value = p.ingredientes || ''; 
+      document.getElementById('prod-imagen').value = p.imagen_url || ''; 
+      
+      // 🔥 AQUÍ ESTÁ EL ARREGLO: Evaluación estricta del booleano
+      document.getElementById('prod-disponible').checked = (p.disponible === true || p.disponible === 'true'); 
+      
+      if (p.imagen_url) { 
+        document.getElementById('preview-prod').src = p.imagen_url; 
+        document.getElementById('preview-prod').style.display = 'block'; 
+      } else { 
+        document.getElementById('preview-prod').style.display = 'none'; 
+      }
+      
       document.getElementById('modal-producto').style.display = 'flex';
     }
         async function guardarProducto() {
