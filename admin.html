@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel de Administración</title>
+  <script src="auth.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root { --primary: #c0392b; --secondary: #27ae60; --bg: #f4f7f6; --text: #333; }
@@ -306,22 +307,57 @@
     }
 
     async function login() {
-      const email = document.getElementById('login-email').value.trim(), pass = document.getElementById('login-pass').value, btn = document.querySelector('#login-screen button');
+      const email = document.getElementById('login-email').value.trim();
+      const pass = document.getElementById('login-pass').value;
+      const btn = document.querySelector('#login-screen button');
       btn.textContent = 'Verificando...';
+
       try {
-        const response = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', { method: 'POST', headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: pass }) });
+        const response = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', { 
+          method: 'POST', 
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' }, 
+          body: JSON.stringify({ email, password: pass }) 
+        });
+        
         if (!response.ok) throw new Error('Credenciales incorrectas');
         await response.json();
+        
         const perfiles = await fetchSupabase(`/rest/v1/perfiles?email=eq.${email}`);
         let nombreMostrar = email, rolReal = 'empleado';
-        if (perfiles && perfiles.length > 0) { rolReal = perfiles[0].rol || 'empleado'; nombreMostrar = perfiles[0].nombre || email; }
-        if (email === 'isahyles123@gmail.com') { rolReal = 'admin'; nombreMostrar = nombreMostrar === email ? 'Súper Admin' : nombreMostrar; }
-        if (rolReal === 'cocina') { window.location.href = 'cocina.html'; return; }
-        document.getElementById('login-screen').style.display = 'none'; document.getElementById('sidebar').classList.remove('hidden-panel'); document.getElementById('main-panel').classList.remove('hidden-panel');
-        document.getElementById('user-display-name').textContent = nombreMostrar; document.getElementById('user-display-role').textContent = rolReal;
+        
+        if (perfiles && perfiles.length > 0) { 
+          rolReal = perfiles[0].rol || 'empleado'; 
+          nombreMostrar = perfiles[0].nombre || email; 
+        }
+        
+        if (email === 'isahyles123@gmail.com') { 
+          rolReal = 'admin'; 
+          nombreMostrar = nombreMostrar === email ? 'Súper Admin' : nombreMostrar; 
+        }
+
+        // 🔥 GUARDAMOS LA SESIÓN SEGURA AQUÍ (Justo antes de redirigir)
+        AuthGuard.saveSession(email, rolReal);
+
+        if (rolReal === 'cocina') { 
+          window.location.href = 'cocina.html'; 
+          return; 
+        }
+        
+        document.getElementById('login-screen').style.display = 'none'; 
+        document.getElementById('sidebar').classList.remove('hidden-panel'); 
+        document.getElementById('main-panel').classList.remove('hidden-panel');
+        document.getElementById('user-display-name').textContent = nombreMostrar; 
+        document.getElementById('user-display-role').textContent = rolReal;
+        
         document.querySelectorAll('.admin-only').forEach(el => el.style.display = (rolReal === 'admin') ? 'block' : 'none');
+        
         cargarProductos(); cargarConfiguracion(); cargarPedidos(); cargarSlides(); cargarResenas(); cargarUsuarios();
-      } catch (error) { document.getElementById('login-msg').textContent = error.message; document.getElementById('login-msg').style.display = 'block'; btn.textContent = 'Entrar al Panel'; }
+        
+      } catch (error) { 
+        document.getElementById('login-msg').textContent = error.message; 
+        document.getElementById('login-msg').style.display = 'block'; 
+        btn.textContent = 'Entrar al Panel'; 
+      }
     }
 
     function logout() { location.reload(); }
