@@ -439,7 +439,7 @@
       try { 
         if (idOriginal) { 
           // Usamos PATCH directo
-          const response = await fetch(`${SUPABASE_URL}/rest/v1/productos?nombre=eq.${encodeURIComponent(nombre)}`, {
+           const response = await fetch(`${SUPABASE_URL}/rest/v1/productos?id=eq.${idOriginal}`, {
             method: 'PATCH',
             headers: { 
               'apikey': SUPABASE_ANON_KEY, 
