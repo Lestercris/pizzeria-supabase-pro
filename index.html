@@ -262,7 +262,8 @@
 
     async function cargarProductos() {
       try {
-        const response = await fetch(SUPABASE_URL + '/rest/v1/productos?select=*&disponible=eq.true', {
+        // 🔥 AÑADIDO '&t=' + Date.now() PARA ROMPER LA CACHÉ
+        const response = await fetch(SUPABASE_URL + '/rest/v1/productos?select=*&disponible=eq.true&t=' + Date.now(), {
           headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
         });
         const data = await response.json();
@@ -275,8 +276,7 @@
         document.getElementById('catalogo').innerHTML = '<p style="color:red">Error al conectar con Supabase.</p>';
       }
     }
-    
-    async function cargarConfig() {
+        async function cargarConfig() {
       // 1. Textos por defecto por si falla el internet
       let config = {
         nombre_negocio: 'Pizzería Hermanos Rivas',
@@ -288,7 +288,8 @@
 
       // 2. Intentamos buscar los datos reales en Supabase
       try {
-        const response = await fetch(SUPABASE_URL + '/rest/v1/configuracion?select=*', {
+        // 🔥 AÑADIDO '&t=' + Date.now() PARA ROMPER LA CACHÉ
+        const response = await fetch(SUPABASE_URL + '/rest/v1/configuracion?select=*&t=' + Date.now(), {
           headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
         });
         const data = await response.json();
@@ -352,7 +353,8 @@
           mapaContainer.style.display = 'block';
         }
       }
-    }   
+    }
+   
     async function cargarSlides() {
       try {
         const response = await fetch(SUPABASE_URL + '/rest/v1/slides?select=*&activo=eq.true&order=orden', {
@@ -636,9 +638,10 @@
         }
       }
     }
-    async function cargarResenasPublicas() {
+     async function cargarResenasPublicas() {
       try {
-        const response = await fetch(SUPABASE_URL + '/rest/v1/resenas?select=*&aprobada=eq.true&order=fecha.desc&limit=5', {
+        // 🔥 AÑADIDO '&t=' + Date.now() PARA ROMPER LA CACHÉ
+        const response = await fetch(SUPABASE_URL + '/rest/v1/resenas?select=*&aprobada=eq.true&order=fecha.desc&limit=5&t=' + Date.now(), {
           headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
         });
         const data = await response.json();
@@ -665,6 +668,7 @@
         console.error("Error reseñas:", error); 
       }
     }
+    
     async function enviarResena(btn) {
       const nombre = document.getElementById('res-nombre').value.trim();
       const estrellas = document.getElementById('res-estrellas').value;
