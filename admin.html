@@ -384,7 +384,7 @@
       if (p.imagen_url) { document.getElementById('preview-prod').src = p.imagen_url; document.getElementById('preview-prod').style.display = 'block'; } else { document.getElementById('preview-prod').style.display = 'none'; }
       document.getElementById('modal-producto').style.display = 'flex';
     }
-     async function guardarProducto() {
+         async function guardarProducto() {
       const idOriginal = document.getElementById('prod-id-original').value; 
       const nombre = document.getElementById('prod-nombre').value.trim(); 
       const precio = precioNum(document.getElementById('prod-precio').value); 
@@ -393,31 +393,64 @@
       const ingredientes = document.getElementById('prod-ingredientes').value.trim(); 
       const imagen_url = document.getElementById('prod-imagen').value.trim(); 
       
-      // 🔥 FORZAMOS EL BOOLEANO ESTRICTO
-      const disponible = document.getElementById('prod-disponible').checked === true; 
+      // 🔥 FORZAMOS EL BOOLEANO: Si el checkbox está marcado, es true; si no, es false.
+      const checkbox = document.getElementById('prod-disponible');
+      const disponible = checkbox.checked ? true : false; 
 
       if (!nombre || precio <= 0) { 
         mostrarAlerta('Nombre y precio obligatorios.', 'error'); 
         return; 
       }
 
-      const payload = { nombre, precio, categoria, descripcion, ingredientes, imagen_url, disponible };
+      // Creamos el objeto con tipos estrictos
+      const payload = { 
+        nombre: String(nombre), 
+        precio: Number(precio), 
+        categoria: String(categoria), 
+        descripcion: String(descripcion), 
+        ingredientes: String(ingredientes), 
+        imagen_url: String(imagen_url), 
+        disponible: Boolean(disponible) // 🔥 Forzado a booleano
+      };
 
       try { 
         if (idOriginal) { 
-          await fetchSupabase(`/rest/v1/productos?id=eq.${idOriginal}`, { method: 'PATCH', body: JSON.stringify(payload) }); 
+          // Usamos el fetch directo con JSON.stringify para asegurar el formato
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/productos?id=eq.${idOriginal}`, {
+            method: 'PATCH',
+            headers: { 
+              'apikey': SUPABASE_ANON_KEY, 
+              'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 
+              'Content-Type': 'application/json',
+              'Prefer': 'return=representation'
+            },
+            body: JSON.stringify(payload)
+          });
+          if (!res.ok) throw new Error('Error al actualizar en Supabase');
+          
           mostrarAlerta('Producto actualizado.'); 
         } else { 
-          await fetchSupabase('/rest/v1/productos', { method: 'POST', body: JSON.stringify(payload) }); 
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/productos`, {
+            method: 'POST',
+            headers: { 
+              'apikey': SUPABASE_ANON_KEY, 
+              'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 
+              'Content-Type': 'application/json',
+              'Prefer': 'return=representation'
+            },
+            body: JSON.stringify(payload)
+          });
+          if (!res.ok) throw new Error('Error al crear en Supabase');
+          
           mostrarAlerta('Producto creado.'); 
         } 
+        
         document.getElementById('modal-producto').style.display = 'none'; 
         cargarProductos(); 
       } catch (error) { 
-        mostrarAlerta('Error al guardar: ' + error.message, 'error'); 
+        mostrarAlerta('Error: ' + error.message, 'error'); 
       }
     }
-
     async function subirImagenProducto(input) { 
       const file = input.files[0]; if (!file) return; 
       try { 
