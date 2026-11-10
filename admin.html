@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel de Administración</title>
   
-  <!-- Seguridad y librerías externas (con defer para evitar bloqueos) -->
+  <!-- Seguridad y librerías externas -->
   <script src="auth.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" defer></script>
   
@@ -43,8 +43,11 @@
     <button onclick="mostrarSeccion('pedidos', event)">📋 Pedidos</button>
     <button onclick="mostrarSeccion('slider', event)">🖼️ Slider</button>
     <button onclick="mostrarSeccion('resenas', event)">⭐ Reseñas</button>
-    <button class="admin-only" id="btn-config" onclick="mostrarSeccion('configuracion', event)">⚙️ Configuración</button>
-    <button class="admin-only" id="btn-usuarios" onclick="mostrarSeccion('usuarios', event)">👥 Usuarios</button>
+    
+    <!-- 🔥 PESTAÑAS CRÍTICAS (Solo Súper Admin) -->
+    <button class="super-admin-only" id="btn-config" onclick="mostrarSeccion('configuracion', event)" style="display:none;">⚙️ Configuración</button>
+    <button class="super-admin-only" id="btn-usuarios" onclick="mostrarSeccion('usuarios', event)" style="display:none;">👥 Usuarios</button>
+    
     <button class="logout" onclick="logout()">🚪 Cerrar Sesión</button>
   </div>
 
@@ -286,11 +289,9 @@
       </div>
     </div>
   </div>
-   <!-- SCRIPTS DE LA APLICACIÓN -->
-  <script src="admin-core.js"></script>
-  <script src="admin-productos.js"></script>
-  <script src="admin-pedidos.js"></script>
-  <script src="admin-extra.js"></script>
+
+  <!-- SCRIPTS DE LA APLICACIÓN -->
+  <script src="admin-app.js"></script>
   <script src="admin-mobile.js"></script>
   <script src="admin-ticket.js"></script>
 </body>
