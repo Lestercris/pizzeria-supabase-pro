@@ -102,7 +102,8 @@ async function login() {
     document.getElementById('user-display-role').textContent = rolReal;
     
     // Mostramos las opciones de admin solo si el rol es 'admin'
-    document.querySelectorAll('.admin-only').forEach(el => el.style.display = (rolReal === 'admin') ? 'block' : 'none');
+   document.querySelectorAll('.admin-only').forEach(el => el.style.display = (rolReal === 'admin' || rolReal === 'super_admin') ? 'block' : 'none');
+  document.querySelectorAll('.super-admin-only').forEach(el => el.style.display = (rolReal === 'super_admin') ? 'block' : 'none');
     
     // 🔥 2. RETRASO DE SEGURIDAD: Esperamos 500ms a que el token se guarde bien antes de pedir los datos
         // 🔥 RETRASO DE SEGURIDAD (500ms)
@@ -805,8 +806,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('user-display-name').textContent = session.email;
     document.getElementById('user-display-role').textContent = session.rol;
     
-    if (session.rol === 'admin') {
+      if (session.rol === 'admin' || session.rol === 'super_admin') {
         document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+     }
+         if (session.rol === 'super_admin') {
+        document.querySelectorAll('.super-admin-only').forEach(el => el.style.display = 'block');
     }
 
     // Lógica del checkbox de Stripe
