@@ -796,9 +796,8 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Ocultamos el login
+    // Ocultamos el login y mostramos el panel
     document.getElementById('login-screen').style.display = 'none';
-    // Mostramos el panel
     document.getElementById('sidebar').classList.remove('hidden-panel');
     document.getElementById('main-panel').classList.remove('hidden-panel');
     
@@ -806,10 +805,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('user-display-name').textContent = session.email;
     document.getElementById('user-display-role').textContent = session.rol;
     
-      if (session.rol === 'admin' || session.rol === 'super_admin') {
+    // 🔥 CONTROL DE PERMISOS
+    if (session.rol === 'admin' || session.rol === 'super_admin') {
         document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
-     }
-         if (session.rol === 'super_admin') {
+    }
+    if (session.rol === 'super_admin') {
         document.querySelectorAll('.super-admin-only').forEach(el => el.style.display = 'block');
     }
 
@@ -823,7 +823,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-       // 🔥 Le damos medio segundo al navegador para que guarde el token antes de pedir datos
+    // Le damos medio segundo al navegador para que guarde el token antes de pedir datos
     setTimeout(() => {
       cargarProductos(); 
       cargarConfiguracion(); 
